@@ -13,7 +13,6 @@ import {
   CheckIcon,
   CopyIcon,
   DownloadIcon,
-  FileSearchIcon,
   FileTextIcon,
   MoonIcon,
   PaperclipIcon,
@@ -276,19 +275,14 @@ export default function Home() {
     <div className="flex h-dvh flex-col bg-background">
       <header className="relative z-10 border-b bg-background/80 backdrop-blur">
         <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3 px-4 py-3">
-          <div className="flex min-w-0 flex-1 items-center gap-3">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <FileSearchIcon className="size-5" />
-            </div>
-            <div className="min-w-0">
-              <h1 className="truncate font-semibold text-sm">
-                Upstage Document Agent
-              </h1>
-              <p className="truncate text-muted-foreground text-xs">
-                Solar Pro 4 · Document Parse · Information Extract · Studio
-                Agents
-              </p>
-            </div>
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate font-semibold text-primary text-sm">
+              보라보라
+            </h1>
+            <p className="truncate text-muted-foreground text-xs">
+              Solar Pro 4 · Document Parse · Information Extract · Studio
+              Agents
+            </p>
           </div>
           <div className="relative z-20 flex shrink-0 items-center gap-1">
             {messages.length > 0 && (
@@ -296,7 +290,7 @@ export default function Home() {
                 <ConversationDownload
                   aria-label="대화 내보내기"
                   className="static top-auto right-auto size-7 rounded-lg border-transparent bg-transparent shadow-none hover:bg-muted dark:bg-transparent dark:hover:bg-muted/50"
-                  filename="upstage-document-agent-chat.md"
+                  filename="borabora-chat.md"
                   messages={messages}
                   size="icon-sm"
                   variant="ghost"
@@ -323,9 +317,6 @@ export default function Home() {
           {messages.length === 0 ? (
             <div className="flex min-h-[55dvh] flex-col items-center justify-center gap-8 px-4 text-center">
               <div className="flex flex-col items-center gap-3">
-                <div className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                  <FileSearchIcon className="size-7" />
-                </div>
                 <h2 className="font-semibold text-xl">
                   문서를 첨부하고 무엇이든 물어보세요
                 </h2>

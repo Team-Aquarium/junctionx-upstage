@@ -15,9 +15,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Upstage Document Agent",
+  title: "보라보라",
   description:
-    "Solar Pro 4 툴콜링으로 Upstage Document Parse · Information Extract · Studio Agents를 호출하는 문서 에이전트 파이프라인",
+    "Solar Pro 4 툴콜링으로 Upstage Document Parse · Information Extract · Studio Agents를 호출하는 문서 에이전트, 보라보라",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
