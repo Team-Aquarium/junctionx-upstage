@@ -4,6 +4,7 @@ import { useChat } from "@ai-sdk/react";
 import {
   DefaultChatTransport,
   isStaticToolUIPart,
+  type FileUIPart,
   type UIMessage,
 } from "ai";
 import {
@@ -49,6 +50,7 @@ import {
   PromptInputButton,
   PromptInputFooter,
   PromptInputHeader,
+  PromptInputProvider,
   PromptInputSelect,
   PromptInputSelectContent,
   PromptInputSelectItem,
@@ -183,6 +185,55 @@ function AttachButton() {
   );
 }
 
+async function toSendableFiles(
+  files: (FileUIPart & { id: string })[],
+): Promise<FileUIPart[]> {
+  return Promise.all(
+    files.map(async ({ id: _id, ...item }) => {
+      if (!item.url?.startsWith("blob:")) {
+        return item;
+      }
+      try {
+        const response = await fetch(item.url);
+        const blob = await response.blob();
+        const dataUrl = await new Promise<string | null>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = () => resolve(null);
+          reader.readAsDataURL(blob);
+        });
+        return { ...item, url: dataUrl ?? item.url };
+      } catch {
+        return item;
+      }
+    }),
+  );
+}
+
+function PromptSuggestions({
+  onSend,
+}: {
+  onSend: (text: string, files: FileUIPart[]) => void;
+}) {
+  const attachments = usePromptInputAttachments();
+
+  return (
+    <Suggestions className="mb-3">
+      {SUGGESTIONS.map((suggestion) => (
+        <Suggestion
+          key={suggestion}
+          onClick={async (text) => {
+            const files = await toSendableFiles(attachments.files);
+            onSend(text, files);
+            attachments.clear();
+          }}
+          suggestion={suggestion}
+        />
+      ))}
+    </Suggestions>
+  );
+}
+
 export default function Home() {
   const { messages, sendMessage, status, stop, regenerate, setMessages, error, clearError } =
     useChat({
@@ -221,10 +272,11 @@ export default function Home() {
   };
 
   return (
+    <PromptInputProvider>
     <div className="flex h-dvh flex-col bg-background">
-      <header className="border-b bg-background/80 backdrop-blur">
+      <header className="relative z-10 border-b bg-background/80 backdrop-blur">
         <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3 px-4 py-3">
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
             <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <FileSearchIcon className="size-5" />
             </div>
@@ -238,11 +290,12 @@ export default function Home() {
               </p>
             </div>
           </div>
-          <div className="flex shrink-0 items-center gap-1">
+          <div className="relative z-20 flex shrink-0 items-center gap-1">
             {messages.length > 0 && (
               <>
                 <ConversationDownload
                   aria-label="대화 내보내기"
+                  className="static top-auto right-auto size-7 rounded-lg border-transparent bg-transparent shadow-none hover:bg-muted dark:bg-transparent dark:hover:bg-muted/50"
                   filename="upstage-document-agent-chat.md"
                   messages={messages}
                   size="icon-sm"
@@ -429,15 +482,11 @@ export default function Home() {
           </div>
         )}
         {messages.length === 0 && (
-          <Suggestions className="mb-3">
-            {SUGGESTIONS.map((suggestion) => (
-              <Suggestion
-                key={suggestion}
-                onClick={(text) => sendMessage({ text }, { body: requestBody })}
-                suggestion={suggestion}
-              />
-            ))}
-          </Suggestions>
+          <PromptSuggestions
+            onSend={(text, files) =>
+              sendMessage({ text, files }, { body: requestBody })
+            }
+          />
         )}
         <PromptInput
           accept={ACCEPT_FORMATS}
@@ -495,5 +544,6 @@ export default function Home() {
         </p>
       </div>
     </div>
+    </PromptInputProvider>
   );
 }
