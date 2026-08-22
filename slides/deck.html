@@ -248,60 +248,83 @@
 
 <!-- 2. Problem -->
 <section class="slide">
-  <div class="slide-header">
+  <div class="slide-header" style="margin-bottom:16px;">
     <p class="eyebrow">Problem</p>
     <h1 class="title">Notices are everywhere. Eligibility is not.</h1>
     <p class="sub">Students miss vital opportunities not from lack of listings, but from the exhausting cost of manual reading.</p>
   </div>
 
   <div class="slide-body">
-    <div class="grid2x2">
-      <div class="card">
+    <div style="display:grid;grid-template-columns:440px 1fr;gap:18px;height:100%;">
+      <!-- User Survey Card (3 Questions matched to 3 Pains) -->
+      <div class="card accent" style="padding:18px 20px;justify-content:space-between;">
         <div>
-          <div class="step-num">PAIN 01</div>
-          <h3>Fragmented Document Formats</h3>
-          <ul>
-            <li>Scattered across PDF guidelines, HWP attachments, image posters, and bulletin HTML.</li>
-            <li>Unstructured binary formats that search engines and keyword filters cannot parse.</li>
-          </ul>
+          <div style="display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border-radius:6px;background:var(--primary-soft);border:1px solid var(--primary-border);margin-bottom:8px;">
+            <span style="font-size:10.5px;font-weight:700;color:var(--primary-soft-fg);letter-spacing:0.06em;text-transform:uppercase;">User Survey · N=20 Students (Age 20–21)</span>
+          </div>
+          <h3 style="font-size:15.5px;line-height:1.35;margin-bottom:2px;">“What is most painful when checking notices?”</h3>
+          <p style="font-size:11.5px;color:var(--muted-fg);margin-bottom:10px;">Multiple-choice survey on student notice exploration bottlenecks.</p>
+
+          <!-- Survey Item 1 -> PAIN 01 -->
+          <div class="data-block" style="padding:8px 10px;background:rgba(0,0,0,0.35);margin-bottom:7px;border-color:var(--primary-border);">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:2px;">
+              <span style="font-size:22px;font-weight:800;color:var(--primary-soft-fg);line-height:1;">70%</span>
+              <span style="font-size:11px;color:var(--muted-fg);font-weight:600;">14 / 20 students</span>
+            </div>
+            <div style="font-size:12.5px;color:var(--fg);font-weight:600;line-height:1.35;">Opening attachments & scanning long briefs</div>
+            <div style="font-size:10.5px;color:var(--muted-fg);margin-top:1px;">첨부파일(HWP/PDF/포스터) 열람 및 긴 공고 정독</div>
+          </div>
+
+          <!-- Survey Item 2 -> PAIN 02 -->
+          <div class="data-block" style="padding:8px 10px;background:rgba(0,0,0,0.35);margin-bottom:7px;border-color:var(--primary-border);">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:2px;">
+              <span style="font-size:22px;font-weight:800;color:var(--primary-soft-fg);line-height:1;">65%</span>
+              <span style="font-size:11px;color:var(--muted-fg);font-weight:600;">13 / 20 students</span>
+            </div>
+            <div style="font-size:12.5px;color:var(--fg);font-weight:600;line-height:1.35;">Verifying buried qualification clauses</div>
+            <div style="font-size:10.5px;color:var(--muted-fg);margin-top:1px;">본문 속 흩어진 지원 자격(학년·전공·나이) 확인</div>
+          </div>
+
+          <!-- Survey Item 3 -> PAIN 03 -->
+          <div class="data-block" style="padding:8px 10px;background:rgba(0,0,0,0.35);margin-bottom:0;border-color:var(--primary-border);">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:2px;">
+              <span style="font-size:22px;font-weight:800;color:var(--primary-soft-fg);line-height:1;">55%</span>
+              <span style="font-size:11px;color:var(--muted-fg);font-weight:600;">11 / 20 students</span>
+            </div>
+            <div style="font-size:12.5px;color:var(--fg);font-weight:600;line-height:1.35;">Finding opportunities matching personal profile</div>
+            <div style="font-size:10.5px;color:var(--muted-fg);margin-top:1px;">내 스펙·관심사에 맞는 공고 탐색 & 적합도 비교</div>
+          </div>
         </div>
-        <div class="card-footer-pill">Bottleneck: Format Incompatibility</div>
+        <div class="card-footer-pill" style="color:var(--primary-soft-fg);font-size:11px;margin-top:6px;padding-top:6px;">
+          Empirical Validation: Format, Eligibility & Matching Friction
+        </div>
       </div>
 
-      <div class="card">
-        <div>
-          <div class="step-num">PAIN 02</div>
-          <h3>Buried Qualification Clauses</h3>
-          <ul>
-            <li>Crucial constraints ("under 29", "no 4th years", "IT majors only") hidden deep inside multi-page briefs.</li>
-            <li>Students must inspect every page just to discover they are disqualified.</li>
-          </ul>
+      <!-- 3 Structural Pain Points directly mapped to survey -->
+      <div style="display:grid;grid-template-rows:repeat(3, 1fr);gap:10px;">
+        <div class="card" style="padding:14px 18px;justify-content:center;">
+          <div>
+            <div class="step-num" style="margin-bottom:2px;">PAIN 01 · 70% OF STUDENTS</div>
+            <h3 style="font-size:15px;margin-bottom:3px;">Unstructured PDF, HWP, & Poster Formats</h3>
+            <p style="font-size:12.5px;color:var(--muted-fg);line-height:1.4;">Scattered across attachments and image posters that keyword search engines and bulletin boards cannot parse.</p>
+          </div>
         </div>
-        <div class="card-footer-pill">Bottleneck: Information Opacity</div>
-      </div>
 
-      <div class="card">
-        <div>
-          <div class="step-num">PAIN 03</div>
-          <h3>Exhausting Reading Overhead</h3>
-          <ul>
-            <li>Cross-checking academic status, age, and major takes 15–30 minutes per notice.</li>
-            <li>Evaluating 20+ opportunities requires hours of repetitive, manual toil.</li>
-          </ul>
+        <div class="card" style="padding:14px 18px;justify-content:center;">
+          <div>
+            <div class="step-num" style="margin-bottom:2px;">PAIN 02 · 65% OF STUDENTS</div>
+            <h3 style="font-size:15px;margin-bottom:3px;">Buried Qualification Clauses in Dense Briefs</h3>
+            <p style="font-size:12.5px;color:var(--muted-fg);line-height:1.4;">Crucial rules ("under 29", "no 4th years", "IT only") hidden in multi-page guidelines, discovered only after full reading.</p>
+          </div>
         </div>
-        <div class="card-footer-pill">Bottleneck: Time & Cognitive Burden</div>
-      </div>
 
-      <div class="card">
-        <div>
-          <div class="step-num">PAIN 04</div>
-          <h3>Fragmented Channels & Missed Deadlines</h3>
-          <ul>
-            <li>Notices spread across campus portals, Wevity, and ContestKorea without sync.</li>
-            <li>Crucial application deadlines pass unnoticed with zero personalized tracking.</li>
-          </ul>
+        <div class="card" style="padding:14px 18px;justify-content:center;">
+          <div>
+            <div class="step-num" style="margin-bottom:2px;">PAIN 03 · 55% OF STUDENTS</div>
+            <h3 style="font-size:15px;margin-bottom:3px;">15–30 Min Matching Overhead per Opportunity</h3>
+            <p style="font-size:12.5px;color:var(--muted-fg);line-height:1.4;">Manual cross-checking across dozens of opportunities wastes hours of repetitive work on ineligible competitions.</p>
+          </div>
         </div>
-        <div class="card-footer-pill">Bottleneck: Opportunity Loss</div>
       </div>
     </div>
   </div>
@@ -311,56 +334,64 @@
 
 <!-- 3. Insight -->
 <section class="slide">
-  <div class="slide-header">
+  <div class="slide-header" style="margin-bottom:16px;">
     <p class="eyebrow">Insight</p>
     <h1 class="title">The bottleneck is reading, not listing</h1>
     <p class="sub">Existing aggregators stop at collecting links. The real friction begins after you click.</p>
   </div>
 
   <div class="slide-body">
-    <div class="grid2">
-      <div class="card">
-        <div style="margin-bottom:12px;">
-          <div style="color:var(--red);font-size:12px;font-weight:700;letter-spacing:0.06em;margin-bottom:4px;">EXISTING NOTICE BOARDS</div>
-          <h3>List Aggregators (Wevity, ContestKorea)</h3>
+    <div class="grid2" style="gap:16px;">
+      <div class="card" style="padding:18px 20px;">
+        <div style="margin-bottom:10px;">
+          <div style="color:var(--red);font-size:11px;font-weight:700;letter-spacing:0.06em;margin-bottom:2px;">EXISTING NOTICE BOARDS</div>
+          <h3 style="font-size:17px;">List Aggregators (Wevity, ContestKorea)</h3>
         </div>
         <div>
-          <div class="comp-row">
-            <div class="comp-label">DOCUMENT ACCESS</div>
-            <div class="comp-val">Hands you raw attachments. You must download and read HWP/PDFs yourself.</div>
+          <div class="comp-row" style="padding:9px 12px;margin-bottom:8px;">
+            <div class="comp-label" style="font-size:11px;margin-bottom:2px;">DOCUMENT ACCESS</div>
+            <div class="comp-val" style="font-size:12.5px;">Hands you raw attachments. You must download and read HWP/PDFs yourself.</div>
           </div>
-          <div class="comp-row">
-            <div class="comp-label">ELIGIBILITY CHECK</div>
-            <div class="comp-val">100% manual. User spends 15–30 minutes deciphering complex guideline clauses.</div>
+          <div class="comp-row" style="padding:9px 12px;margin-bottom:8px;">
+            <div class="comp-label" style="font-size:11px;margin-bottom:2px;">ELIGIBILITY CHECK</div>
+            <div class="comp-val" style="font-size:12.5px;">100% manual check. User spends 15–30 minutes deciphering complex clauses.</div>
           </div>
-          <div class="comp-row">
-            <div class="comp-label">RECOMMENDATION</div>
-            <div class="comp-val">Generic category tags with zero awareness of your actual skills or profile.</div>
+          <div class="comp-row" style="padding:9px 12px;margin-bottom:8px;">
+            <div class="comp-label" style="font-size:11px;margin-bottom:2px;">RECOMMENDATION</div>
+            <div class="comp-val" style="font-size:12.5px;">Generic category tags with zero awareness of your actual skills or profile.</div>
+          </div>
+          <div class="comp-row" style="padding:9px 12px;margin-bottom:0;background:rgba(248,113,113,0.08);border-color:rgba(248,113,113,0.25);">
+            <div class="comp-label" style="color:var(--red);font-size:11px;margin-bottom:2px;">TIME TO FIND 5 MATCHING NOTICES (5 BETA TESTERS)</div>
+            <div class="comp-val" style="font-size:12.5px;"><strong style="font-size:15px;color:var(--red);">~23 Minutes</strong> · Manual skimming across 15+ tabs and attachments</div>
           </div>
         </div>
-        <div class="card-footer-pill" style="color:var(--red);">Outcome: Manual Workload Pushed to Student</div>
+        <div class="card-footer-pill" style="color:var(--red);margin-top:10px;padding-top:10px;font-size:12px;">Outcome: 23 min wasted on disqualified briefs</div>
       </div>
 
-      <div class="card accent">
-        <div style="margin-bottom:12px;">
-          <div style="color:var(--primary-soft-fg);font-size:12px;font-weight:700;letter-spacing:0.06em;margin-bottom:4px;">MOABORA DOCUMENT AGENT</div>
-          <h3>Autonomous Document Agent</h3>
+      <div class="card accent" style="padding:18px 20px;">
+        <div style="margin-bottom:10px;">
+          <div style="color:var(--primary-soft-fg);font-size:11px;font-weight:700;letter-spacing:0.06em;margin-bottom:2px;">MOABORA DOCUMENT AGENT</div>
+          <h3 style="font-size:17px;">Autonomous Document Agent</h3>
         </div>
         <div>
-          <div class="comp-row">
-            <div class="comp-label">DOCUMENT ACCESS</div>
-            <div class="comp-val">Upstage AI reads & structures HWP, PDF, and poster images automatically.</div>
+          <div class="comp-row" style="padding:9px 12px;margin-bottom:8px;">
+            <div class="comp-label" style="font-size:11px;margin-bottom:2px;">DOCUMENT ACCESS</div>
+            <div class="comp-val" style="font-size:12.5px;">Upstage AI reads & structures HWP, PDF, and poster images automatically.</div>
           </div>
-          <div class="comp-row">
-            <div class="comp-label">ELIGIBILITY CHECK</div>
-            <div class="comp-val">Instant 6-rule matching (<span class="badge green">Eligible</span> <span class="badge amber">Review</span> <span class="badge red">Ineligible</span>) with explicit reasons.</div>
+          <div class="comp-row" style="padding:9px 12px;margin-bottom:8px;">
+            <div class="comp-label" style="font-size:11px;margin-bottom:2px;">ELIGIBILITY CHECK</div>
+            <div class="comp-val" style="font-size:12.5px;">Instant 6-rule matching (<span class="badge green" style="padding:1px 5px;font-size:10px;">Eligible</span> <span class="badge amber" style="padding:1px 5px;font-size:10px;">Review</span> <span class="badge red" style="padding:1px 5px;font-size:10px;">Ineligible</span>) with explicit reasons.</div>
           </div>
-          <div class="comp-row">
-            <div class="comp-label">RECOMMENDATION</div>
-            <div class="comp-val">Solar Pro 4 calculates personalized fit score (0–100) + tailored rationale.</div>
+          <div class="comp-row" style="padding:9px 12px;margin-bottom:8px;">
+            <div class="comp-label" style="font-size:11px;margin-bottom:2px;">RECOMMENDATION</div>
+            <div class="comp-val" style="font-size:12.5px;">Solar Pro 4 calculates personalized fit score (0–100) + tailored rationale.</div>
+          </div>
+          <div class="comp-row" style="padding:9px 12px;margin-bottom:0;background:rgba(52,211,153,0.08);border-color:rgba(52,211,153,0.25);">
+            <div class="comp-label" style="color:var(--emerald);font-size:11px;margin-bottom:2px;">TIME TO FIND 5 MATCHING NOTICES (5 BETA TESTERS)</div>
+            <div class="comp-val" style="font-size:12.5px;"><strong style="font-size:15px;color:var(--emerald);">~5 Minutes</strong> · <span style="color:var(--emerald);font-weight:700;">78% time saved (4.6× faster)</span> via auto-verdicts & Solar fit</div>
           </div>
         </div>
-        <div class="card-footer-pill" style="color:var(--emerald);">Outcome: Instant Verdict & Submission Checklist</div>
+        <div class="card-footer-pill" style="color:var(--emerald);margin-top:10px;padding-top:10px;font-size:12px;">Outcome: Instant Verdict & Submission Checklist</div>
       </div>
     </div>
   </div>
