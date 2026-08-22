@@ -259,6 +259,9 @@ export const ko = {
     applyOfficial: "공식 접수처 바로가기",
     applyPage: "공고 페이지 바로가기",
     openFile: "원문 파일 열기",
+    openChat: "문서 챗으로 가져가기",
+    openChatPrompt:
+      "첨부한 \"{title}\" 공고를 분석해 주세요. 자격, 일정, 혜택, 준비할 것을 요약해 주세요.",
   },
   chat: {
     title: "AI 문서 챗",
@@ -283,6 +286,8 @@ export const ko = {
     unsupportedType: "지원하지 않는 파일 형식입니다.",
     tooLarge: "파일 크기는 50MB 이하여야 합니다.",
     tooMany: "파일은 최대 5개까지 첨부할 수 있습니다.",
+    attachingNotice: "공고 원문을 첨부하는 중…",
+    attachNoticeFailed: "공고 원문을 첨부하지 못했습니다. 클립 버튼으로 직접 추가해 보세요.",
     footer: "지원 파일: PDF · 이미지 · DOCX · PPTX · XLSX · HWP (최대 50MB) · Powered by Upstage",
     reasoningLevel: "추론 수준",
     reasoningOff: "추론 끄기",

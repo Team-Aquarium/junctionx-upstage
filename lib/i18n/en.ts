@@ -264,6 +264,9 @@ export const en = {
     applyOfficial: "Official application",
     applyPage: "Notice page",
     openFile: "Open source file",
+    openChat: "Open in Document Chat",
+    openChatPrompt:
+      "I attached \"{title}\". Please analyze this notice and summarize eligibility, dates, benefits, and what I should prepare.",
   },
   chat: {
     title: "AI document chat",
@@ -288,6 +291,8 @@ export const en = {
     unsupportedType: "That file type is not supported.",
     tooLarge: "Files must be 50MB or smaller.",
     tooMany: "You can attach up to 5 files.",
+    attachingNotice: "Attaching the notice document…",
+    attachNoticeFailed: "Could not attach the notice document. Try adding it with the paperclip.",
     footer: "Supported: PDF · images · DOCX · PPTX · XLSX · HWP (max 50MB) · Powered by Upstage",
     reasoningLevel: "Reasoning level",
     reasoningOff: "Off",

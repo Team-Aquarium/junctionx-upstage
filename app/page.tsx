@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import {
   ArrowRightIcon,
   BotIcon,
@@ -136,36 +136,40 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:flex lg:flex-row lg:items-stretch lg:gap-0">
             {PIPELINE_FEATURES.map((item, index) => (
-              <div className="relative" key={item.step}>
-                {index < PIPELINE_FEATURES.length - 1 && (
-                  <ArrowRightIcon
-                    aria-hidden
-                    className="pointer-events-none absolute top-10 -right-3 z-10 hidden size-4 text-primary/50 lg:block"
-                  />
-                )}
-                <div className="h-full rounded-2xl border border-border/80 bg-card p-6 shadow-xs transition-all hover:border-primary/40 hover:shadow-md">
-                  <div className="mb-5 flex items-start justify-between gap-3">
-                    <div className="flex size-14 items-center justify-center rounded-xl bg-secondary/80 ring-1 ring-border/70">
-                      <UpstageMark feature={item.feature} size={36} />
+              <Fragment key={item.step}>
+                <div className="min-w-0 lg:flex-1">
+                  <div className="h-full rounded-2xl border border-border/80 bg-card p-6 shadow-xs transition-all hover:border-primary/40 hover:shadow-md">
+                    <div className="mb-5 flex items-start justify-between gap-3">
+                      <div className="flex size-14 items-center justify-center rounded-xl bg-secondary/80 ring-1 ring-border/70">
+                        <UpstageMark feature={item.feature} size={36} />
+                      </div>
+                      <span className="font-mono text-[11px] font-bold tracking-wider text-primary">
+                        {item.node.toUpperCase()}
+                      </span>
                     </div>
-                    <span className="font-mono text-[11px] font-bold tracking-wider text-primary">
-                      {item.node.toUpperCase()}
-                    </span>
-                  </div>
 
-                  <h3 className="font-bold text-base text-foreground mb-1">
-                    {item.title}
-                  </h3>
-                  <p className="text-xs font-medium text-primary mb-2.5">
-                    {t(item.subtitleKey)}
-                  </p>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    {t(item.descKey)}
-                  </p>
+                    <h3 className="font-bold text-base text-foreground mb-1">
+                      {item.title}
+                    </h3>
+                    <p className="text-xs font-medium text-primary mb-2.5">
+                      {t(item.subtitleKey)}
+                    </p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      {t(item.descKey)}
+                    </p>
+                  </div>
                 </div>
-              </div>
+                {index < PIPELINE_FEATURES.length - 1 && (
+                  <div
+                    aria-hidden
+                    className="hidden w-8 shrink-0 items-center justify-center self-center lg:flex"
+                  >
+                    <ArrowRightIcon className="size-4 text-primary/55" />
+                  </div>
+                )}
+              </Fragment>
             ))}
           </div>
         </div>

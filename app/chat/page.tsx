@@ -16,7 +16,7 @@ import {
   PlusIcon,
   RefreshCcwIcon,
 } from "lucide-react";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   Attachment,
@@ -75,7 +75,7 @@ import { Button } from "@/components/ui/button";
 import { useT } from "@/lib/i18n/client";
 
 const ACCEPT_FORMATS =
-  ".pdf,.png,.jpg,.jpeg,.bmp,.tif,.tiff,.heic,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.hwp,.hwpx";
+  ".pdf,.png,.jpg,.jpeg,.bmp,.tif,.tiff,.heic,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.hwp,.hwpx,.html,.htm";
 
 const SUGGESTION_KEYS = [
   "chat.suggestion1",
@@ -172,6 +172,77 @@ async function toSendableFiles(
   );
 }
 
+function filenameFromDisposition(header: string | null, fallback: string) {
+  if (!header) {
+    return fallback;
+  }
+  const utf8 = /filename\*=(?:UTF-8''|utf-8'')([^;]+)/i.exec(header);
+  if (utf8?.[1]) {
+    try {
+      return decodeURIComponent(utf8[1].trim());
+    } catch {
+      return utf8[1].trim();
+    }
+  }
+  const quoted = /filename="([^"]+)"/i.exec(header);
+  if (quoted?.[1]) {
+    return quoted[1];
+  }
+  const bare = /filename=([^;]+)/i.exec(header);
+  if (bare?.[1]) {
+    return bare[1].trim().replace(/^["']|["']$/g, "");
+  }
+  return fallback;
+}
+
+const MEDIA_EXT: Record<string, string> = {
+  "application/pdf": ".pdf",
+  "text/html": ".html",
+  "image/png": ".png",
+  "image/jpeg": ".jpg",
+  "image/webp": ".webp",
+};
+
+function withExtension(name: string, mediaType: string) {
+  if (name.includes(".")) {
+    return name;
+  }
+  return `${name}${MEDIA_EXT[mediaType] ?? ""}`;
+}
+
+async function fetchNoticeFile(noticeId: string, signal: AbortSignal) {
+  const res = await fetch(`/api/files/${noticeId}`, { signal });
+  if (!res.ok) {
+    throw new Error("missing");
+  }
+  const blob = await res.blob();
+  const name = withExtension(
+    filenameFromDisposition(res.headers.get("Content-Disposition"), `notice-${noticeId}`),
+    blob.type,
+  );
+  return new File([blob], name, { type: blob.type || "application/octet-stream" });
+}
+
+function SeedNoticeFile({ file }: { file: File }) {
+  const { add, files } = usePromptInputAttachments();
+  const seededKey = useRef<string | null>(null);
+  const key = `${file.name}:${file.size}:${file.type}`;
+
+  useEffect(() => {
+    if (seededKey.current === key) {
+      return;
+    }
+    if (files.some((item) => item.filename === file.name)) {
+      seededKey.current = key;
+      return;
+    }
+    seededKey.current = key;
+    add([file]);
+  }, [add, file, files, key]);
+
+  return null;
+}
+
 function PromptSuggestions({
   onSend,
 }: {
@@ -211,11 +282,43 @@ function ChatPageInner() {
   const t = useT();
   const searchParams = useSearchParams();
   const initialInput = searchParams.get("q") ?? "";
+  const noticeId = searchParams.get("notice");
   const { messages, sendMessage, status, stop, regenerate, setMessages, error, clearError } =
     useChat({
       transport: new DefaultChatTransport({ api: "/api/chat" }),
     });
   const [fileError, setFileError] = useState<string | null>(null);
+  const [noticeFile, setNoticeFile] = useState<File | null>(null);
+  const [noticeAttach, setNoticeAttach] = useState<"idle" | "loading" | "ready" | "error">(
+    noticeId ? "loading" : "idle",
+  );
+
+  useEffect(() => {
+    if (!noticeId) {
+      setNoticeFile(null);
+      setNoticeAttach("idle");
+      return;
+    }
+
+    const ac = new AbortController();
+    setNoticeFile(null);
+    setNoticeAttach("loading");
+
+    fetchNoticeFile(noticeId, ac.signal)
+      .then((file) => {
+        setNoticeFile(file);
+        setNoticeAttach("ready");
+      })
+      .catch((err: unknown) => {
+        if (err instanceof DOMException && err.name === "AbortError") {
+          return;
+        }
+        setNoticeFile(null);
+        setNoticeAttach("error");
+      });
+
+    return () => ac.abort();
+  }, [noticeId]);
   const [reasoningEffort, setReasoningEffort] = useState<string>("high");
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -262,6 +365,7 @@ function ChatPageInner() {
 
   return (
     <PromptInputProvider initialInput={initialInput}>
+      {noticeFile && <SeedNoticeFile file={noticeFile} />}
       <div className="flex h-[calc(100dvh-4rem)] flex-col bg-background">
         {messages.length > 0 && (
           <div className="mx-auto flex w-full max-w-4xl items-center justify-between px-6 pt-3 pb-2 border-b border-border/60">
@@ -522,7 +626,10 @@ function ChatPageInner() {
           </PromptInput>
 
           <p className="mt-2 text-center text-muted-foreground text-[11px]">
-            {fileError ?? t("chat.footer")}
+            {fileError
+              ?? (noticeAttach === "loading" ? t("chat.attachingNotice") : null)
+              ?? (noticeAttach === "error" ? t("chat.attachNoticeFailed") : null)
+              ?? t("chat.footer")}
           </p>
         </div>
       </div>

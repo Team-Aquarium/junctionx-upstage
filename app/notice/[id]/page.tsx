@@ -28,6 +28,13 @@ import { createDemoNotice, createDemoRecommendation, DEMO_NOTICE_ID } from "@/li
 import { useI18n } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 
+function noticeChatHref(item: AnnouncementWithMatch, prompt: string) {
+  const params = new URLSearchParams();
+  params.set("q", prompt);
+  params.set("notice", item.id);
+  return `/chat?${params.toString()}`;
+}
+
 export default function NoticeDetailPage() {
   const { t, locale } = useI18n();
   const params = useParams();
@@ -249,12 +256,13 @@ export default function NoticeDetailPage() {
                 </div>
                 <Button asChild size="sm" variant="outline">
                   <Link
-                    href={`/chat?q=${encodeURIComponent(
+                    href={noticeChatHref(
+                      item,
                       t("notice.chatPrompt", {
                         title: item.title,
                         items: item.match.reviewItems.map((line) => `• ${line}`).join("\n"),
                       }),
-                    )}`}
+                    )}
                   >
                     <MessageCircleIcon className="size-3.5" />
                     {t("notice.askChat")}
@@ -365,6 +373,18 @@ export default function NoticeDetailPage() {
                     </a>
                   </Button>
                 ) : null}
+
+                <Button asChild className="w-full" size="sm" variant="outline">
+                  <Link
+                    href={noticeChatHref(
+                      item,
+                      t("notice.openChatPrompt", { title: item.title }),
+                    )}
+                  >
+                    <MessageCircleIcon className="size-3.5" />
+                    {t("notice.openChat")}
+                  </Link>
+                </Button>
 
                 {item.sourceFile && (
                   <Button asChild className="w-full" size="sm" variant="outline">
