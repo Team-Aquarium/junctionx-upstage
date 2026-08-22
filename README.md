@@ -71,3 +71,7 @@ npm run dev                  # http://localhost:3000
 - `app/api/chat/route.ts` — 툴 정의 + streamText 루프 (파이프라인 핵심)
 - `lib/upstage.ts` — Upstage REST 클라이언트 (Parse / Extract / Files / Jobs)
 - `app/page.tsx` — AI Elements 챗 UI (첨부, 툴 시각화, 스트리밍)
+
+## License
+
+[GNU Affero General Public License v3.0 or later](LICENSE) — Copyright (C) 2026 Team Aquarium
