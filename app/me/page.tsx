@@ -181,38 +181,39 @@ export default function ProfilePage() {
               <Spinner className="size-5 text-primary" />
             </div>
           ) : (
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
               <div className="space-y-2">
-                <div className="flex items-center gap-2.5">
-                  <h2 className="font-bold text-xl sm:text-2xl text-foreground">
-                    {profile?.name ?? "프로필을 등록해주세요"}
-                  </h2>
-                </div>
+                <h2 className="font-bold text-xl sm:text-2xl text-foreground">
+                  {profile?.name ?? "프로필을 등록해주세요"}
+                </h2>
                 <p className="text-sm text-muted-foreground">
                   {profile
                     ? [profile.university, profile.department].filter(Boolean).join(" · ") ||
                       "소속 정보 없음"
                     : "링크나 증명 서류를 등록하여 맞춤 자격 판정을 시작하세요."}
                 </p>
-                <div className="pt-2 flex items-center gap-3">
-                  <Progress className="h-1.5 w-44" value={completeness} />
-                  <span className="text-xs text-muted-foreground">
-                    완성도 {completeness}%
-                  </span>
-                </div>
               </div>
 
-              {profile && (
-                <Button
-                  disabled={busy !== null}
-                  onClick={reset}
-                  size="sm"
-                  variant="outline"
-                >
-                  <RotateCcwIcon className="size-3.5" />
-                  초기화
-                </Button>
-              )}
+              <div className="flex w-full flex-col gap-3 sm:w-44 sm:shrink-0">
+                {profile && (
+                  <Button
+                    disabled={busy !== null}
+                    onClick={reset}
+                    size="sm"
+                    variant="outline"
+                  >
+                    <RotateCcwIcon className="size-3.5" />
+                    초기화
+                  </Button>
+                )}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-medium text-muted-foreground">프로필 완성도</span>
+                    <span className="font-semibold text-primary">{completeness}%</span>
+                  </div>
+                  <Progress className="h-1.5 w-full bg-secondary" value={completeness} />
+                </div>
+              </div>
             </div>
           )}
         </div>

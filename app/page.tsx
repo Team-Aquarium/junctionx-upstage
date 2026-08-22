@@ -5,7 +5,6 @@ import { useEffect, useMemo, useState } from "react";
 import {
   ArrowRightIcon,
   BotIcon,
-  CheckCircle2Icon,
   FileSearchIcon,
   FileTextIcon,
   LayersIcon,
@@ -254,11 +253,6 @@ export default function LandingPage() {
       <section className="bg-background py-16 sm:py-20">
         <div className="mx-auto w-full max-w-6xl px-6 sm:px-8">
           <div className="relative overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-b from-primary/[0.06] to-primary/[0.02] p-8 sm:p-12 text-center space-y-6">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-              <CheckCircle2Icon className="size-3.5" />
-              스마트한 공고 에이전트 서비스
-            </div>
-
             <div className="max-w-xl mx-auto space-y-3">
               <h2 className="font-bold text-2xl sm:text-3xl tracking-tight text-foreground">
                 나에게 딱 맞는 공고를 지금 찾아보세요

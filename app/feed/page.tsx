@@ -71,6 +71,12 @@ export default function FeedPage() {
     load();
   }, [load]);
 
+  // Solar 추천 id → score/reason 맵 (전체 공고 카드에도 적합도 표시)
+  const recById = useMemo(
+    () => new Map(recommendations.map((r) => [r.id, r])),
+    [recommendations],
+  );
+
   // Recommendations
   const recommended = useMemo(() => {
     const byId = new Map(announcements.map((a) => [a.id, a]));
@@ -153,9 +159,11 @@ export default function FeedPage() {
       if (daysA !== daysB) {
         return daysA - daysB;
       }
-      return b.match.score - a.match.score;
+      const aRecScore = recById.get(a.id)?.score ?? -1;
+      const bRecScore = recById.get(b.id)?.score ?? -1;
+      return bRecScore - aRecScore;
     });
-  }, [announcements, selectedCategory, searchFilters]);
+  }, [announcements, selectedCategory, searchFilters, recById]);
 
   const stats = useMemo(() => {
     const open = announcements.filter((a) => !ddayInfo(a.apply_end).closed);
@@ -345,12 +353,17 @@ export default function FeedPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {visible.map((announcement) => (
-                <AnnouncementCard
-                  item={announcement}
-                  key={announcement.id}
-                />
-              ))}
+              {visible.map((announcement) => {
+                const rec = recById.get(announcement.id);
+                return (
+                  <AnnouncementCard
+                    item={announcement}
+                    key={announcement.id}
+                    recommendReason={rec?.reason}
+                    recommendScore={rec?.score}
+                  />
+                );
+              })}
             </div>
           )}
         </section>

@@ -451,61 +451,59 @@ export default function ChatPage() {
             />
           )}
 
-          <div className="rounded-xl border border-border bg-card p-2 focus-within:border-primary transition-colors">
-            <PromptInput
-              accept={ACCEPT_FORMATS}
-              globalDrop
-              maxFileSize={50 * 1024 * 1024}
-              maxFiles={5}
-              multiple
-              onError={(error) =>
-                setFileError(
-                  error.code === "accept"
-                    ? "지원하지 않는 파일 형식입니다."
-                    : error.code === "max_file_size"
-                      ? "파일 크기는 50MB 이하여야 합니다."
-                      : "파일은 최대 5개까지 첨부할 수 있습니다.",
-                )
-              }
-              onSubmit={handleSubmit}
-            >
-              <InputAttachments />
-              <PromptInputBody>
-                <PromptInputTextarea
-                  className="text-xs placeholder:text-muted-foreground"
-                  placeholder="공고 문서를 첨부하고 질문해보세요..."
-                />
-              </PromptInputBody>
-              <PromptInputFooter>
-                <PromptInputTools>
-                  <AttachButton />
-                  <PromptInputSelect
-                    onValueChange={setReasoningEffort}
-                    value={reasoningEffort}
+          <PromptInput
+            accept={ACCEPT_FORMATS}
+            globalDrop
+            maxFileSize={50 * 1024 * 1024}
+            maxFiles={5}
+            multiple
+            onError={(error) =>
+              setFileError(
+                error.code === "accept"
+                  ? "지원하지 않는 파일 형식입니다."
+                  : error.code === "max_file_size"
+                    ? "파일 크기는 50MB 이하여야 합니다."
+                    : "파일은 최대 5개까지 첨부할 수 있습니다.",
+              )
+            }
+            onSubmit={handleSubmit}
+          >
+            <InputAttachments />
+            <PromptInputBody>
+              <PromptInputTextarea
+                className="text-xs placeholder:text-muted-foreground"
+                placeholder="공고 문서를 첨부하고 질문해보세요..."
+              />
+            </PromptInputBody>
+            <PromptInputFooter>
+              <PromptInputTools>
+                <AttachButton />
+                <PromptInputSelect
+                  onValueChange={setReasoningEffort}
+                  value={reasoningEffort}
+                >
+                  <PromptInputSelectTrigger
+                    aria-label="추론 수준"
+                    className="h-7 gap-1 rounded-md border-border text-xs text-muted-foreground"
                   >
-                    <PromptInputSelectTrigger
-                      aria-label="추론 수준"
-                      className="h-7 gap-1 rounded-md border-border text-xs text-muted-foreground"
-                    >
-                      <BrainIcon className="size-3.5" />
-                      <PromptInputSelectValue />
-                    </PromptInputSelectTrigger>
-                    <PromptInputSelectContent className="rounded-lg border border-border">
-                      {REASONING_OPTIONS.map((option) => (
-                        <PromptInputSelectItem
-                          key={option.value}
-                          value={option.value}
-                        >
-                          {option.label}
-                        </PromptInputSelectItem>
-                      ))}
-                    </PromptInputSelectContent>
-                  </PromptInputSelect>
-                </PromptInputTools>
-                <PromptInputSubmit onStop={stop} status={status} />
-              </PromptInputFooter>
-            </PromptInput>
-          </div>
+                    <BrainIcon className="size-3.5" />
+                    <PromptInputSelectValue />
+                  </PromptInputSelectTrigger>
+                  <PromptInputSelectContent className="rounded-lg border border-border">
+                    {REASONING_OPTIONS.map((option) => (
+                      <PromptInputSelectItem
+                        key={option.value}
+                        value={option.value}
+                      >
+                        {option.label}
+                      </PromptInputSelectItem>
+                    ))}
+                  </PromptInputSelectContent>
+                </PromptInputSelect>
+              </PromptInputTools>
+              <PromptInputSubmit onStop={stop} status={status} />
+            </PromptInputFooter>
+          </PromptInput>
 
           <p className="mt-2 text-center text-muted-foreground text-[11px]">
             {fileError ??

@@ -96,7 +96,6 @@ export default function NoticeDetailPage() {
   }
 
   const dday = ddayInfo(item.apply_end);
-  const matchScore = rec?.score ?? item.match.score;
 
   return (
     <div className="w-full py-10 sm:py-12">
@@ -140,21 +139,18 @@ export default function NoticeDetailPage() {
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_320px]">
           {/* Main Left Content */}
           <div className="space-y-10">
-            {/* AI Recommendation Score Card */}
-            <section className="rounded-xl border border-border bg-card p-6 space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-primary uppercase tracking-wider">
-                  Solar Pro 4 적합도 평가
-                </span>
-                <span className="font-bold text-lg text-primary">
-                  {matchScore > 0 ? matchScore : 85}점
-                </span>
-              </div>
-              <p className="text-sm text-foreground leading-relaxed">
-                {rec?.reason ??
-                  "내 프로필의 전공 및 관심 분야와 본 공고의 모집 요강이 잘 부합합니다."}
-              </p>
-            </section>
+            {/* AI Recommendation Score Card — Solar 추천 결과가 있을 때만 표시 */}
+            {rec && (
+              <section className="rounded-xl border border-border bg-card p-6 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-primary uppercase tracking-wider">
+                    Solar Pro 4 적합도 평가
+                  </span>
+                  <span className="font-bold text-lg text-primary">{rec.score}점</span>
+                </div>
+                <p className="text-sm text-foreground leading-relaxed">{rec.reason}</p>
+              </section>
+            )}
 
             {/* Agent Summary */}
             {item.summary.length > 0 && (
@@ -247,7 +243,7 @@ export default function NoticeDetailPage() {
                 상세 요강
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                <div className="rounded-xl border border-border bg-card p-4">
+                <div className="rounded-xl border border-border bg-card p-4 sm:col-span-2">
                   <span className="text-xs text-muted-foreground block mb-1">접수 기간</span>
                   <p className="font-medium text-foreground">
                     {item.apply_start ?? "?"} ~ {item.apply_end ?? "상시"}

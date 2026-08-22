@@ -89,13 +89,6 @@ export function SiteHeader() {
         {/* Right: Actions */}
         <div className="flex items-center gap-2.5">
           <ThemeToggle />
-          <Link
-            className="flex size-8 items-center justify-center rounded-lg bg-secondary text-xs font-semibold text-foreground hover:bg-muted transition-colors"
-            href="/me"
-            title="프로필"
-          >
-            나
-          </Link>
         </div>
       </div>
     </header>

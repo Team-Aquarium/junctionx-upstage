@@ -89,13 +89,11 @@ export function Hero({ stats }: HeroProps) {
               <span className="font-medium text-foreground">에이전트 분석 카드 예시</span>
               <span>2026_Upstage_챌린지_모집요강.pdf</span>
             </div>
-            <div className="rounded-2xl border border-border/80 bg-card p-1 shadow-xs">
-              <AnnouncementCard
-                item={DEMO_ANNOUNCEMENT}
-                recommendReason="컴퓨터공학 전공 및 AI 프로젝트 이력이 대회 요구 역량과 완벽히 일치합니다."
-                recommendScore={96}
-              />
-            </div>
+            <AnnouncementCard
+              item={DEMO_ANNOUNCEMENT}
+              recommendReason="컴퓨터공학 전공 및 AI 프로젝트 이력이 대회 요구 역량과 완벽히 일치합니다."
+              recommendScore={96}
+            />
           </div>
         </div>
       </div>

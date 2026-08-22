@@ -156,10 +156,8 @@ export function AnnouncementCard({
       <div className="mt-6 pt-4 border-t border-border/60 flex flex-col gap-2">
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>{item.apply_end ? `${item.apply_end} 마감` : "상시 모집"}</span>
-          {(recommendScore !== undefined || item.match.score > 0) && (
-            <span className="font-semibold text-primary">
-              적합도 {recommendScore ?? item.match.score}점
-            </span>
+          {recommendScore !== undefined && (
+            <span className="font-semibold text-primary">적합도 {recommendScore}점</span>
           )}
         </div>
 
