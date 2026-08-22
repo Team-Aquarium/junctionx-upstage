@@ -1,13 +1,23 @@
-name: Publish to Docker
+name: Publish on Docker
+
 on: [push]
+
 jobs:
   build:
+    name: Build
     runs-on: self-hosted
     steps:
-    - run: docker build -t upstage .
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Build a Docker image
+        run: docker build -t moabora .
 
-  run:
+  deploy:
+    name: Deploy
     needs: build
     runs-on: self-hosted
     steps:
-    - run: docker run -dp 3000:3000 --name upstage-run upstage
+      - name: Stop old container
+        run: docker stop moabora-run || true
+      - name: Deploy new container
+        run: docker run -dp 3000:3000 --name moabora-run moabora
