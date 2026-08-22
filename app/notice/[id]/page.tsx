@@ -239,13 +239,22 @@ export default function NoticeDetailPage() {
         </div>
       )}
 
-      {item.sourceFile && (
-        <div className="mt-4">
-          <Button asChild size="sm" variant="outline">
-            <a href={`/api/files/${item.id}`} rel="noreferrer" target="_blank">
-              <FileTextIcon className="size-4" />원문 문서 보기 ({item.sourceFile.name})
-            </a>
-          </Button>
+      {(item.sourceFile || item.sourceUrl) && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {item.sourceFile && (
+            <Button asChild size="sm" variant="outline">
+              <a href={`/api/files/${item.id}`} rel="noreferrer" target="_blank">
+                <FileTextIcon className="size-4" />원문 문서 보기 ({item.sourceFile.name})
+              </a>
+            </Button>
+          )}
+          {item.sourceUrl && (
+            <Button asChild size="sm" variant="outline">
+              <a href={item.sourceUrl} rel="noreferrer" target="_blank">
+                <ExternalLinkIcon className="size-4" />수집 원문 페이지
+              </a>
+            </Button>
+          )}
         </div>
       )}
     </div>

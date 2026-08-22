@@ -58,7 +58,9 @@ app/
   me/page.tsx                 # 프로필 (링크·서류 추가)
   notice/[id]/page.tsx        # 공고 상세 (판정 사유·체크리스트)
   chat/page.tsx               # 문서 챗 (기존 툴콜링 UI)
-  api/ingest/route.ts         # 공고 인제스트 (Studio 에이전트 실행 + 파싱)
+  api/ingest/route.ts         # 공고 인제스트 (파일 업로드 → lib/ingest.ts)
+  api/crawl/route.ts          # 위비티 크롤링 수집 (포스터 이미지 → 같은 파이프라인, 최대 3건/회)
+  api/recommendations/route.ts# Solar 추천 (적합도 점수+이유, 프로필·공고 해시 캐시)
   api/announcements/route.ts  # 공고 목록 + 매칭 판정
   api/profile/route.ts        # 프로필 조회/서류 추출/초기화
   api/profile/link/route.ts   # 개인 링크 → 프로필 추출
@@ -66,8 +68,10 @@ app/
   api/chat/route.ts           # 챗: streamText + 툴 정의 + reasoning 옵션
   layout.tsx                  # ThemeProvider, TooltipProvider, SiteHeader
 lib/
-  upstage.ts                  # Upstage REST 클라이언트 (Parse/Extract/Files/Jobs/파서)
-  store.ts                    # 파일 기반 저장소 (공고·프로필·업로드)
+  upstage.ts                  # Upstage REST 클라이언트 (Parse/Extract/Files/Jobs/파서/추천)
+  ingest.ts                   # 공고 문서 → 에이전트 실행 → Announcement 저장 (공용)
+  crawler.ts                  # 위비티 크롤러 (robots.txt Allow 확인됨, 문서 수집만 담당)
+  store.ts                    # 파일 기반 저장소 (공고·프로필·업로드·추천 캐시)
   matching.ts                 # 공고 × 프로필 자격 판정
 components/
   site-header.tsx             # 전역 헤더 (네비 + 테마 토글)

@@ -58,6 +58,8 @@ export interface Announcement {
   rules: EligibilityRules;
   todo_checklist: string[];
   sourceFile: { name: string; mediaType: string } | null;
+  /** 크롤링으로 수집한 경우 원문 페이지 URL */
+  sourceUrl?: string | null;
   createdAt: string;
 }
 

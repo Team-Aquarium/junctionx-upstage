@@ -3,6 +3,7 @@
 import {
   CheckCircle2Icon,
   FileUpIcon,
+  GlobeIcon,
   UploadCloudIcon,
   XCircleIcon,
 } from "lucide-react";
@@ -30,11 +31,55 @@ interface QueueItem {
 
 const PIPELINE = ["Parse", "Classify", "Extract", "Instruct"] as const;
 
+const CRAWL_SOURCES = [
+  { value: "it", label: "웹/모바일/IT" },
+  { value: "idea", label: "기획/아이디어" },
+  { value: "all", label: "전체 공모전" },
+] as const;
+
+interface CrawlItem {
+  title: string;
+  sourceUrl: string;
+  status: "완료" | "실패" | "건너뜀";
+  error?: string;
+  announcement?: AnnouncementWithMatch;
+}
+
 export default function IngestPage() {
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [running, setRunning] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [crawlSource, setCrawlSource] = useState<string>("it");
+  const [crawlLimit, setCrawlLimit] = useState(2);
+  const [crawlBusy, setCrawlBusy] = useState(false);
+  const [crawlMessage, setCrawlMessage] = useState<string | null>(null);
+  const [crawlItems, setCrawlItems] = useState<CrawlItem[]>([]);
+
+  const runCrawl = async () => {
+    setCrawlBusy(true);
+    setCrawlMessage(null);
+    try {
+      const res = await fetch("/api/crawl", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ source: crawlSource, limit: crawlLimit }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setCrawlMessage(data.error ?? `HTTP ${res.status}`);
+        return;
+      }
+      setCrawlItems((prev) => [...(data.results ?? []), ...prev]);
+      if (data.message) {
+        setCrawlMessage(data.message);
+      }
+    } catch (error) {
+      setCrawlMessage(error instanceof Error ? error.message : String(error));
+    } finally {
+      setCrawlBusy(false);
+    }
+  };
 
   const addFiles = (files: FileList | File[]) => {
     const items = [...files].map((file) => ({ file, status: "대기" as ItemStatus }));
@@ -187,7 +232,88 @@ export default function IngestPage() {
         </div>
       )}
 
-      {doneItems.length > 0 && (
+      <div className="mt-8 rounded-xl border bg-card p-4">
+        <h2 className="flex items-center gap-2 font-semibold text-sm">
+          <GlobeIcon className="size-4 text-primary" />위비티에서 자동 수집
+        </h2>
+        <p className="mt-1 text-muted-foreground text-xs">
+          위비티(wevity.com) 최신 공모전의 포스터 이미지를 가져와 같은 에이전트 파이프라인에
+          태웁니다. 이미 수집한 공고는 건너뜁니다.
+        </p>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <select
+            className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+            disabled={crawlBusy}
+            onChange={(e) => setCrawlSource(e.target.value)}
+            value={crawlSource}
+          >
+            {CRAWL_SOURCES.map((s) => (
+              <option key={s.value} value={s.value}>
+                {s.label}
+              </option>
+            ))}
+          </select>
+          <select
+            className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+            disabled={crawlBusy}
+            onChange={(e) => setCrawlLimit(Number(e.target.value))}
+            value={crawlLimit}
+          >
+            {[1, 2, 3].map((n) => (
+              <option key={n} value={n}>
+                {n}건
+              </option>
+            ))}
+          </select>
+          <Button disabled={crawlBusy} onClick={runCrawl}>
+            {crawlBusy ? (
+              <>
+                <Spinner className="size-4" />
+                수집·분석 중… (건당 30초~2분)
+              </>
+            ) : (
+              "수집 시작"
+            )}
+          </Button>
+        </div>
+        {crawlMessage && (
+          <p className="mt-2 rounded-lg border bg-muted/50 px-3 py-2 text-sm">{crawlMessage}</p>
+        )}
+        {crawlItems.length > 0 && (
+          <ul className="mt-3 space-y-2">
+            {crawlItems.map((item) => (
+              <li
+                className="flex items-center gap-3 rounded-lg border bg-background px-3 py-2"
+                key={item.sourceUrl}
+              >
+                <span className="shrink-0">
+                  {item.status === "완료" ? (
+                    <CheckCircle2Icon className="size-4 text-primary" />
+                  ) : (
+                    <XCircleIcon className="size-4 text-destructive" />
+                  )}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm">{item.title}</p>
+                  {item.error && (
+                    <p className="truncate text-destructive text-xs">{item.error}</p>
+                  )}
+                </div>
+                <a
+                  className="shrink-0 text-muted-foreground text-xs underline underline-offset-2"
+                  href={item.sourceUrl}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  원문
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {(doneItems.length > 0 || crawlItems.some((c) => c.announcement)) && (
         <div className="mt-8">
           <div className="flex items-center justify-between gap-2">
             <h2 className="font-semibold">생성된 공고 카드</h2>
@@ -196,12 +322,11 @@ export default function IngestPage() {
             </Button>
           </div>
           <div className="mt-3 grid gap-4 sm:grid-cols-2">
-            {doneItems.map(
-              (item) =>
-                item.announcement && (
-                  <AnnouncementCard item={item.announcement} key={item.announcement.id} />
-                ),
-            )}
+            {[...crawlItems.map((c) => c.announcement), ...doneItems.map((d) => d.announcement)]
+              .filter((a): a is AnnouncementWithMatch => Boolean(a))
+              .map((announcement) => (
+                <AnnouncementCard item={announcement} key={announcement.id} />
+              ))}
           </div>
         </div>
       )}
