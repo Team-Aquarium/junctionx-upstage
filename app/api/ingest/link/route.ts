@@ -60,6 +60,7 @@ export async function POST(req: Request) {
         mediaType: document.mediaType,
         bytes: document.bytes,
         sourceUrl: url,
+        extras: document.extras,
       },
       emit,
     );

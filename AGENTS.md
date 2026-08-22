@@ -81,6 +81,8 @@ lib/
   ingest.ts                   # 공고 문서 → 에이전트 실행 → Announcement 저장 (공용, 단계 emit)
   crawler.ts                  # 공모전 크롤러: 콘테스트코리아·위비티 (둘 다 robots Allow 확인됨)
                               #  문서 우선순위: 첨부 HWP/PDF > 본문 HTML > 포스터 이미지
+                              #  콘테스트코리아 첨부는 file_dn.php 핸들러(확장자는 앵커 텍스트에)이며
+                              #  첨부가 신청서여도 정보가 빠지지 않게 본문 HTML을 보조 문서로 함께 투입
   store.ts                    # 파일 기반 저장소 (공고·프로필·업로드·추천 캐시)
   matching.ts                 # 공고 × 프로필 자격 판정
 components/

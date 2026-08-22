@@ -137,6 +137,7 @@ export async function POST(req: Request) {
             mediaType: document.mediaType,
             bytes: document.bytes,
             sourceUrl: candidate.detailUrl,
+            extras: document.extras,
           },
           emit,
         );

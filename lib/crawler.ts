@@ -46,12 +46,20 @@ export interface CrawlCandidate {
   detailUrl: string;
 }
 
+export interface CrawlExtraDocument {
+  bytes: Buffer;
+  mediaType: string;
+  filename: string;
+}
+
 export interface CrawlDocument {
   bytes: Buffer;
   mediaType: string;
   filename: string;
   /** 문서를 어떤 경로로 얻었는지: 첨부 공고문 / 본문 HTML / 포스터 이미지 */
   via: string;
+  /** 함께 에이전트에 투입할 보조 문서 (예: 첨부가 신청서일 때 본문 HTML) */
+  extras?: CrawlExtraDocument[];
 }
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -180,26 +188,75 @@ async function fetchContestKoreaList(listUrl: string, limit: number): Promise<Cr
   return items;
 }
 
+/** 파일명으로 첨부 우선순위를 매긴다: 요강·공고문(0) > 일반(1) > 신청서·양식(2) */
+function attachmentPriority(name: string): number {
+  if (/공고|요강|모집|계획|안내|포스터/i.test(name)) {
+    return 0;
+  }
+  if (/신청|지원서|양식|서식|동의|제출/i.test(name)) {
+    return 2;
+  }
+  return 1;
+}
+
+async function fetchContestKoreaAttachment(
+  html: string,
+  detailUrl: string,
+): Promise<CrawlDocument | null> {
+  const candidates = [...html.matchAll(/<a href="([^"]+)"[^>]*>([^<]*\.(?:hwpx?|pdf|docx?))\s*<\/a>/gi)]
+    .map((match) => ({
+      href: match[1].replace(/&amp;/g, "&"),
+      name: stripTags(match[2]).trim(),
+    }))
+    .filter(
+      (candidate) =>
+        candidate.name.length > 0 &&
+        (/file_dn\.php|download/i.test(candidate.href) ||
+          /\.(?:hwpx?|pdf|docx?)(?:\?|$)/i.test(candidate.href)),
+    )
+    .sort((a, b) => attachmentPriority(a.name) - attachmentPriority(b.name));
+
+  for (const candidate of candidates) {
+    try {
+      const fileUrl = new URL(candidate.href, detailUrl).toString();
+      const res = await fetch(encodeURI(decodeURI(fileUrl)), {
+        headers: { "User-Agent": USER_AGENT, Referer: detailUrl },
+        redirect: "follow",
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      });
+      if (!res.ok) {
+        continue;
+      }
+      const contentType = res.headers.get("content-type")?.split(";")[0]?.trim() ?? "";
+      // 다운로드 핸들러가 에러를 HTML로 돌려주는 경우를 거른다.
+      if (/text\/html/i.test(contentType)) {
+        continue;
+      }
+      const bytes = Buffer.from(await res.arrayBuffer());
+      if (bytes.length < 500) {
+        continue;
+      }
+      return {
+        bytes,
+        mediaType: contentType || "application/octet-stream",
+        filename: sanitizeFilename(candidate.name) || "attachment.hwp",
+        via: "첨부 공고문",
+      };
+    } catch {
+      // 다음 후보 시도
+    }
+  }
+  return null;
+}
+
 async function fetchContestKoreaDocument(detailUrl: string): Promise<CrawlDocument | null> {
   const html = await fetchHtml(detailUrl);
   const title =
     stripTags(html.match(/<div class="view_top_area[^>]*>[\s\S]*?<h1>([\s\S]*?)<\/h1>/)?.[1] ?? "") ||
     "contest";
 
-  // 1) 첨부 공고문 (HWP/PDF/DOC) — 진짜 공고 문서가 있으면 최우선으로 쓴다.
-  const attachment = html.match(/href="([^"]+\.(?:hwpx?|pdf|docx?))(?:"|\?)/i);
-  if (attachment) {
-    const doc = await downloadFile(
-      new URL(attachment[1], detailUrl).toString(),
-      detailUrl,
-      "첨부 공고문",
-    );
-    if (doc) {
-      return doc;
-    }
-  }
-
-  // 2) 본문 영역 HTML — 주최·접수기간·시상 테이블과 요강이 풍부하다.
+  // 본문 영역 HTML — 주최·접수기간·시상 테이블과 요강이 풍부하다.
+  let bodyDoc: CrawlExtraDocument | null = null;
   const start = html.indexOf('<div class="view_cont_area');
   if (start >= 0) {
     const section = html.slice(start, start + 80_000);
@@ -207,13 +264,30 @@ async function fetchContestKoreaDocument(detailUrl: string): Promise<CrawlDocume
       const docHtml = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>${title}</title></head><body>${section
         .replace(/<script[\s\S]*?<\/script>/gi, "")
         .replace(/<style[\s\S]*?<\/style>/gi, "")}</body></html>`;
-      return {
+      bodyDoc = {
         bytes: Buffer.from(docHtml, "utf8"),
         mediaType: "text/html",
         filename: `${sanitizeFilename(title)}.html`,
-        via: "본문 HTML",
       };
     }
+  }
+
+  // 1) 첨부 공고문 (HWP/PDF/DOC) — 진짜 공고 문서가 있으면 최우선으로 쓴다.
+  // 콘테스트코리아 첨부는 href에 확장자가 없는 다운로드 핸들러(file_dn.php)이고
+  // 파일명은 앵커 텍스트에 있다: <a href="file_dn.php?...">공고문.hwp</a>
+  // 첨부가 신청서 양식이라 접수기간 등이 빠질 수 있으니 본문 HTML을 보조 문서로 함께 태운다.
+  const attachmentDoc = await fetchContestKoreaAttachment(html, detailUrl);
+  if (attachmentDoc) {
+    return {
+      ...attachmentDoc,
+      via: bodyDoc ? "첨부 공고문 + 본문" : attachmentDoc.via,
+      extras: bodyDoc ? [bodyDoc] : undefined,
+    };
+  }
+
+  // 2) 본문 영역 HTML
+  if (bodyDoc) {
+    return { ...bodyDoc, via: "본문 HTML" };
   }
 
   // 3) 포스터 이미지 폴백

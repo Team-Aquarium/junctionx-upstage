@@ -59,6 +59,8 @@ export interface IngestSource {
   bytes: Buffer;
   /** 크롤링으로 수집한 경우 원문 페이지 URL */
   sourceUrl?: string | null;
+  /** 함께 에이전트에 투입할 보조 문서 (예: 첨부 신청서와 함께 본문 HTML) */
+  extras?: { filename: string; mediaType: string; bytes: Buffer }[];
 }
 
 /**
@@ -76,12 +78,20 @@ export async function ingestAnnouncementDocument(
   }
 
   const id = crypto.randomUUID().slice(0, 8);
-  const doc: StoredDocument = {
-    id,
-    filename: source.filename,
-    mediaType: source.mediaType,
-    url: `data:${source.mediaType};base64,${source.bytes.toString("base64")}`,
-  };
+  const docs: StoredDocument[] = [
+    {
+      id,
+      filename: source.filename,
+      mediaType: source.mediaType,
+      url: `data:${source.mediaType};base64,${source.bytes.toString("base64")}`,
+    },
+    ...(source.extras ?? []).map((extra, index) => ({
+      id: `${id}-extra-${index}`,
+      filename: extra.filename,
+      mediaType: extra.mediaType,
+      url: `data:${extra.mediaType};base64,${extra.bytes.toString("base64")}`,
+    })),
+  ];
 
   const agentStepId = `agent-${id}`;
   const agentTitle = "Studio 에이전트 실행 (Parse → Classify → Extract → Instruct)";
@@ -110,7 +120,7 @@ export async function ingestAnnouncementDocument(
     }
   };
 
-  const run = await runStudioAgentDetailed([doc], agentId, 300_000, (snapshot) => {
+  const run = await runStudioAgentDetailed(docs, agentId, 300_000, (snapshot) => {
     emit?.({
       type: "step",
       id: agentStepId,
