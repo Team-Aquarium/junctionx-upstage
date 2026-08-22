@@ -15,6 +15,7 @@ import {
   AnnouncementCard,
   type AnnouncementWithMatch,
 } from "@/components/announcement";
+import { UpstageBadge } from "@/components/upstage";
 import { useWorkflowStream, WorkflowLog, type WorkflowStep } from "@/components/workflow";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -138,7 +139,10 @@ export default function IngestPage() {
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-8">
-      <h1 className="font-bold text-2xl tracking-tight">공고 등록</h1>
+      <h1 className="flex flex-wrap items-center gap-2.5 font-bold text-2xl tracking-tight">
+        공고 등록
+        <UpstageBadge feature="agents" />
+      </h1>
       <p className="mt-1 text-muted-foreground text-sm">
         공고문 PDF·포스터 이미지·HWP를 올리면 Studio 에이전트(Parse → Classify → Extract →
         Instruct)가 구조화된 공고 카드로 만들어 줍니다. 모든 단계와 중간 산출물이 아래에 실시간으로
@@ -271,8 +275,9 @@ export default function IngestPage() {
       )}
 
       <div className="mt-8 rounded-xl border bg-card p-4">
-        <h2 className="flex items-center gap-2 font-semibold text-sm">
+        <h2 className="flex flex-wrap items-center gap-2 font-semibold text-sm">
           <GlobeIcon className="size-4 text-primary" />공모전 사이트에서 자동 수집
+          <UpstageBadge compact feature="agents" />
         </h2>
         <p className="mt-1 text-muted-foreground text-xs">
           콘테스트코리아·위비티 최신 공모전의 공고 문서(첨부 HWP·PDF → 본문 → 포스터 순)를

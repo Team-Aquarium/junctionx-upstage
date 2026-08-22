@@ -20,6 +20,7 @@ import {
   VerdictBadge,
   type AnnouncementWithMatch,
 } from "@/components/announcement";
+import { UpstageBadge } from "@/components/upstage";
 import { readWorkflowResult } from "@/components/workflow";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -128,7 +129,10 @@ export default function NoticeDetailPage() {
 
       {item.summary.length > 0 && (
         <div className="mt-6 rounded-xl border bg-card p-4">
-          <h2 className="font-semibold text-sm">에이전트 요약</h2>
+          <h2 className="flex items-center gap-2 font-semibold text-sm">
+            에이전트 요약
+            <UpstageBadge compact feature="agents" />
+          </h2>
           <ul className="mt-2 space-y-1.5 text-sm">
             {item.summary.map((line) => (
               <li className="flex gap-2" key={line}>
@@ -181,7 +185,10 @@ export default function NoticeDetailPage() {
 
       <div className="mt-4 rounded-xl border bg-card p-4">
         <div className="flex items-center justify-between gap-2">
-          <h2 className="font-semibold text-sm">자격 판정</h2>
+          <h2 className="flex items-center gap-2 font-semibold text-sm">
+            자격 판정
+            <UpstageBadge compact feature="information-extract" />
+          </h2>
           <VerdictBadge verdict={item.match.verdict} />
         </div>
         <ul className="mt-2 space-y-1.5 text-sm">
@@ -203,6 +210,7 @@ export default function NoticeDetailPage() {
         <div className="mt-4 rounded-xl border border-primary/20 bg-primary/5 p-4">
           <h2 className="flex items-center gap-2 font-semibold text-sm">
             <SparklesIcon className="size-4 text-primary" />AI 추천 — 적합도 {rec.score}
+            <UpstageBadge compact feature="solar" />
           </h2>
           <p className="mt-2 text-sm leading-relaxed">{rec.reason}</p>
         </div>

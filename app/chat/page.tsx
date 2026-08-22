@@ -8,16 +8,13 @@ import {
   type UIMessage,
 } from "ai";
 import {
-  BracesIcon,
   BrainIcon,
   CheckIcon,
   CopyIcon,
   DownloadIcon,
-  FileTextIcon,
   PaperclipIcon,
   PlusIcon,
   RefreshCcwIcon,
-  WorkflowIcon,
 } from "lucide-react";
 import { useState } from "react";
 import {
@@ -99,18 +96,18 @@ const REASONING_OPTIONS = [
 
 const FEATURES = [
   {
-    icon: FileTextIcon,
-    title: "Parse",
+    icon: "/upstage/document-parse.svg",
+    title: "Document Parse",
     description: "PDF·스캔·오피스·HWP 문서를 마크다운으로 구조화",
   },
   {
-    icon: BracesIcon,
-    title: "Extract",
+    icon: "/upstage/information-extract.svg",
+    title: "Information Extract",
     description: "모델이 스키마를 설계해 핵심 필드를 JSON으로 추출",
   },
   {
-    icon: WorkflowIcon,
-    title: "Studio Agent",
+    icon: "/upstage/symbol.png",
+    title: "Studio Agents",
     description: "Parse→Classify→Extract→Instruct 파이프라인 실행",
   },
 ];
@@ -292,7 +289,14 @@ export default function ChatPage() {
                     className="flex flex-col items-center gap-2 rounded-xl border bg-card p-4 text-card-foreground"
                     key={feature.title}
                   >
-                    <feature.icon className="size-5 text-primary" />
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      alt={`Upstage ${feature.title}`}
+                      className="size-8 rounded-lg"
+                      height={32}
+                      src={feature.icon}
+                      width={32}
+                    />
                     <span className="font-medium text-sm">{feature.title}</span>
                     <span className="text-balance text-muted-foreground text-xs">
                       {feature.description}

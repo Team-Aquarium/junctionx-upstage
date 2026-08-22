@@ -7,6 +7,7 @@ import {
   UserRoundIcon,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { UpstageBadge } from "@/components/upstage";
 import { useWorkflowStream, WorkflowLog } from "@/components/workflow";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -120,8 +121,9 @@ export default function ProfilePage() {
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
         <div className="rounded-xl border bg-card p-4">
-          <h2 className="flex items-center gap-2 font-semibold text-sm">
+          <h2 className="flex flex-wrap items-center gap-2 font-semibold text-sm">
             <LinkIcon className="size-4 text-primary" />개인 링크로 추가
+            <UpstageBadge compact feature="solar" />
           </h2>
           <p className="mt-1 text-muted-foreground text-xs">
             GitHub, 블로그, 링크트리, 공개 포트폴리오 (로그인 필요 페이지 불가)
@@ -141,8 +143,9 @@ export default function ProfilePage() {
         </div>
 
         <div className="rounded-xl border bg-card p-4">
-          <h2 className="flex items-center gap-2 font-semibold text-sm">
+          <h2 className="flex flex-wrap items-center gap-2 font-semibold text-sm">
             <FileUpIcon className="size-4 text-primary" />서류로 추가
+            <UpstageBadge compact feature="information-extract" />
           </h2>
           <p className="mt-1 text-muted-foreground text-xs">
             재학증명서·성적증명서 (PDF/이미지) — Information Extract로 추출해요

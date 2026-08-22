@@ -7,6 +7,7 @@ import {
   XCircleIcon,
 } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
+import { featureFromStepTitle, UPSTAGE_FEATURES } from "@/components/upstage";
 import { Spinner } from "@/components/ui/spinner";
 import type { WorkflowEvent } from "@/lib/workflow";
 import { cn } from "@/lib/utils";
@@ -178,6 +179,7 @@ export function WorkflowLog({
       {steps.map((step) => {
         const hasPayload = step.payload !== undefined && step.payload !== null;
         const open = expanded.has(step.id);
+        const feature = featureFromStepTitle(step.title);
         return (
           <div className="rounded-lg border bg-background" key={step.id}>
             <button
@@ -199,6 +201,17 @@ export function WorkflowLog({
                 )}
               </span>
               <span className="min-w-0 flex-1 truncate">{step.title}</span>
+              {feature && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  alt={`Upstage ${UPSTAGE_FEATURES[feature].label}`}
+                  className="size-4 shrink-0 rounded-full"
+                  height={16}
+                  src={UPSTAGE_FEATURES[feature].icon}
+                  title={`Upstage ${UPSTAGE_FEATURES[feature].label}`}
+                  width={16}
+                />
+              )}
               {step.detail && (
                 <span className="shrink-0 text-muted-foreground text-xs">{step.detail}</span>
               )}

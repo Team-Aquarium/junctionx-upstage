@@ -8,6 +8,7 @@ import {
   ddayInfo,
   type AnnouncementWithMatch,
 } from "@/components/announcement";
+import { UpstageBadge } from "@/components/upstage";
 import { useWorkflowStream, WorkflowLog } from "@/components/workflow";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -86,26 +87,50 @@ export default function FeedPage() {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="font-bold text-2xl tracking-tight">공고 피드</h1>
-          <p className="mt-1 text-muted-foreground text-sm">
-            공고문을 던지면 에이전트가 읽고, 내 프로필로 지원 가능 여부까지 판정해요.
-          </p>
+      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--chart-5)] via-[var(--chart-4)] to-[var(--chart-3)] px-6 py-8 text-primary-foreground sm:px-8">
+        <div className="flex flex-wrap items-end justify-between gap-5">
+          <div className="min-w-0">
+            <h1 className="font-bold text-3xl tracking-tight">공고 피드</h1>
+            <p className="mt-2 max-w-lg text-primary-foreground/80 text-sm leading-relaxed">
+              공고문 PDF·포스터·HWP를 던지면 에이전트가 읽어 카드로 만들고, 내 프로필과
+              대조해 지원 가능 여부와 적합도까지 판정합니다.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-1.5">
+              {(["document-parse", "information-extract", "solar", "agents"] as const).map(
+                (feature) => (
+                  <UpstageBadge
+                    className="border-primary-foreground/25 bg-primary-foreground/10 text-primary-foreground"
+                    compact
+                    feature={feature}
+                    key={feature}
+                  />
+                ),
+              )}
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              asChild
+              className="border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20"
+              size="sm"
+              variant="outline"
+            >
+              <Link href="/me">
+                <UserRoundIcon className="size-4" />내 프로필
+              </Link>
+            </Button>
+            <Button
+              asChild
+              className="bg-primary-foreground text-[var(--chart-4)] hover:bg-primary-foreground/90"
+              size="sm"
+            >
+              <Link href="/ingest">
+                <FilePlusIcon className="size-4" />공고 등록
+              </Link>
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button asChild size="sm" variant="outline">
-            <Link href="/me">
-              <UserRoundIcon className="size-4" />내 프로필
-            </Link>
-          </Button>
-          <Button asChild size="sm">
-            <Link href="/ingest">
-              <FilePlusIcon className="size-4" />공고 등록
-            </Link>
-          </Button>
-        </div>
-      </div>
+      </section>
 
       {!loading && !hasProfile && (
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3">
@@ -126,6 +151,7 @@ export default function FeedPage() {
           <div className="flex items-center justify-between gap-2">
             <h2 className="flex items-center gap-2 font-semibold text-lg">
               <SparklesIcon className="size-4.5 text-primary" />나에게 맞는 공고
+              <UpstageBadge compact feature="solar" />
             </h2>
             {!recLoading && recWf.steps.length > 0 && (
               <button
@@ -168,7 +194,10 @@ export default function FeedPage() {
       )}
 
       {!loading && announcements.length > 0 && (
-        <h2 className="mt-8 font-semibold text-lg">전체 공고</h2>
+        <h2 className="mt-8 flex items-center gap-2 font-semibold text-lg">
+          전체 공고
+          <UpstageBadge compact feature="agents" />
+        </h2>
       )}
 
       {categories.length > 1 && (
