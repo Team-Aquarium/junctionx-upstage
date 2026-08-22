@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { extractInformation, type StoredDocument } from "@/lib/upstage";
 import { clearProfile, getProfile, mergeProfile, saveProfile } from "@/lib/store";
-import { workflowStream } from "@/lib/workflow";
+import { runWorkflowSession } from "@/lib/workflow-session";
 
 export const maxDuration = 120;
 
@@ -38,7 +38,8 @@ export async function POST(req: Request) {
     url: `data:${mediaType};base64,${bytes.toString("base64")}`,
   };
 
-  return workflowStream(async (emit) => {
+  // 새로고침 시 /api/workflows에서 발견해 이어본다.
+  return runWorkflowSession("profile-file", async (emit) => {
     emit({
       type: "step",
       id: "recv",

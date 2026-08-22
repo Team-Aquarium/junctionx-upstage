@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { ingestAnnouncementDocument } from "@/lib/ingest";
 import { matchAnnouncement } from "@/lib/matching";
 import { getProfile } from "@/lib/store";
-import { workflowStream } from "@/lib/workflow";
+import { runWorkflowSession } from "@/lib/workflow-session";
 
 export const maxDuration = 300;
 
@@ -14,7 +14,8 @@ export async function POST(req: Request) {
   }
   const bytes = Buffer.from(await file.arrayBuffer());
 
-  return workflowStream(async (emit) => {
+  // 업로드 실행마다 고유 세션 — 새로고침 시 /api/workflows에서 발견해 이어본다.
+  return runWorkflowSession(`ingest:${crypto.randomUUID().slice(0, 8)}`, async (emit) => {
     emit({
       type: "step",
       id: "recv",

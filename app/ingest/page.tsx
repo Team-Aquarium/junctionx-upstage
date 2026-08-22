@@ -12,7 +12,7 @@ import {
   XCircleIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   AnnouncementCard,
   type AnnouncementWithMatch,
@@ -95,6 +95,72 @@ export default function IngestPage() {
 
   const [linkUrl, setLinkUrl] = useState("");
   const linkWf = useWorkflowStream();
+
+  // 새로고침 후에도 진행 중이던 작업(크롤·링크·파일 등록)에 다시 붙어 이어본다.
+  const { run: runCrawlWf } = crawlWf;
+  const { run: runLinkWf } = linkWf;
+  const { run: runUploadWf } = uploadWf;
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/workflows");
+        const { active } = (await res.json()) as { active: string[] };
+
+        if (active.includes("crawl")) {
+          runCrawlWf<{ results: WebItem[]; message?: string }>(
+            "/api/workflows/attach?key=crawl",
+          ).then((data) => {
+            if (data) {
+              setWebItems((prev) => [...(data.results ?? []), ...prev]);
+              if (data.message) {
+                setCrawlMessage(data.message);
+              }
+            }
+          });
+        }
+
+        const linkKey = active.find((key) => key.startsWith("link:"));
+        if (linkKey) {
+          runLinkWf<{ announcement: AnnouncementWithMatch }>(
+            `/api/workflows/attach?key=${encodeURIComponent(linkKey)}`,
+          ).then((data) => {
+            if (data?.announcement) {
+              setWebItems((prev) => [
+                {
+                  title: data.announcement.title,
+                  sourceUrl: linkKey.slice(5),
+                  status: "완료",
+                  announcement: data.announcement,
+                },
+                ...prev,
+              ]);
+            }
+          });
+        }
+
+        const ingestKey = active.find((key) => key.startsWith("ingest:"));
+        if (ingestKey) {
+          runUploadWf<{ announcement: AnnouncementWithMatch }>(
+            `/api/workflows/attach?key=${encodeURIComponent(ingestKey)}`,
+          ).then((data) => {
+            if (data?.announcement) {
+              setWebItems((prev) => [
+                {
+                  title: data.announcement.title,
+                  sourceUrl: `resumed-${data.announcement.id}`,
+                  status: "완료",
+                  announcement: data.announcement,
+                },
+                ...prev,
+              ]);
+            }
+          });
+        }
+      } catch {
+        // 이어보기 실패는 치명적이지 않다
+      }
+    })();
+  }, [runCrawlWf, runLinkWf, runUploadWf]);
 
   const addFiles = (files: FileList | File[]) => {
     const items = [...files].map((file) => ({ file, status: "대기" as ItemStatus }));
@@ -396,6 +462,7 @@ export default function IngestPage() {
       </div>
 
       {(queue.length > 0 ||
+        uploadWf.steps.length > 0 ||
         crawlWf.steps.length > 0 ||
         linkWf.steps.length > 0 ||
         webItems.length > 0) && (
@@ -476,6 +543,15 @@ export default function IngestPage() {
             </div>
           )}
 
+          {queue.length === 0 && uploadWf.steps.length > 0 && (
+            <div className="mt-4">
+              <p className="mb-1.5 text-muted-foreground text-xs">
+                파일 등록 실행 과정 (이어보기)
+              </p>
+              <WorkflowLog steps={uploadWf.steps} />
+            </div>
+          )}
+
           {linkWf.steps.length > 0 && (
             <div className="mt-4">
               <p className="mb-1.5 text-muted-foreground text-xs">링크 등록 실행 과정</p>
@@ -510,14 +586,16 @@ export default function IngestPage() {
                       <p className="truncate text-destructive text-xs">{item.error}</p>
                     )}
                   </div>
-                  <a
-                    className="shrink-0 text-muted-foreground text-xs underline underline-offset-2"
-                    href={item.sourceUrl}
-                    rel="noreferrer"
-                    target="_blank"
-                  >
-                    원문
-                  </a>
+                  {item.sourceUrl.startsWith("http") && (
+                    <a
+                      className="shrink-0 text-muted-foreground text-xs underline underline-offset-2"
+                      href={item.sourceUrl}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      원문
+                    </a>
+                  )}
                 </li>
               ))}
             </ul>

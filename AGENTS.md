@@ -28,10 +28,15 @@ Upstage Studio 에이전트가 읽어 구조화된 공고 카드로 만들고, �
 - Instruct 출력은 JSON 문자열로 **이중 인코딩**되어 오고, 값에 인용 마커(【†1】)가 섞일 수 있다.
   `parseAgentJson` + lib/ingest.ts의 `clean()`이 처리하므로 파서를 우회하지 말 것.
 - AI가 개입하는 라우트(ingest/crawl/profile/profile-link/recommendations)는 모두
-  **NDJSON 워크플로우 스트림**(`lib/workflow.ts`)으로 응답한다. 단계·중간 산출물·Solar 추론이
+  **NDJSON 워크플로우 스트림**으로 응답한다. 단계·중간 산출물·Solar 추론이
   실시간으로 흐르고, 클라이언트는 `useWorkflowStream`/`WorkflowLog`(components/workflow.tsx)로 렌더한다.
   Content-Type이 `application/x-ndjson`이므로 클라이언트에서 `includes("json")`으로
   일반 JSON과 구분하면 안 된다 (`application/json` 정확 매칭 필요).
+- 워크플로우는 **서버 세션**(`lib/workflow-session.ts`, globalThis 메모리)으로 실행된다.
+  요청이 끊겨도 runner는 끝까지 돌고, 같은 키로 재요청하면 이벤트 재생 + 라이브 이어보기가 된다
+  (새로고침 이어보기 + 중복 실행 방지). 세션 키: recommendations / crawl / link:{url} /
+  profile-file / profile-link / ingest:{id}. 진행 중 세션 발견은 `GET /api/workflows`,
+  재접속은 `GET /api/workflows/attach?key=...`.
 - Studio Job 폴링 응답의 output은 스냅샷마다 담기는 메시지가 달라서(중간엔 개별 노드,
   완료 시점엔 마지막만) `runStudioAgentDetailed`가 누적 맵으로 전체 노드 출력을 보존한다.
 - 저장소는 `data/` 파일 기반(JSON + uploads). 전역 DB 도입 금지 — 데모 스코프.

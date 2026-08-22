@@ -3,7 +3,7 @@ import { fetchLinkDocument } from "@/lib/crawler";
 import { ingestAnnouncementDocument } from "@/lib/ingest";
 import { matchAnnouncement } from "@/lib/matching";
 import { getProfile, listAnnouncements } from "@/lib/store";
-import { workflowStream } from "@/lib/workflow";
+import { runWorkflowSession } from "@/lib/workflow-session";
 
 export const maxDuration = 300;
 
@@ -13,7 +13,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "http(s) 링크를 입력해 주세요." }, { status: 400 });
   }
 
-  return workflowStream(async (emit) => {
+  // 같은 링크가 실행 중이면 그 세션에 붙는다. (새로고침 이어보기 + 중복 실행 방지)
+  return runWorkflowSession(`link:${url}`, async (emit) => {
     if (listAnnouncements().some((a) => a.sourceUrl === url)) {
       emit({ type: "error", message: "이미 등록된 공고 링크입니다." });
       return;

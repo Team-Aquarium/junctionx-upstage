@@ -76,6 +76,32 @@ export default function ProfilePage() {
     load();
   }, []);
 
+  // 새로고침 후에도 진행 중이던 프로필 작업(링크·서류)에 다시 붙어 이어본다.
+  const { run: runWf } = wf;
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/workflows");
+        const { active } = (await res.json()) as { active: string[] };
+        const key = active.find((k) => k === "profile-file" || k === "profile-link");
+        if (!key) {
+          return;
+        }
+        setBusy(key === "profile-file" ? "file" : "link");
+        const data = await runWf<{ profile: UserProfile }>(
+          `/api/workflows/attach?key=${encodeURIComponent(key)}`,
+        );
+        if (data?.profile) {
+          setProfile(data.profile);
+          setMessage("진행 중이던 작업을 이어받아 완료했어요.");
+        }
+        setBusy(null);
+      } catch {
+        // 이어보기 실패는 치명적이지 않다
+      }
+    })();
+  }, [runWf]);
+
   const submitLink = async () => {
     if (!linkUrl.trim()) {
       return;

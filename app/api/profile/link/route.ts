@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { extractProfileFromText } from "@/lib/upstage";
 import { getProfile, mergeProfile, saveProfile } from "@/lib/store";
-import { clip, workflowStream } from "@/lib/workflow";
+import { clip } from "@/lib/workflow";
+import { runWorkflowSession } from "@/lib/workflow-session";
 
 export const maxDuration = 120;
 
@@ -27,7 +28,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "http(s) 링크를 입력해 주세요." }, { status: 400 });
   }
 
-  return workflowStream(async (emit) => {
+  // 새로고침 시 /api/workflows에서 발견해 이어본다.
+  return runWorkflowSession("profile-link", async (emit) => {
     emit({ type: "step", id: "fetch", title: `페이지 요청 — ${url}`, status: "start" });
     const res = await fetch(url, {
       headers: {

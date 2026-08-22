@@ -7,7 +7,8 @@ import {
   listAnnouncements,
   saveRecommendationCache,
 } from "@/lib/store";
-import { clip, workflowStream } from "@/lib/workflow";
+import { clip } from "@/lib/workflow";
+import { runWorkflowSession } from "@/lib/workflow-session";
 
 export const maxDuration = 120;
 
@@ -30,7 +31,8 @@ export async function GET() {
     .update(JSON.stringify({ p: profileKey, a: announcements.map((a) => a.id).sort() }))
     .digest("hex");
 
-  return workflowStream(async (emit) => {
+  // 실행 중이면 새로고침해도 같은 세션에 붙어 이어본다. (중복 Solar 호출 방지)
+  return runWorkflowSession("recommendations", async (emit) => {
     const cache = getRecommendationCache();
     if (cache?.hash === hash) {
       emit({

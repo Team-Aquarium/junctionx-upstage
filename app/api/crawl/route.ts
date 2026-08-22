@@ -8,7 +8,7 @@ import {
 import { ingestAnnouncementDocument } from "@/lib/ingest";
 import { matchAnnouncement } from "@/lib/matching";
 import { getProfile, listAnnouncements } from "@/lib/store";
-import { workflowStream } from "@/lib/workflow";
+import { runWorkflowSession } from "@/lib/workflow-session";
 
 export const maxDuration = 300;
 
@@ -33,7 +33,8 @@ export async function POST(req: Request) {
   const limit = Math.min(Math.max(1, body.limit ?? 2), MAX_PER_RUN);
   const sourceLabel = CRAWL_SOURCES[source].label;
 
-  return workflowStream(async (emit) => {
+  // 실행 중이면 새로고침해도 "crawl" 세션에 붙어 이어본다.
+  return runWorkflowSession("crawl", async (emit) => {
     emit({
       type: "step",
       id: "list",
