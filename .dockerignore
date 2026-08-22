@@ -1,0 +1,17 @@
+node_modules
+.next
+.git
+.gitignore
+.env*
+!.env.example
+data
+samples/agent-response*.json
+.supabase-db-password.local
+supabase/.temp
+supabase/.branches
+*.md
+!AGENTS.md
+Dockerfile
+.dockerignore
+.cursor
+.vercel
