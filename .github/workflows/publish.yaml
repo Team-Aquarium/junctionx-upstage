@@ -11,6 +11,7 @@ jobs:
     name: Builds a Docker image
     runs-on: self-hosted
     steps:
+    - run: pwd && ls -la
     - run: docker build -t ${{ env.INAME }} .
 
   deploy:
