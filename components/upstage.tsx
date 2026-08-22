@@ -37,7 +37,7 @@ export const UPSTAGE_FEATURES: Record<
 export function UpstageBadge({
   feature,
   className,
-  compact = false,
+  compact = true,
 }: {
   feature: UpstageFeature;
   className?: string;
@@ -47,19 +47,19 @@ export function UpstageBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-md bg-accent/60 px-2 py-0.5 text-xs font-medium text-accent-foreground",
+        "inline-flex items-center gap-1.5 rounded-md bg-accent/60 px-2 py-0.5 text-xs font-medium text-accent-foreground shrink-0 max-w-full",
         className,
       )}
       title={`Upstage ${meta.label} — ${meta.description}`}
     >
       <img
         alt="Upstage"
-        className="size-3.5 rounded-xs object-contain"
+        className="size-3.5 shrink-0 rounded-xs object-contain"
         height={14}
         src={meta.icon}
         width={14}
       />
-      <span>{compact ? meta.label : `Upstage ${meta.label}`}</span>
+      <span className="truncate">{compact ? meta.label : `Upstage ${meta.label}`}</span>
     </span>
   );
 }

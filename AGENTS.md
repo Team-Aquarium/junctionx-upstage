@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Junction Asia 2026 Upstage 트랙 프로젝트 **"모아보라"** — 공고문(PDF·포스터·HWP)을
+JunctionX Korea 2026 Upstage 트랙 프로젝트 **"모아보라"** — 공고문(PDF·포스터·HWP)을
 Upstage Studio 에이전트가 읽어 구조화된 공고 카드로 만들고, 개인 링크·서류로 만든 프로필과
 대조해 지원 가능 여부까지 판정하는 공고 에이전트 서비스다. 보조 기능으로 Solar Pro 4
 툴콜링 문서 챗(/chat)을 유지한다. 이 문서는 이 저장소에서 작업하는 AI 에이전트/개발자가
@@ -9,16 +9,17 @@ Upstage Studio 에이전트가 읽어 구조화된 공고 카드로 만들고, �
 ## 서비스 구조 (모아보라)
 
 ```
-[공고 등록 /ingest]  파일 업로드 → POST /api/ingest
-                     → Studio 공고 에이전트 실행 (Parse→Classify 6종→Extract 10필드→Instruct JSON)
-                     → 파싱(lib/upstage.ts parseAgentJson, 이중 인코딩/인용마커 처리)
-                     → data/announcements.json 저장
-[프로필 /me]         링크 → POST /api/profile/link (HTML→텍스트→solar-pro4 JSON 추출)
-                     서류 → POST /api/profile (Universal Information Extraction)
-                     → data/profile.json 병합 저장 (lib/store.ts mergeProfile)
-[피드 /]             GET /api/announcements → 공고 × 프로필 매칭(lib/matching.ts)
-                     → verdict: eligible(지원 가능)/ineligible(자격 미달)/check(확인 필요)
-[상세 /notice/[id]]  요약·핵심 정보·자격 판정 사유·체크리스트·원문(/api/files/[id])
+[랜딩 /]               서비스 소개, 4단계 Studio 파이프라인 쇼케이스, 주요 공고 프리뷰
+[공고 피드 /feed]      GET /api/announcements → 공고 × 프로필 매칭(lib/matching.ts)
+                       → verdict: eligible(지원 가능)/ineligible(자격 미달)/check(확인 필요)
+[공고 등록 /ingest]    파일 업로드 → POST /api/ingest
+                       → Studio 공고 에이전트 실행 (Parse→Classify 6종→Extract 10필드→Instruct JSON)
+                       → 파싱(lib/upstage.ts parseAgentJson, 이중 인코딩/인용마커 처리)
+                       → data/announcements.json 저장
+[프로필 /me]           링크 → POST /api/profile/link (HTML→텍스트→solar-pro4 JSON 추출)
+                       서류 → POST /api/profile (Universal Information Extraction)
+                       → data/profile.json 병합 저장 (lib/store.ts mergeProfile)
+[상세 /notice/[id]]    요약·핵심 정보·자격 판정 사유·체크리스트·원문(/api/files/[id])
 ```
 
 - Studio 에이전트: `공고 에이전트` (agt_Wq276WB3gsZygK6WnenGoa, 설정 #2).
@@ -65,7 +66,8 @@ npm run lint    # eslint
 
 ```
 app/
-  page.tsx                    # 공고 피드
+  page.tsx                    # 랜딩 소개 페이지 (Hero, 파이프라인 쇼케이스, 주요 공고 프리뷰)
+  feed/page.tsx               # 공고 피드 (검색, 필터, Solar 추천, 전체 공고 그리드)
   ingest/page.tsx             # 공고 등록 (드래그앤드롭 → 에이전트 실행)
   me/page.tsx                 # 프로필 (링크·서류 추가)
   notice/[id]/page.tsx        # 공고 상세 (판정 사유·체크리스트)

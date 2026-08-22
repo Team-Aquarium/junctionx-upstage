@@ -86,7 +86,7 @@ export default function NoticeDetailPage() {
           삭제되었거나 존재하지 않는 공고입니다.
         </p>
         <Button asChild size="sm" variant="outline">
-          <Link href="/">
+          <Link href="/feed">
             <ArrowLeftIcon className="size-4" />
             피드로 돌아가기
           </Link>
@@ -105,7 +105,7 @@ export default function NoticeDetailPage() {
         <div>
           <Link
             className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-            href="/"
+            href="/feed"
           >
             <ArrowLeftIcon className="size-3.5" />
             목록으로 돌아가기

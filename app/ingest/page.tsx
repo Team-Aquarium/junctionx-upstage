@@ -650,7 +650,7 @@ export default function IngestPage() {
                 생성된 공고 ({createdAnnouncements.length}건)
               </h2>
               <Button asChild size="sm" variant="outline">
-                <Link href="/">
+                <Link href="/feed">
                   피드로 이동
                   <ArrowRightIcon className="size-3.5 ml-1" />
                 </Link>

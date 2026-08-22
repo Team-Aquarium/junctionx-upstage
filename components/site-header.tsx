@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-  { href: "/", label: "공고 피드" },
+  { href: "/feed", label: "공고 피드" },
   { href: "/ingest", label: "공고 등록" },
   { href: "/me", label: "내 프로필" },
   { href: "/chat", label: "문서 챗" },
@@ -67,8 +67,7 @@ export function SiteHeader() {
           {/* Nav Links */}
           <nav className="hidden sm:flex items-center gap-1">
             {NAV_ITEMS.map((item) => {
-              const active =
-                item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+              const active = pathname.startsWith(item.href);
               return (
                 <Link
                   className={cn(

@@ -17,12 +17,12 @@ export function SiteFooter() {
               </span>
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
-              JunctionX Korea 2026
+              JunctionX Korea 2026 · Upstage Track
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-6 text-xs text-muted-foreground">
-            <Link className="hover:text-foreground transition-colors" href="/">
+            <Link className="hover:text-foreground transition-colors" href="/feed">
               공고 피드
             </Link>
             <Link className="hover:text-foreground transition-colors" href="/ingest">
