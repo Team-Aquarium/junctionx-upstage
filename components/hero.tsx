@@ -47,53 +47,55 @@ const DEMO_ANNOUNCEMENT: AnnouncementWithMatch = {
 
 export function Hero({ stats }: HeroProps) {
   return (
-    <section className="border-b border-border/80 bg-background pt-16 pb-20 sm:pt-24 sm:pb-28">
+    <section className="border-b border-border/80 bg-background py-24 sm:py-32 lg:py-40">
       <div className="mx-auto w-full max-w-6xl px-6 sm:px-8">
-        {/* Main Headline & Call to Action (Centered & Clean) */}
-        <div className="mx-auto max-w-3xl text-center space-y-6">
-          <p className="text-xs font-semibold tracking-wider text-primary uppercase">
-            Upstage Document Agent
-          </p>
+        <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-16">
+          {/* Left: Headline & Call to Action */}
+          <div className="space-y-6 text-center lg:text-left">
+            <p className="text-xs font-semibold tracking-wider text-primary uppercase">
+              Upstage Document Agent
+            </p>
 
-          <h1 className="font-bold text-3xl sm:text-5xl lg:text-6xl tracking-tight text-foreground leading-[1.18] break-keep">
-            공고문 분석부터 자격 판정까지,{" "}
-            <br className="hidden sm:inline" />
-            <span className="text-primary">모아보라</span>
-          </h1>
+            <h1 className="font-bold text-3xl sm:text-5xl tracking-tight text-foreground leading-[1.18] break-keep">
+              공고문 분석부터 자격 판정까지,{" "}
+              <br className="hidden sm:inline" />
+              <span className="text-primary">모아보라</span>
+            </h1>
 
-          <p className="mx-auto max-w-xl text-sm sm:text-base text-muted-foreground leading-relaxed break-keep">
-            PDF·HWP·포스터 공고문을 Upstage Studio 에이전트가 구조화하고,
-            내 프로필과 대조해 지원 가능 여부를 실시간으로 판정합니다.
-          </p>
+            <p className="mx-auto lg:mx-0 max-w-xl text-sm sm:text-base text-muted-foreground leading-relaxed break-keep">
+              PDF·HWP·포스터 공고문을 Upstage Studio 에이전트가 구조화하고,
+              내 프로필과 대조해 지원 가능 여부를 실시간으로 판정합니다.
+            </p>
 
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-            <Button asChild size="default">
-              <Link href="/feed">
-                공고 피드 둘러보기
-                <ArrowRightIcon className="size-4 ml-1.5" />
-              </Link>
-            </Button>
-            <Button asChild size="default" variant="outline">
-              <Link href="/ingest">
-                <FilePlusIcon className="size-4 mr-1.5" />
-                공고문 직접 등록
-              </Link>
-            </Button>
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 pt-2">
+              <Button asChild size="default">
+                <Link href="/feed">
+                  공고 피드 둘러보기
+                  <ArrowRightIcon className="size-4 ml-1.5" />
+                </Link>
+              </Button>
+              <Button asChild size="default" variant="outline">
+                <Link href="/ingest">
+                  <FilePlusIcon className="size-4 mr-1.5" />
+                  공고문 직접 등록
+                </Link>
+              </Button>
+            </div>
           </div>
-        </div>
 
-        {/* Minimal Live Showcase Preview */}
-        <div className="mx-auto mt-14 max-w-xl">
-          <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground px-1">
-            <span className="font-medium text-foreground">에이전트 분석 카드 예시</span>
-            <span>2026_Upstage_챌린지_모집요강.pdf</span>
-          </div>
-          <div className="rounded-2xl border border-border/80 bg-card p-1 shadow-xs">
-            <AnnouncementCard
-              item={DEMO_ANNOUNCEMENT}
-              recommendReason="컴퓨터공학 전공 및 AI 프로젝트 이력이 대회 요구 역량과 완벽히 일치합니다."
-              recommendScore={96}
-            />
+          {/* Right: Minimal Live Showcase Preview */}
+          <div className="mx-auto w-full max-w-xl lg:max-w-none">
+            <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground px-1">
+              <span className="font-medium text-foreground">에이전트 분석 카드 예시</span>
+              <span>2026_Upstage_챌린지_모집요강.pdf</span>
+            </div>
+            <div className="rounded-2xl border border-border/80 bg-card p-1 shadow-xs">
+              <AnnouncementCard
+                item={DEMO_ANNOUNCEMENT}
+                recommendReason="컴퓨터공학 전공 및 AI 프로젝트 이력이 대회 요구 역량과 완벽히 일치합니다."
+                recommendScore={96}
+              />
+            </div>
           </div>
         </div>
       </div>
