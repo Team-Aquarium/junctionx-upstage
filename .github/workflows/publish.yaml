@@ -2,29 +2,22 @@ name: Publish on Docker
 
 on: [push]
 
-env:
-  INAME: ${{ github.repository_id }}
-  CNAME: ${{ github.repository_id }}-run
-
 jobs:
   build:
     name: Build
     runs-on: self-hosted
     steps:
-      - uses: actions/checkout@v4
-      - name: Builds a Docker image
-        run: docker build -t ${{ env.INAME }} .
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Build a Docker image
+        run: docker build -t moabora .
 
   deploy:
     name: Deploy
     needs: build
     runs-on: self-hosted
     steps:
-      - name: Stops old container
-        run: docker stop ${{ env.CNAME }} || true
-      - name: Deploys new container
-        run: |
-          docker run \
-            -dp 3000:3000 \
-            --name ${{ env.CNAME }} \
-            ${{ env.INAME }}
+      - name: Stop old container
+        run: docker stop moabora-run || true
+      - name: Deploy new container
+        run: docker run -dp 3000:3000 --name moabora-run moabora
