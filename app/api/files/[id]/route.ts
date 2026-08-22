@@ -6,8 +6,10 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const announcement = getAnnouncement(id);
-  const bytes = readUploadFile(id);
+  const [announcement, bytes] = await Promise.all([
+    getAnnouncement(id),
+    readUploadFile(id),
+  ]);
   if (!announcement?.sourceFile || !bytes) {
     return NextResponse.json({ error: "원본 파일을 찾을 수 없습니다." }, { status: 404 });
   }

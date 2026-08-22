@@ -19,7 +19,7 @@ const PROFILE_PROPERTIES = {
 } as const;
 
 export async function GET() {
-  return NextResponse.json({ profile: getProfile() });
+  return NextResponse.json({ profile: await getProfile() });
 }
 
 export async function POST(req: Request) {
@@ -69,12 +69,12 @@ export async function POST(req: Request) {
       payload: extracted,
     });
 
-    const profile = mergeProfile(getProfile(), extracted, {
+    const profile = mergeProfile(await getProfile(), extracted, {
       type: "file",
       label: file.name,
       addedAt: new Date().toISOString(),
     });
-    saveProfile(profile);
+    await saveProfile(profile);
     emit({
       type: "step",
       id: "merge",
@@ -87,6 +87,6 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE() {
-  clearProfile();
+  await clearProfile();
   return NextResponse.json({ profile: null });
 }

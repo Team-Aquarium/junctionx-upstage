@@ -15,10 +15,10 @@ Upstage Studio 에이전트가 읽어 구조화된 공고 카드로 만들고, �
 [공고 등록 /ingest]    파일 업로드 → POST /api/ingest
                        → Studio 공고 에이전트 실행 (Parse→Classify 6종→Extract 10필드→Instruct JSON)
                        → 파싱(lib/upstage.ts parseAgentJson, 이중 인코딩/인용마커 처리)
-                       → data/announcements.json 저장
+                       → Supabase announcements 테이블 저장
 [프로필 /me]           링크 → POST /api/profile/link (HTML→텍스트→solar-pro4 JSON 추출)
                        서류 → POST /api/profile (Universal Information Extraction)
-                       → data/profile.json 병합 저장 (lib/store.ts mergeProfile)
+                       → Supabase profile 테이블 병합 저장 (lib/store.ts mergeProfile)
 [상세 /notice/[id]]    요약·핵심 정보·자격 판정 사유·체크리스트·원문(/api/files/[id])
 ```
 
@@ -40,7 +40,12 @@ Upstage Studio 에이전트가 읽어 구조화된 공고 카드로 만들고, �
   재접속은 `GET /api/workflows/attach?key=...`.
 - Studio Job 폴링 응답의 output은 스냅샷마다 담기는 메시지가 달라서(중간엔 개별 노드,
   완료 시점엔 마지막만) `runStudioAgentDetailed`가 누적 맵으로 전체 노드 출력을 보존한다.
-- 저장소는 `data/` 파일 기반(JSON + uploads). 전역 DB 도입 금지 — 데모 스코프.
+- 저장소는 **Supabase(클라우드)** — 프로젝트 `moabora`(ref: grpjhzwcjagmffsbnhkr, ap-northeast-2).
+  테이블: `announcements`(공고 카드) / `profile`(id=1 단일 행 jsonb) /
+  `recommendation_cache`(id=1 단일 행). 원본 파일은 storage 버킷 `uploads`(파일명=공고 id).
+  서버에서 service_role 키로만 접근한다(`lib/supabase.ts`) — 클라이언트 번들에 import 금지.
+  RLS는 켜져 있고 정책이 없어 anon 키로는 접근 불가. 스키마 변경은
+  `supabase/migrations/`에 SQL 추가 후 `supabase db push`.
 - 데모 샘플: `samples/` (공고문 2종 + 재학증명서, Chrome headless로 HTML→PDF 변환).
 
 ## 스택
@@ -90,7 +95,8 @@ lib/
                               #  문서 우선순위: 첨부 HWP/PDF > 본문 HTML > 포스터 이미지
                               #  콘테스트코리아 첨부는 file_dn.php 핸들러(확장자는 앵커 텍스트에)이며
                               #  첨부가 신청서여도 정보가 빠지지 않게 본문 HTML을 보조 문서로 함께 투입
-  store.ts                    # 파일 기반 저장소 (공고·프로필·업로드·추천 캐시)
+  store.ts                    # Supabase 저장소 (공고·프로필·업로드·추천 캐시, 전부 async)
+  supabase.ts                 # 서버 전용 Supabase 클라이언트 (service_role, lazy init)
   matching.ts                 # 공고 × 프로필 자격 판정
 components/
   site-header.tsx             # 전역 헤더 (네비 + 테마 토글)
@@ -100,7 +106,8 @@ components/
   ui/                         # shadcn/ui 컴포넌트
 samples/                      # 데모용 샘플 문서 (HTML 원본 + PDF)
 scripts/test-agent.mjs        # Studio 에이전트 단독 실행 테스트
-data/                         # 런타임 저장소 (gitignore)
+scripts/migrate-data-to-supabase.mjs  # 구 data/ 파일 저장소 → Supabase 일회성 이관
+supabase/migrations/          # Supabase 스키마 마이그레이션 (supabase db push)
 ```
 
 ## AI 레이어 (Vercel AI SDK)
@@ -192,6 +199,8 @@ Solar 챗 API는 파일 입력을 받지 못한다. 그래서:
 | `UPSTAGE_API_KEY` | O | `up_...` 키. 코드에 하드코딩 절대 금지 |
 | `UPSTAGE_CHAT_MODEL` | X | 기본 `solar-pro4` |
 | `UPSTAGE_AGENT_ID` | X | Studio 에이전트 기본 ID (`agt_...`) |
+| `SUPABASE_URL` | O | Supabase 프로젝트 URL (`https://<ref>.supabase.co`) |
+| `SUPABASE_SERVICE_ROLE_KEY` | O | service_role 키 — 서버 전용, 클라이언트 노출 금지 |
 
 `.env.example`이 템플릿이며 이것만 커밋한다 (`.gitignore`에 `!.env.example` 예외 있음).
 

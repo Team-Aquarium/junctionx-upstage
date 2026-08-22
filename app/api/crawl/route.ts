@@ -52,7 +52,7 @@ export async function POST(req: Request) {
     }
 
     const knownUrls = new Set(
-      listAnnouncements()
+      (await listAnnouncements())
         .map((a) => a.sourceUrl)
         .filter(Boolean),
     );
@@ -74,7 +74,7 @@ export async function POST(req: Request) {
       return;
     }
 
-    const profile = getProfile();
+    const profile = await getProfile();
     const results: CrawlResultItem[] = [];
 
     for (const [index, candidate] of fresh.entries()) {
@@ -121,7 +121,7 @@ export async function POST(req: Request) {
 
         // 다른 탭·사용자가 동시에 같은 공고를 수집했을 수 있으니 저장 직전에 재확인한다.
         if (
-          listAnnouncements().some((a) => a.sourceUrl === candidate.detailUrl)
+          (await listAnnouncements()).some((a) => a.sourceUrl === candidate.detailUrl)
         ) {
           results.push({
             title: candidate.title,

@@ -1,31 +1,12 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { getSupabase } from "./supabase";
 
-// 해커톤 데모용 파일 기반 저장소. 서버 로컬에서 단일 사용자를 가정한다.
-const DATA_DIR = join(process.cwd(), "data");
-const UPLOADS_DIR = join(DATA_DIR, "uploads");
-const ANNOUNCEMENTS_FILE = join(DATA_DIR, "announcements.json");
-const PROFILE_FILE = join(DATA_DIR, "profile.json");
+// Supabase(클라우드) 기반 저장소. 단일 사용자 데모를 가정한다.
+// - 공고: public.announcements 테이블
+// - 프로필: public.profile (id=1 한 행, jsonb)
+// - 추천 캐시: public.recommendation_cache (id=1 한 행)
+// - 원본 파일: storage 버킷 "uploads" (파일명 = 공고 id)
 
-function ensureDirs() {
-  mkdirSync(UPLOADS_DIR, { recursive: true });
-}
-
-function readJson<T>(file: string, fallback: T): T {
-  try {
-    if (!existsSync(file)) {
-      return fallback;
-    }
-    return JSON.parse(readFileSync(file, "utf8")) as T;
-  } catch {
-    return fallback;
-  }
-}
-
-function writeJson(file: string, value: unknown) {
-  ensureDirs();
-  writeFileSync(file, JSON.stringify(value, null, 2), "utf8");
-}
+const UPLOADS_BUCKET = "uploads";
 
 // ---------------------------------------------------------------------------
 // 공고 (Announcement)
@@ -63,42 +44,135 @@ export interface Announcement {
   createdAt: string;
 }
 
-export function listAnnouncements(): Announcement[] {
-  return readJson<Announcement[]>(ANNOUNCEMENTS_FILE, []);
+interface AnnouncementRow {
+  id: string;
+  category: string;
+  title: string;
+  organizer: string | null;
+  field: string | null;
+  apply_start: string | null;
+  apply_end: string | null;
+  result_date: string | null;
+  benefits: string | null;
+  contact: string | null;
+  apply_url: string | null;
+  summary: unknown;
+  rules: unknown;
+  todo_checklist: unknown;
+  source_file: { name: string; mediaType: string } | null;
+  source_url: string | null;
+  created_at: string;
 }
 
-export function getAnnouncement(id: string): Announcement | null {
-  return listAnnouncements().find((item) => item.id === id) ?? null;
+function rowToAnnouncement(row: AnnouncementRow): Announcement {
+  return {
+    id: row.id,
+    category: row.category,
+    title: row.title,
+    organizer: row.organizer,
+    field: row.field,
+    apply_start: row.apply_start,
+    apply_end: row.apply_end,
+    result_date: row.result_date,
+    benefits: row.benefits,
+    contact: row.contact,
+    apply_url: row.apply_url,
+    summary: Array.isArray(row.summary) ? (row.summary as string[]) : [],
+    rules: (row.rules ?? {}) as EligibilityRules,
+    todo_checklist: Array.isArray(row.todo_checklist) ? (row.todo_checklist as string[]) : [],
+    sourceFile: row.source_file,
+    sourceUrl: row.source_url,
+    createdAt: row.created_at,
+  };
 }
 
-export function saveAnnouncement(announcement: Announcement) {
-  const list = listAnnouncements().filter((item) => item.id !== announcement.id);
-  writeJson(ANNOUNCEMENTS_FILE, [announcement, ...list]);
+function announcementToRow(a: Announcement): AnnouncementRow {
+  return {
+    id: a.id,
+    category: a.category,
+    title: a.title,
+    organizer: a.organizer,
+    field: a.field,
+    apply_start: a.apply_start,
+    apply_end: a.apply_end,
+    result_date: a.result_date,
+    benefits: a.benefits,
+    contact: a.contact,
+    apply_url: a.apply_url,
+    summary: a.summary,
+    rules: a.rules,
+    todo_checklist: a.todo_checklist,
+    source_file: a.sourceFile,
+    source_url: a.sourceUrl ?? null,
+    created_at: a.createdAt,
+  };
 }
 
-export function deleteAnnouncement(id: string) {
-  writeJson(
-    ANNOUNCEMENTS_FILE,
-    listAnnouncements().filter((item) => item.id !== id),
-  );
+export async function listAnnouncements(): Promise<Announcement[]> {
+  const { data, error } = await getSupabase()
+    .from("announcements")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) {
+    throw new Error(`공고 목록 조회 실패: ${error.message}`);
+  }
+  return (data as AnnouncementRow[]).map(rowToAnnouncement);
 }
 
-export function saveUploadFile(id: string, bytes: Buffer) {
-  ensureDirs();
-  writeFileSync(join(UPLOADS_DIR, id), bytes);
+export async function getAnnouncement(id: string): Promise<Announcement | null> {
+  const { data, error } = await getSupabase()
+    .from("announcements")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) {
+    throw new Error(`공고 조회 실패: ${error.message}`);
+  }
+  return data ? rowToAnnouncement(data as AnnouncementRow) : null;
 }
 
-export function readUploadFile(id: string): Buffer | null {
-  const file = join(UPLOADS_DIR, id);
-  // id는 서버가 생성한 UUID 조각이지만, 경로 조작 문자는 방어적으로 거른다.
-  if (id.includes("/") || id.includes("..") || !existsSync(file)) {
+export async function saveAnnouncement(announcement: Announcement): Promise<void> {
+  const { error } = await getSupabase()
+    .from("announcements")
+    .upsert(announcementToRow(announcement));
+  if (error) {
+    throw new Error(`공고 저장 실패: ${error.message}`);
+  }
+}
+
+export async function deleteAnnouncement(id: string): Promise<void> {
+  const { error } = await getSupabase().from("announcements").delete().eq("id", id);
+  if (error) {
+    throw new Error(`공고 삭제 실패: ${error.message}`);
+  }
+}
+
+export async function saveUploadFile(
+  id: string,
+  bytes: Buffer,
+  contentType = "application/octet-stream",
+): Promise<void> {
+  const { error } = await getSupabase()
+    .storage.from(UPLOADS_BUCKET)
+    .upload(id, bytes, { contentType, upsert: true });
+  if (error) {
+    throw new Error(`원본 파일 업로드 실패: ${error.message}`);
+  }
+}
+
+export async function readUploadFile(id: string): Promise<Buffer | null> {
+  if (id.includes("/") || id.includes("..")) {
     return null;
   }
-  return readFileSync(file);
+  const { data, error } = await getSupabase().storage.from(UPLOADS_BUCKET).download(id);
+  if (error || !data) {
+    return null;
+  }
+  return Buffer.from(await data.arrayBuffer());
 }
 
 // ---------------------------------------------------------------------------
-// 사용자 프로필 (단일 사용자)
+// 사용자 프로필 (단일 사용자 — profile 테이블 id=1 한 행)
 // ---------------------------------------------------------------------------
 
 export interface ProfileSource {
@@ -135,23 +209,37 @@ export function emptyProfile(): UserProfile {
   };
 }
 
-export function getProfile(): UserProfile | null {
-  return readJson<UserProfile | null>(PROFILE_FILE, null);
+export async function getProfile(): Promise<UserProfile | null> {
+  const { data, error } = await getSupabase()
+    .from("profile")
+    .select("data")
+    .eq("id", 1)
+    .maybeSingle();
+  if (error) {
+    throw new Error(`프로필 조회 실패: ${error.message}`);
+  }
+  return (data?.data as UserProfile | undefined) ?? null;
 }
 
-export function saveProfile(profile: UserProfile) {
-  writeJson(PROFILE_FILE, profile);
+export async function saveProfile(profile: UserProfile): Promise<void> {
+  const { error } = await getSupabase()
+    .from("profile")
+    .upsert({ id: 1, data: profile, updated_at: new Date().toISOString() });
+  if (error) {
+    throw new Error(`프로필 저장 실패: ${error.message}`);
+  }
 }
 
-export function clearProfile() {
-  writeJson(PROFILE_FILE, null);
+export async function clearProfile(): Promise<void> {
+  const { error } = await getSupabase().from("profile").delete().eq("id", 1);
+  if (error) {
+    throw new Error(`프로필 초기화 실패: ${error.message}`);
+  }
 }
 
 // ---------------------------------------------------------------------------
-// 추천 캐시 (프로필 + 공고 목록이 바뀔 때만 재계산)
+// 추천 캐시 (프로필 + 공고 목록이 바뀔 때만 재계산 — id=1 한 행)
 // ---------------------------------------------------------------------------
-
-const RECOMMENDATIONS_FILE = join(DATA_DIR, "recommendations.json");
 
 export interface RecommendationCache {
   hash: string;
@@ -159,12 +247,32 @@ export interface RecommendationCache {
   items: { id: string; score: number; reason: string }[];
 }
 
-export function getRecommendationCache(): RecommendationCache | null {
-  return readJson<RecommendationCache | null>(RECOMMENDATIONS_FILE, null);
+export async function getRecommendationCache(): Promise<RecommendationCache | null> {
+  const { data, error } = await getSupabase()
+    .from("recommendation_cache")
+    .select("hash, items, created_at")
+    .eq("id", 1)
+    .maybeSingle();
+  if (error) {
+    throw new Error(`추천 캐시 조회 실패: ${error.message}`);
+  }
+  if (!data) {
+    return null;
+  }
+  return {
+    hash: data.hash as string,
+    createdAt: data.created_at as string,
+    items: (data.items ?? []) as RecommendationCache["items"],
+  };
 }
 
-export function saveRecommendationCache(cache: RecommendationCache) {
-  writeJson(RECOMMENDATIONS_FILE, cache);
+export async function saveRecommendationCache(cache: RecommendationCache): Promise<void> {
+  const { error } = await getSupabase()
+    .from("recommendation_cache")
+    .upsert({ id: 1, hash: cache.hash, items: cache.items, created_at: cache.createdAt });
+  if (error) {
+    throw new Error(`추천 캐시 저장 실패: ${error.message}`);
+  }
 }
 
 function uniqueStrings(values: unknown): string[] {

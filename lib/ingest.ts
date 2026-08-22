@@ -183,8 +183,8 @@ export async function ingestAnnouncementDocument(
     createdAt: new Date().toISOString(),
   };
 
-  saveUploadFile(id, source.bytes);
-  saveAnnouncement(announcement);
+  await saveUploadFile(id, source.bytes, source.mediaType);
+  await saveAnnouncement(announcement);
   emit?.({
     type: "step",
     id: `save-${id}`,

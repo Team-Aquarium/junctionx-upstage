@@ -33,7 +33,7 @@ export async function POST(req: Request) {
       emit,
     );
 
-    const match = matchAnnouncement(announcement, getProfile());
+    const match = matchAnnouncement(announcement, await getProfile());
     emit({
       type: "step",
       id: "match",

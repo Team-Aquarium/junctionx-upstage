@@ -13,8 +13,7 @@ import { runWorkflowSession } from "@/lib/workflow-session";
 export const maxDuration = 120;
 
 export async function GET() {
-  const profile = getProfile();
-  const announcements = listAnnouncements();
+  const [profile, announcements] = await Promise.all([getProfile(), listAnnouncements()]);
   if (!profile || announcements.length === 0) {
     return NextResponse.json({ recommendations: [] });
   }
@@ -33,7 +32,7 @@ export async function GET() {
 
   // 실행 중이면 새로고침해도 같은 세션에 붙어 이어본다. (중복 Solar 호출 방지)
   return runWorkflowSession("recommendations", async (emit) => {
-    const cache = getRecommendationCache();
+    const cache = await getRecommendationCache();
     if (cache?.hash === hash) {
       emit({
         type: "step",
@@ -110,7 +109,7 @@ export async function GET() {
         detail: `${valid.length}건 평가`,
         payload: valid,
       });
-      saveRecommendationCache({ hash, createdAt: new Date().toISOString(), items: valid });
+      await saveRecommendationCache({ hash, createdAt: new Date().toISOString(), items: valid });
       emit({ type: "result", data: { recommendations: valid, cached: false } });
     } catch (error) {
       // 추천이 실패해도 피드는 정상 동작해야 한다.

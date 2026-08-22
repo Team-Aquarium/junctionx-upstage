@@ -128,12 +128,12 @@ export async function POST(req: Request) {
       payload: extracted,
     });
 
-    const profile = mergeProfile(getProfile(), extracted, {
+    const profile = mergeProfile(await getProfile(), extracted, {
       type: "link",
       label: url,
       addedAt: new Date().toISOString(),
     });
-    saveProfile(profile);
+    await saveProfile(profile);
     emit({ type: "step", id: "merge", title: "프로필 병합·저장", status: "done", payload: profile });
     emit({ type: "result", data: { profile, extracted } });
   });

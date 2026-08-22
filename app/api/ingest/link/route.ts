@@ -15,7 +15,7 @@ export async function POST(req: Request) {
 
   // 같은 링크가 실행 중이면 그 세션에 붙는다. (새로고침 이어보기 + 중복 실행 방지)
   return runWorkflowSession(`link:${url}`, async (emit) => {
-    if (listAnnouncements().some((a) => a.sourceUrl === url)) {
+    if ((await listAnnouncements()).some((a) => a.sourceUrl === url)) {
       emit({ type: "error", message: "이미 등록된 공고 링크입니다." });
       return;
     }
@@ -65,7 +65,7 @@ export async function POST(req: Request) {
       },
       emit,
     );
-    const match = matchAnnouncement(announcement, getProfile());
+    const match = matchAnnouncement(announcement, await getProfile());
     emit({
       type: "step",
       id: "match",
