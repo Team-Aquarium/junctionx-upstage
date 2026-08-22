@@ -387,6 +387,71 @@ export function parseAgentJson(text: string): Record<string, unknown> | null {
 }
 
 // ---------------------------------------------------------------------------
+// Solar 스트리밍 호출 (추론 델타를 실시간 콜백으로 전달)
+// ---------------------------------------------------------------------------
+
+async function solarChatStream(
+  messages: { role: string; content: string }[],
+  onReasoning?: (accumulated: string) => void,
+): Promise<{ content: string; reasoning: string | null }> {
+  const res = await fetch(`${API_BASE}/v1/chat/completions`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${getApiKey()}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: process.env.UPSTAGE_CHAT_MODEL ?? "solar-pro4",
+      reasoning_effort: "low",
+      stream: true,
+      messages,
+    }),
+  });
+  if (!res.ok || !res.body) {
+    throw new Error(`Solar 호출 실패 (${res.status}): ${await res.text()}`);
+  }
+
+  let content = "";
+  let reasoning = "";
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) {
+      break;
+    }
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() ?? "";
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed.startsWith("data:")) {
+        continue;
+      }
+      const data = trimmed.slice(5).trim();
+      if (!data || data === "[DONE]") {
+        continue;
+      }
+      try {
+        const chunk = JSON.parse(data);
+        const delta = chunk.choices?.[0]?.delta ?? {};
+        if (typeof delta.reasoning === "string" && delta.reasoning) {
+          reasoning += delta.reasoning;
+          onReasoning?.(reasoning);
+        }
+        if (typeof delta.content === "string" && delta.content) {
+          content += delta.content;
+        }
+      } catch {
+        // 잘린 청크는 무시
+      }
+    }
+  }
+  return { content, reasoning: reasoning.trim() || null };
+}
+
+// ---------------------------------------------------------------------------
 // Solar 기반 공고 추천 (프로필 × 공고 목록 → 적합도 점수 + 추천 이유)
 // ---------------------------------------------------------------------------
 
@@ -406,39 +471,22 @@ export async function recommendAnnouncements(
     benefits: string | null;
     summary: string[];
   }[],
+  onReasoning?: (accumulated: string) => void,
 ): Promise<{ items: RecommendationItem[]; reasoning: string | null }> {
-  const res = await fetch(`${API_BASE}/v1/chat/completions`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${getApiKey()}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: process.env.UPSTAGE_CHAT_MODEL ?? "solar-pro4",
-      reasoning_effort: "low",
-      messages: [
-        {
-          role: "system",
-          content:
-            '당신은 대학생에게 공고(공모전·해커톤·장학금·대외활동·채용)를 추천하는 어시스턴트입니다. 사용자 프로필과 공고 목록이 JSON으로 주어집니다. 각 공고의 적합도를 평가해 아래 JSON 객체 하나만 출력하세요. 설명이나 코드블록 없이 순수 JSON만 출력합니다.\n{"recommendations":[{"id":"공고 id","score":0~100 정수,"reason":"프로필의 구체적 요소(관심사·기술·활동)와 공고 내용을 연결한 한국어 한 문장 (60자 이내)"}]}\n규칙: 모든 공고를 score 내림차순으로 포함. 프로필과 실제 접점이 있는 요소만 근거로 쓰고, 접점이 없으면 score를 40 미만으로 주고 reason에 그 사실을 솔직하게 적으세요.',
-        },
-        {
-          role: "user",
-          content: JSON.stringify({ profile, announcements }),
-        },
-      ],
-    }),
-  });
-  if (!res.ok) {
-    throw new Error(`추천 생성 실패 (${res.status}): ${await res.text()}`);
-  }
-  const data = await res.json();
-  const message = data.choices?.[0]?.message ?? {};
-  const content: string = message.content ?? "";
-  const reasoning: string | null =
-    typeof message.reasoning === "string" && message.reasoning.trim()
-      ? message.reasoning.trim()
-      : null;
+  const { content, reasoning } = await solarChatStream(
+    [
+      {
+        role: "system",
+        content:
+          '당신은 대학생에게 공고(공모전·해커톤·장학금·대외활동·채용)를 추천하는 어시스턴트입니다. 사용자 프로필과 공고 목록이 JSON으로 주어집니다. 각 공고의 적합도를 평가해 아래 JSON 객체 하나만 출력하세요. 설명이나 코드블록 없이 순수 JSON만 출력합니다.\n{"recommendations":[{"id":"공고 id","score":0~100 정수,"reason":"프로필의 구체적 요소(관심사·기술·활동)와 공고 내용을 연결한 한국어 한 문장 (60자 이내)"}]}\n규칙: 모든 공고를 score 내림차순으로 포함. 프로필과 실제 접점이 있는 요소만 근거로 쓰고, 접점이 없으면 score를 40 미만으로 주고 reason에 그 사실을 솔직하게 적으세요.',
+      },
+      {
+        role: "user",
+        content: JSON.stringify({ profile, announcements }),
+      },
+    ],
+    onReasoning,
+  );
   const parsed = parseAgentJson(content);
   const list = Array.isArray(parsed?.recommendations) ? parsed.recommendations : [];
   const items = list
@@ -463,35 +511,18 @@ export async function recommendAnnouncements(
 
 export async function extractProfileFromText(
   text: string,
+  onReasoning?: (accumulated: string) => void,
 ): Promise<{ extracted: Record<string, unknown>; reasoning: string | null }> {
-  const res = await fetch(`${API_BASE}/v1/chat/completions`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${getApiKey()}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: process.env.UPSTAGE_CHAT_MODEL ?? "solar-pro4",
-      reasoning_effort: "low",
-      messages: [
-        {
-          role: "system",
-          content:
-            '주어진 웹페이지 텍스트에서 페이지 주인의 프로필을 추출해 JSON 객체 하나만 출력한다. 설명이나 코드블록 없이 순수 JSON만 출력한다. 스키마: {"name":문자열|null,"university":문자열|null,"department":문자열|null,"grade":숫자|null,"enrollment_status":"재학"|"휴학"|"졸업"|null,"birth_year":숫자|null,"interests":[관심 분야 키워드],"skills":[기술 스택·역량 키워드],"activities":[수상·프로젝트·활동 이력 요약]} 값이 없으면 null 또는 빈 배열. 키워드는 한국어로, 각 배열은 최대 10개.',
-        },
-        { role: "user", content: text.slice(0, 12_000) },
-      ],
-    }),
-  });
-  if (!res.ok) {
-    throw new Error(`프로필 추출 실패 (${res.status}): ${await res.text()}`);
-  }
-  const data = await res.json();
-  const message = data.choices?.[0]?.message ?? {};
-  const content: string = message.content ?? "{}";
-  const reasoning: string | null =
-    typeof message.reasoning === "string" && message.reasoning.trim()
-      ? message.reasoning.trim()
-      : null;
-  return { extracted: parseAgentJson(content) ?? {}, reasoning };
+  const { content, reasoning } = await solarChatStream(
+    [
+      {
+        role: "system",
+        content:
+          '주어진 웹페이지 텍스트에서 페이지 주인의 프로필을 추출해 JSON 객체 하나만 출력한다. 설명이나 코드블록 없이 순수 JSON만 출력한다. 스키마: {"name":문자열|null,"university":문자열|null,"department":문자열|null,"grade":숫자|null,"enrollment_status":"재학"|"휴학"|"졸업"|null,"birth_year":숫자|null,"interests":[관심 분야 키워드],"skills":[기술 스택·역량 키워드],"activities":[수상·프로젝트·활동 이력 요약]} 값이 없으면 null 또는 빈 배열. 키워드는 한국어로, 각 배열은 최대 10개.',
+      },
+      { role: "user", content: text.slice(0, 12_000) },
+    ],
+    onReasoning,
+  );
+  return { extracted: parseAgentJson(content || "{}") ?? {}, reasoning };
 }

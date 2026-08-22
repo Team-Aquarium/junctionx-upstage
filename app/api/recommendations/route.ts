@@ -61,6 +61,7 @@ export async function GET() {
       status: "start",
     });
     try {
+      let lastReasoningEmit = 0;
       const { items, reasoning } = await recommendAnnouncements(
         profileKey,
         announcements.map((a) => ({
@@ -71,6 +72,21 @@ export async function GET() {
           benefits: a.benefits,
           summary: a.summary,
         })),
+        (accumulated) => {
+          const now = Date.now();
+          if (now - lastReasoningEmit < 200) {
+            return;
+          }
+          lastReasoningEmit = now;
+          emit({
+            type: "step",
+            id: "reasoning",
+            title: "Solar 추론 과정",
+            status: "start",
+            detail: `${accumulated.length.toLocaleString()}자`,
+            payload: clip(accumulated),
+          });
+        },
       );
       if (reasoning) {
         emit({
@@ -78,6 +94,7 @@ export async function GET() {
           id: "reasoning",
           title: "Solar 추론 과정",
           status: "done",
+          detail: `${reasoning.length.toLocaleString()}자`,
           payload: clip(reasoning),
         });
       }

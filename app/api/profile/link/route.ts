@@ -92,13 +92,29 @@ export async function POST(req: Request) {
       title: "Solar 프로필 추출 (solar-pro4)",
       status: "start",
     });
-    const { extracted, reasoning } = await extractProfileFromText(text);
+    let lastReasoningEmit = 0;
+    const { extracted, reasoning } = await extractProfileFromText(text, (accumulated) => {
+      const now = Date.now();
+      if (now - lastReasoningEmit < 200) {
+        return;
+      }
+      lastReasoningEmit = now;
+      emit({
+        type: "step",
+        id: "reasoning",
+        title: "Solar 추론 과정",
+        status: "start",
+        detail: `${accumulated.length.toLocaleString()}자`,
+        payload: clip(accumulated),
+      });
+    });
     if (reasoning) {
       emit({
         type: "step",
         id: "reasoning",
         title: "Solar 추론 과정",
         status: "done",
+        detail: `${reasoning.length.toLocaleString()}자`,
         payload: clip(reasoning),
       });
     }

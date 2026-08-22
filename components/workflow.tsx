@@ -6,7 +6,7 @@ import {
   ChevronRightIcon,
   XCircleIcon,
 } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { featureFromStepTitle, UPSTAGE_FEATURES } from "@/components/upstage";
 import { Spinner } from "@/components/ui/spinner";
 import type { WorkflowEvent } from "@/lib/workflow";
@@ -139,12 +139,25 @@ export function useWorkflowStream() {
   return { steps, stepsRef, running, error, errorRef, run, reset };
 }
 
-function PayloadView({ payload }: { payload: unknown }) {
+function PayloadView({ payload, streaming = false }: { payload: unknown; streaming?: boolean }) {
   const text =
     typeof payload === "string" ? payload : JSON.stringify(payload, null, 2);
+  const preRef = useRef<HTMLPreElement>(null);
+
+  // 스트리밍 중에는 새 내용이 보이도록 스크롤을 바닥에 붙인다.
+  useEffect(() => {
+    if (streaming && preRef.current) {
+      preRef.current.scrollTop = preRef.current.scrollHeight;
+    }
+  }, [streaming, text]);
+
   return (
-    <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-all rounded-md bg-muted/60 p-3 font-mono text-[11px] leading-relaxed">
+    <pre
+      className="max-h-64 overflow-auto whitespace-pre-wrap break-all rounded-md bg-muted/60 p-3 font-mono text-[11px] leading-relaxed"
+      ref={preRef}
+    >
       {text}
+      {streaming && <span className="animate-pulse text-primary"> ▍</span>}
     </pre>
   );
 }
@@ -178,7 +191,9 @@ export function WorkflowLog({
     <div className={cn("space-y-1", className)}>
       {steps.map((step) => {
         const hasPayload = step.payload !== undefined && step.payload !== null;
-        const open = expanded.has(step.id);
+        const streaming = step.status === "start" && hasPayload;
+        // 스트리밍 중인 단계(예: Solar 추론)는 자동으로 펼쳐 실시간으로 보여준다.
+        const open = expanded.has(step.id) || streaming;
         const feature = featureFromStepTitle(step.title);
         return (
           <div className="rounded-lg border bg-background" key={step.id}>
@@ -224,7 +239,7 @@ export function WorkflowLog({
             </button>
             {hasPayload && open && (
               <div className="border-t px-3 py-2">
-                <PayloadView payload={step.payload} />
+                <PayloadView payload={step.payload} streaming={streaming} />
               </div>
             )}
           </div>
