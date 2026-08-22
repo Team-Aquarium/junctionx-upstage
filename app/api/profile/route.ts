@@ -89,6 +89,23 @@ export async function POST(req: Request) {
   });
 }
 
+export async function PUT(req: Request) {
+  const t = createTranslator(localeFromRequest(req));
+  const body = (await req.json()) as Record<string, unknown>;
+  const current = await getProfile();
+  const last = current?.sources.at(-1);
+  const profile = mergeProfile(current, body, {
+    type: "manual",
+    label: t("profile.sourceManual"),
+    addedAt: new Date().toISOString(),
+  });
+  if (last?.type === "manual") {
+    profile.sources = current?.sources ?? profile.sources;
+  }
+  await saveProfile(profile);
+  return NextResponse.json({ profile });
+}
+
 export async function DELETE() {
   await clearProfile();
   return NextResponse.json({ profile: null });

@@ -76,6 +76,27 @@ export function UpstageBadge({
   );
 }
 
+export function UpstageMark({
+  feature,
+  className,
+  size = 40,
+}: {
+  feature: UpstageFeature;
+  className?: string;
+  size?: number;
+}) {
+  const meta = UPSTAGE_FEATURES[feature];
+  return (
+    <img
+      alt={meta.label}
+      className={cn("object-contain", className)}
+      height={size}
+      src={meta.icon}
+      width={size}
+    />
+  );
+}
+
 export function PoweredByUpstage({ className }: { className?: string }) {
   return (
     <span

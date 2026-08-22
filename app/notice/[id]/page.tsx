@@ -7,6 +7,7 @@ import {
   ExternalLinkIcon,
   FileTextIcon,
   HelpCircleIcon,
+  MessageCircleIcon,
   XCircleIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -209,6 +210,58 @@ export default function NoticeDetailPage() {
                 ))}
               </div>
             </section>
+
+            {item.match.verdict === "check" && (item.match.reviewItems?.length ?? 0) > 0 && (
+              <section className="space-y-3">
+                <h2 className="font-bold text-lg text-foreground">
+                  {t("notice.reviewTitle")}
+                </h2>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {t("notice.reviewBody")}
+                </p>
+                <div className="rounded-xl border border-border bg-card p-4 space-y-1">
+                  {item.match.reviewItems.map((itemText, index) => {
+                    const isChecked = checked.has(1000 + index);
+                    return (
+                      <button
+                        className={cn(
+                          "flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm transition-colors",
+                          isChecked ? "text-muted-foreground bg-muted/40" : "hover:bg-muted/50 text-foreground",
+                        )}
+                        key={itemText}
+                        onClick={() => toggleCheck(1000 + index)}
+                        type="button"
+                      >
+                        <div
+                          className={cn(
+                            "flex size-4 shrink-0 items-center justify-center rounded border transition-colors",
+                            isChecked
+                              ? "bg-primary border-primary text-white"
+                              : "border-input bg-background",
+                          )}
+                        >
+                          {isChecked && <CheckIcon className="size-3 stroke-[3]" />}
+                        </div>
+                        <span className={cn(isChecked && "line-through")}>{itemText}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <Button asChild size="sm" variant="outline">
+                  <Link
+                    href={`/chat?q=${encodeURIComponent(
+                      t("notice.chatPrompt", {
+                        title: item.title,
+                        items: item.match.reviewItems.map((line) => `• ${line}`).join("\n"),
+                      }),
+                    )}`}
+                  >
+                    <MessageCircleIcon className="size-3.5" />
+                    {t("notice.askChat")}
+                  </Link>
+                </Button>
+              </section>
+            )}
 
             {/* Checklist */}
             {item.todo_checklist.length > 0 && (

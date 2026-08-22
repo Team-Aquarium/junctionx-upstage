@@ -16,7 +16,8 @@ import {
   PlusIcon,
   RefreshCcwIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Attachment,
   AttachmentInfo,
@@ -199,7 +200,17 @@ function PromptSuggestions({
 }
 
 export default function ChatPage() {
+  return (
+    <Suspense>
+      <ChatPageInner />
+    </Suspense>
+  );
+}
+
+function ChatPageInner() {
   const t = useT();
+  const searchParams = useSearchParams();
+  const initialInput = searchParams.get("q") ?? "";
   const { messages, sendMessage, status, stop, regenerate, setMessages, error, clearError } =
     useChat({
       transport: new DefaultChatTransport({ api: "/api/chat" }),
@@ -250,7 +261,7 @@ export default function ChatPage() {
   };
 
   return (
-    <PromptInputProvider>
+    <PromptInputProvider initialInput={initialInput}>
       <div className="flex h-[calc(100dvh-4rem)] flex-col bg-background">
         {messages.length > 0 && (
           <div className="mx-auto flex w-full max-w-4xl items-center justify-between px-6 pt-3 pb-2 border-b border-border/60">

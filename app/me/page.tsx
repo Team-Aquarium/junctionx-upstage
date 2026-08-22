@@ -26,19 +26,53 @@ const REQUIRED_FIELDS = [
   { key: "birth_year", label: "profile.fieldBirthYear" },
 ] as const;
 
-function fieldValue(
-  profile: UserProfile,
-  key: (typeof REQUIRED_FIELDS)[number]["key"],
-  t: Translator,
-) {
-  const value = profile[key];
-  if (value == null) {
-    return null;
+const STATUS_OPTIONS = ["재학", "휴학", "졸업"] as const;
+
+type Draft = {
+  name: string;
+  university: string;
+  department: string;
+  grade: string;
+  enrollment_status: string;
+  birth_year: string;
+};
+
+function emptyDraft(): Draft {
+  return {
+    name: "",
+    university: "",
+    department: "",
+    grade: "",
+    enrollment_status: "",
+    birth_year: "",
+  };
+}
+
+function draftFromProfile(profile: UserProfile | null): Draft {
+  if (!profile) {
+    return emptyDraft();
   }
-  if (key === "grade") {
-    return t("profile.gradeValue", { n: value });
+  return {
+    name: profile.name ?? "",
+    university: profile.university ?? "",
+    department: profile.department ?? "",
+    grade: profile.grade == null ? "" : String(profile.grade),
+    enrollment_status: profile.enrollment_status ?? "",
+    birth_year: profile.birth_year == null ? "" : String(profile.birth_year),
+  };
+}
+
+function sourceLabel(type: UserProfile["sources"][number]["type"], t: Translator) {
+  if (type === "link") {
+    return t("profile.sourceLink");
   }
-  return String(value);
+  if (type === "file") {
+    return t("profile.sourceFile");
+  }
+  if (type === "note") {
+    return t("profile.sourceNote");
+  }
+  return t("profile.sourceManual");
 }
 
 function Chips({ items, empty }: { items: string[]; empty: string }) {
@@ -67,6 +101,8 @@ export default function ProfilePage() {
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [linkUrl, setLinkUrl] = useState("");
+  const [note, setNote] = useState("");
+  const [draft, setDraft] = useState<Draft>(emptyDraft());
   const fileRef = useRef<HTMLInputElement>(null);
   const wf = useWorkflowStream();
 
@@ -75,6 +111,7 @@ export default function ProfilePage() {
       const res = await fetch("/api/profile");
       const data = await res.json();
       setProfile(data.profile);
+      setDraft(draftFromProfile(data.profile));
     } finally {
       setLoading(false);
     }
@@ -90,16 +127,19 @@ export default function ProfilePage() {
       try {
         const res = await fetch("/api/workflows");
         const { active } = (await res.json()) as { active: string[] };
-        const key = active.find((k) => k === "profile-file" || k === "profile-link");
+        const key = active.find(
+          (k) => k === "profile-file" || k === "profile-link" || k === "profile-note",
+        );
         if (!key) {
           return;
         }
-        setBusy(key === "profile-file" ? "file" : "link");
+        setBusy(key === "profile-file" ? "file" : key === "profile-note" ? "note" : "link");
         const data = await runWf<{ profile: UserProfile }>(
           `/api/workflows/attach?key=${encodeURIComponent(key)}`,
         );
         if (data?.profile) {
           setProfile(data.profile);
+          setDraft(draftFromProfile(data.profile));
           setMessage(t("profile.resumed"));
         }
         setBusy(null);
@@ -122,6 +162,7 @@ export default function ProfilePage() {
     });
     if (data?.profile) {
       setProfile(data.profile);
+      setDraft(draftFromProfile(data.profile));
       setLinkUrl("");
       setMessage(t("profile.linkUpdated"));
     } else {
@@ -141,6 +182,7 @@ export default function ProfilePage() {
     });
     if (data?.profile) {
       setProfile(data.profile);
+      setDraft(draftFromProfile(data.profile));
       setMessage(t("profile.fileUpdated", { name: file.name }));
     } else {
       setMessage(wf.errorRef.current ?? t("profile.fileFailed"));
@@ -152,7 +194,60 @@ export default function ProfilePage() {
     setBusy("reset");
     await fetch("/api/profile", { method: "DELETE" });
     setProfile(null);
+    setDraft(emptyDraft());
     setMessage(t("profile.resetDone"));
+    setBusy(null);
+  };
+
+  const saveDraft = async () => {
+    setBusy("save");
+    setMessage(null);
+    try {
+      const res = await fetch("/api/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: draft.name,
+          university: draft.university,
+          department: draft.department,
+          grade: draft.grade,
+          enrollment_status: draft.enrollment_status,
+          birth_year: draft.birth_year,
+        }),
+      });
+      const data = (await res.json()) as { profile?: UserProfile };
+      if (data.profile) {
+        setProfile(data.profile);
+        setDraft(draftFromProfile(data.profile));
+        setMessage(t("profile.saved"));
+      } else {
+        setMessage(t("profile.saveFailed"));
+      }
+    } catch {
+      setMessage(t("profile.saveFailed"));
+    }
+    setBusy(null);
+  };
+
+  const submitNote = async () => {
+    if (!note.trim()) {
+      return;
+    }
+    setBusy("note");
+    setMessage(null);
+    const data = await wf.run<{ profile: UserProfile }>("/api/profile/note", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: note.trim() }),
+    });
+    if (data?.profile) {
+      setProfile(data.profile);
+      setDraft(draftFromProfile(data.profile));
+      setNote("");
+      setMessage(t("profile.noteUpdated"));
+    } else {
+      setMessage(wf.errorRef.current ?? t("profile.noteFailed"));
+    }
     setBusy(null);
   };
 
@@ -301,6 +396,33 @@ export default function ProfilePage() {
               </Button>
             </section>
 
+            <section className="rounded-xl border border-border bg-card p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-sm text-foreground">
+                  {t("profile.noteTitle")}
+                </h3>
+                <UpstageBadge compact feature="solar" />
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                {t("profile.noteBody")}
+              </p>
+              <textarea
+                className="min-h-24 w-full resize-y rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary"
+                disabled={busy !== null}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder={t("profile.notePlaceholder")}
+                value={note}
+              />
+              <Button
+                className="w-full"
+                disabled={busy !== null || note.trim().length < 8}
+                onClick={submitNote}
+                size="sm"
+              >
+                {busy === "note" ? <Spinner className="size-4" /> : t("profile.noteSubmit")}
+              </Button>
+            </section>
+
             {message && (
               <div className="rounded-lg border border-border bg-muted/40 p-3 text-xs text-foreground">
                 {message}
@@ -330,27 +452,58 @@ export default function ProfilePage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {REQUIRED_FIELDS.map((field) => {
-                  const val = profile ? fieldValue(profile, field.key, t) : null;
+                  const filled = Boolean(draft[field.key]);
                   return (
-                    <div
-                      className="flex items-center gap-3 rounded-lg border border-border bg-card p-3.5"
+                    <label
+                      className="flex items-start gap-3 rounded-lg border border-border bg-card p-3.5"
                       key={field.key}
                     >
-                      {val ? (
-                        <CheckCircle2Icon className="size-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      {filled ? (
+                        <CheckCircle2Icon className="size-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
                       ) : (
-                        <CircleDashedIcon className="size-4 text-muted-foreground/40 shrink-0" />
+                        <CircleDashedIcon className="size-4 text-muted-foreground/40 shrink-0 mt-0.5" />
                       )}
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <span className="text-[11px] text-muted-foreground block">{t(field.label)}</span>
-                        <p className="font-medium text-sm text-foreground truncate">
-                          {val ?? <span className="text-muted-foreground/60 font-normal">{t("profile.unregistered")}</span>}
-                        </p>
+                        {field.key === "enrollment_status" ? (
+                          <select
+                            className="mt-1 w-full bg-transparent text-sm font-medium text-foreground outline-none"
+                            disabled={busy !== null}
+                            onChange={(e) =>
+                              setDraft((prev) => ({ ...prev, enrollment_status: e.target.value }))
+                            }
+                            value={draft.enrollment_status}
+                          >
+                            <option value="">{t("profile.unregistered")}</option>
+                            {STATUS_OPTIONS.map((status) => (
+                              <option key={status} value={status}>
+                                {status}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <input
+                            className="mt-1 w-full bg-transparent text-sm font-medium text-foreground outline-none placeholder:text-muted-foreground/60 placeholder:font-normal"
+                            disabled={busy !== null}
+                            inputMode={
+                              field.key === "grade" || field.key === "birth_year" ? "numeric" : "text"
+                            }
+                            onChange={(e) =>
+                              setDraft((prev) => ({ ...prev, [field.key]: e.target.value }))
+                            }
+                            placeholder={t("profile.unregistered")}
+                            type={field.key === "grade" || field.key === "birth_year" ? "number" : "text"}
+                            value={draft[field.key]}
+                          />
+                        )}
                       </div>
-                    </div>
+                    </label>
                   );
                 })}
               </div>
+              <Button disabled={busy !== null} onClick={saveDraft} size="sm">
+                {busy === "save" ? <Spinner className="size-4" /> : t("profile.saveFields")}
+              </Button>
             </section>
 
             {/* Recommendation Info */}
@@ -409,7 +562,7 @@ export default function ProfilePage() {
                     >
                       <div className="flex items-center gap-2 min-w-0">
                         <span className="rounded bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-foreground">
-                          {source.type === "link" ? t("profile.sourceLink") : t("profile.sourceFile")}
+                          {sourceLabel(source.type, t)}
                         </span>
                         <span className="truncate text-foreground font-medium">{source.label}</span>
                       </div>

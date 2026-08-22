@@ -21,6 +21,12 @@ export interface EligibilityRules {
   team_size?: string | null;
   region?: string | null;
   etc?: string | null;
+  /** 특정 과목 이수 등 — 프로필만으로는 판정 불가 */
+  courses?: string[] | null;
+  /** 우대 사항 (수상 경력 등) — 미충족이어도 탈락은 아님 */
+  preferred?: string[] | null;
+  /** Instruct가 뽑은 확인 필요 조항 */
+  review_items?: string[] | null;
 }
 
 export interface Announcement {
@@ -176,7 +182,7 @@ export async function readUploadFile(id: string): Promise<Buffer | null> {
 // ---------------------------------------------------------------------------
 
 export interface ProfileSource {
-  type: "file" | "link";
+  type: "file" | "link" | "manual" | "note";
   label: string;
   addedAt: string;
 }

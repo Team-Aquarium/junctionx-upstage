@@ -33,6 +33,7 @@ export function createDemoNotice(t: Translator): DemoNotice {
       verdict: "eligible",
       score: 96,
       reasons: [t("hero.demoReasonFit"), t("hero.demoReasonStatus")],
+      reviewItems: [],
     },
   };
 }

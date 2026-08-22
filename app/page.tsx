@@ -5,11 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   ArrowRightIcon,
   BotIcon,
-  FileSearchIcon,
-  FileTextIcon,
-  LayersIcon,
   LayoutGridIcon,
-  SparklesIcon,
   UploadCloudIcon,
   UserCheckIcon,
 } from "lucide-react";
@@ -20,41 +16,48 @@ import {
 } from "@/components/announcement";
 import { Hero } from "@/components/hero";
 import { Button } from "@/components/ui/button";
-import { UpstageBadge } from "@/components/upstage";
+import { UpstageMark, type UpstageFeature } from "@/components/upstage";
 import { useI18n } from "@/lib/i18n/client";
 
-const PIPELINE_FEATURES = [
+const PIPELINE_FEATURES: {
+  step: string;
+  node: string;
+  title: string;
+  feature: UpstageFeature;
+  subtitleKey: string;
+  descKey: string;
+}[] = [
   {
     step: "01",
+    node: "Parse",
     title: "Document Parse",
-    badge: "document-parse" as const,
+    feature: "document-parse",
     subtitleKey: "landing.pipeline1Sub",
     descKey: "landing.pipeline1Desc",
-    icon: FileTextIcon,
   },
   {
     step: "02",
-    title: "Category Classify",
-    badge: "agents" as const,
+    node: "Classify",
+    title: "Studio Agents",
+    feature: "agents",
     subtitleKey: "landing.pipeline2Sub",
     descKey: "landing.pipeline2Desc",
-    icon: LayersIcon,
   },
   {
     step: "03",
+    node: "Extract",
     title: "Information Extract",
-    badge: "information-extract" as const,
+    feature: "information-extract",
     subtitleKey: "landing.pipeline3Sub",
     descKey: "landing.pipeline3Desc",
-    icon: FileSearchIcon,
   },
   {
     step: "04",
-    title: "Instruct & Match",
-    badge: "solar" as const,
+    node: "Instruct",
+    title: "Solar Pro 4",
+    feature: "solar",
     subtitleKey: "landing.pipeline4Sub",
     descKey: "landing.pipeline4Desc",
-    icon: SparklesIcon,
   },
 ];
 
@@ -133,23 +136,23 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-            {PIPELINE_FEATURES.map((item) => {
-              const Icon = item.icon;
-              return (
-                <div
-                  className="group relative rounded-2xl border border-border/80 bg-card p-6 shadow-xs transition-all hover:border-primary/40 hover:shadow-md"
-                  key={item.step}
-                >
-                  <div className="flex items-center justify-between gap-2 mb-4">
-                    <span className="font-mono text-xs font-bold text-primary bg-primary/10 rounded-md px-2 py-0.5 shrink-0">
-                      STEP {item.step}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-3">
+            {PIPELINE_FEATURES.map((item, index) => (
+              <div className="relative" key={item.step}>
+                {index < PIPELINE_FEATURES.length - 1 && (
+                  <ArrowRightIcon
+                    aria-hidden
+                    className="pointer-events-none absolute top-10 -right-3 z-10 hidden size-4 text-primary/50 lg:block"
+                  />
+                )}
+                <div className="h-full rounded-2xl border border-border/80 bg-card p-6 shadow-xs transition-all hover:border-primary/40 hover:shadow-md">
+                  <div className="mb-5 flex items-start justify-between gap-3">
+                    <div className="flex size-14 items-center justify-center rounded-xl bg-secondary/80 ring-1 ring-border/70">
+                      <UpstageMark feature={item.feature} size={36} />
+                    </div>
+                    <span className="font-mono text-[11px] font-bold tracking-wider text-primary">
+                      {item.node.toUpperCase()}
                     </span>
-                    <UpstageBadge compact feature={item.badge} />
-                  </div>
-
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-secondary text-foreground mb-4 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                    <Icon className="size-5" />
                   </div>
 
                   <h3 className="font-bold text-base text-foreground mb-1">
@@ -162,8 +165,8 @@ export default function LandingPage() {
                     {t(item.descKey)}
                   </p>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         </div>
       </section>

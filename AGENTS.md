@@ -36,7 +36,7 @@ Upstage Studio 에이전트가 읽어 구조화된 공고 카드로 만들고, �
 - 워크플로우는 **서버 세션**(`lib/workflow-session.ts`, globalThis 메모리)으로 실행된다.
   요청이 끊겨도 runner는 끝까지 돌고, 같은 키로 재요청하면 이벤트 재생 + 라이브 이어보기가 된다
   (새로고침 이어보기 + 중복 실행 방지). 세션 키: recommendations / crawl / link:{url} /
-  profile-file / profile-link / ingest:{id}. 진행 중 세션 발견은 `GET /api/workflows`,
+  profile-file / profile-link / profile-note / ingest:{id}. 진행 중 세션 발견은 `GET /api/workflows`,
   재접속은 `GET /api/workflows/attach?key=...`.
 - Studio Job 폴링 응답의 output은 스냅샷마다 담기는 메시지가 달라서(중간엔 개별 노드,
   완료 시점엔 마지막만) `runStudioAgentDetailed`가 누적 맵으로 전체 노드 출력을 보존한다.

@@ -50,6 +50,9 @@ function toRules(value: unknown): EligibilityRules {
     team_size: str(raw.team_size),
     region: str(raw.region),
     etc: str(raw.etc),
+    courses: Array.isArray(raw.courses) ? strArray(raw.courses) : null,
+    preferred: Array.isArray(raw.preferred) ? strArray(raw.preferred) : null,
+    review_items: Array.isArray(raw.review_items) ? strArray(raw.review_items) : null,
   };
 }
 
