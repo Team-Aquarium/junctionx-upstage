@@ -2,6 +2,10 @@ name: Publish on Docker
 
 on: [push]
 
+concurrency:
+  group: production-deploy
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Build
