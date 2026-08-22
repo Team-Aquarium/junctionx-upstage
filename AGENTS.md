@@ -1,8 +1,34 @@
 # AGENTS.md
 
-Junction Asia 2026 Upstage 트랙 프로젝트. Solar Pro 4가 Upstage 문서 API들을 툴로 호출하는
-문서 에이전트 챗 서비스다. 이 문서는 이 저장소에서 작업하는 AI 에이전트/개발자가 지켜야 할
-아키텍처와 컨벤션을 정의한다.
+Junction Asia 2026 Upstage 트랙 프로젝트 **"모아보라"** — 공고문(PDF·포스터·HWP)을
+Upstage Studio 에이전트가 읽어 구조화된 공고 카드로 만들고, 개인 링크·서류로 만든 프로필과
+대조해 지원 가능 여부까지 판정하는 공고 에이전트 서비스다. 보조 기능으로 Solar Pro 4
+툴콜링 문서 챗(/chat)을 유지한다. 이 문서는 이 저장소에서 작업하는 AI 에이전트/개발자가
+지켜야 할 아키텍처와 컨벤션을 정의한다.
+
+## 서비스 구조 (모아보라)
+
+```
+[공고 등록 /ingest]  파일 업로드 → POST /api/ingest
+                     → Studio 공고 에이전트 실행 (Parse→Classify 6종→Extract 10필드→Instruct JSON)
+                     → 파싱(lib/upstage.ts parseAgentJson, 이중 인코딩/인용마커 처리)
+                     → data/announcements.json 저장
+[프로필 /me]         링크 → POST /api/profile/link (HTML→텍스트→solar-pro4 JSON 추출)
+                     서류 → POST /api/profile (Universal Information Extraction)
+                     → data/profile.json 병합 저장 (lib/store.ts mergeProfile)
+[피드 /]             GET /api/announcements → 공고 × 프로필 매칭(lib/matching.ts)
+                     → verdict: eligible(지원 가능)/ineligible(자격 미달)/check(확인 필요)
+[상세 /notice/[id]]  요약·핵심 정보·자격 판정 사유·체크리스트·원문(/api/files/[id])
+```
+
+- Studio 에이전트: `공고 에이전트` (agt_Wq276WB3gsZygK6WnenGoa, 설정 #2).
+  분류 6종(공모전/해커톤·대회/장학금/대외활동·서포터즈/채용·인턴/others),
+  Extract 필드 10개(title/organizer/field/eligibility_text/apply_start/apply_end/
+  result_date/benefits/contact/apply_url), Instruct는 순수 JSON만 출력하도록 프롬프트됨.
+- Instruct 출력은 JSON 문자열로 **이중 인코딩**되어 오고, 값에 인용 마커(【†1】)가 섞일 수 있다.
+  `parseAgentJson` + ingest 라우트의 `clean()`이 처리하므로 파서를 우회하지 말 것.
+- 저장소는 `data/` 파일 기반(JSON + uploads). 전역 DB 도입 금지 — 데모 스코프.
+- 데모 샘플: `samples/` (공고문 2종 + 재학증명서, Chrome headless로 HTML→PDF 변환).
 
 ## 스택
 
@@ -27,14 +53,30 @@ npm run lint    # eslint
 
 ```
 app/
-  api/chat/route.ts   # 파이프라인 핵심: streamText + 툴 정의 + reasoning 옵션
-  page.tsx            # 챗 UI 전체 (단일 페이지)
-  layout.tsx          # ThemeProvider, TooltipProvider
+  page.tsx                    # 공고 피드
+  ingest/page.tsx             # 공고 등록 (드래그앤드롭 → 에이전트 실행)
+  me/page.tsx                 # 프로필 (링크·서류 추가)
+  notice/[id]/page.tsx        # 공고 상세 (판정 사유·체크리스트)
+  chat/page.tsx               # 문서 챗 (기존 툴콜링 UI)
+  api/ingest/route.ts         # 공고 인제스트 (Studio 에이전트 실행 + 파싱)
+  api/announcements/route.ts  # 공고 목록 + 매칭 판정
+  api/profile/route.ts        # 프로필 조회/서류 추출/초기화
+  api/profile/link/route.ts   # 개인 링크 → 프로필 추출
+  api/files/[id]/route.ts     # 공고 원본 파일 서빙
+  api/chat/route.ts           # 챗: streamText + 툴 정의 + reasoning 옵션
+  layout.tsx                  # ThemeProvider, TooltipProvider, SiteHeader
 lib/
-  upstage.ts          # Upstage REST 클라이언트 (Parse / Extract / Files / Jobs)
+  upstage.ts                  # Upstage REST 클라이언트 (Parse/Extract/Files/Jobs/파서)
+  store.ts                    # 파일 기반 저장소 (공고·프로필·업로드)
+  matching.ts                 # 공고 × 프로필 자격 판정
 components/
-  ai-elements/        # AI Elements 컴포넌트 (로컬 패치 있음 — 아래 주의사항)
-  ui/                 # shadcn/ui 컴포넌트
+  site-header.tsx             # 전역 헤더 (네비 + 테마 토글)
+  announcement.tsx            # 공고 카드·뱃지·D-day 계산
+  ai-elements/                # AI Elements 컴포넌트 (로컬 패치 있음 — 아래 주의사항)
+  ui/                         # shadcn/ui 컴포넌트
+samples/                      # 데모용 샘플 문서 (HTML 원본 + PDF)
+scripts/test-agent.mjs        # Studio 에이전트 단독 실행 테스트
+data/                         # 런타임 저장소 (gitignore)
 ```
 
 ## AI 레이어 (Vercel AI SDK)

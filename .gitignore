@@ -34,6 +34,10 @@ yarn-error.log*
 .env*
 !.env.example
 
+# 런타임 데이터 (공고·프로필 저장소)
+/data
+/samples/agent-response*.json
+
 # vercel
 .vercel
 
