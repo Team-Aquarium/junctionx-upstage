@@ -7,6 +7,7 @@ import {
   ChevronRightIcon as ArrowIcon,
   FileUpIcon,
   GlobeIcon,
+  Link2Icon,
   UploadCloudIcon,
   XCircleIcon,
 } from "lucide-react";
@@ -19,6 +20,7 @@ import {
 import { UpstageBadge } from "@/components/upstage";
 import { useWorkflowStream, WorkflowLog, type WorkflowStep } from "@/components/workflow";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 
@@ -43,13 +45,15 @@ const CRAWL_SOURCES = [
   { value: "all", label: "위비티 · 전체" },
 ] as const;
 
-interface CrawlItem {
+interface WebItem {
   title: string;
   sourceUrl: string;
   status: "완료" | "실패" | "건너뜀";
   error?: string;
   announcement?: AnnouncementWithMatch;
 }
+
+const MAX_CRAWL_LIMIT = 10;
 
 const PIPELINE_STEPS = [
   {
@@ -86,8 +90,11 @@ export default function IngestPage() {
   const [crawlSource, setCrawlSource] = useState<string>("ck-it");
   const [crawlLimit, setCrawlLimit] = useState(2);
   const [crawlMessage, setCrawlMessage] = useState<string | null>(null);
-  const [crawlItems, setCrawlItems] = useState<CrawlItem[]>([]);
+  const [webItems, setWebItems] = useState<WebItem[]>([]);
   const crawlWf = useWorkflowStream();
+
+  const [linkUrl, setLinkUrl] = useState("");
+  const linkWf = useWorkflowStream();
 
   const addFiles = (files: FileList | File[]) => {
     const items = [...files].map((file) => ({ file, status: "대기" as ItemStatus }));
@@ -141,13 +148,13 @@ export default function IngestPage() {
 
   const runCrawl = async () => {
     setCrawlMessage(null);
-    const data = await crawlWf.run<{ results: CrawlItem[]; message?: string }>("/api/crawl", {
+    const data = await crawlWf.run<{ results: WebItem[]; message?: string }>("/api/crawl", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ source: crawlSource, limit: crawlLimit }),
     });
     if (data) {
-      setCrawlItems((prev) => [...(data.results ?? []), ...prev]);
+      setWebItems((prev) => [...(data.results ?? []), ...prev]);
       if (data.message) {
         setCrawlMessage(data.message);
       }
@@ -156,12 +163,46 @@ export default function IngestPage() {
     }
   };
 
+  const runLink = async () => {
+    const url = linkUrl.trim();
+    if (!url) {
+      return;
+    }
+    const data = await linkWf.run<{ announcement: AnnouncementWithMatch }>("/api/ingest/link", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url }),
+    });
+    if (data?.announcement) {
+      setWebItems((prev) => [
+        {
+          title: data.announcement.title,
+          sourceUrl: url,
+          status: "완료",
+          announcement: data.announcement,
+        },
+        ...prev,
+      ]);
+      setLinkUrl("");
+    } else {
+      setWebItems((prev) => [
+        {
+          title: url,
+          sourceUrl: url,
+          status: "실패",
+          error: linkWf.errorRef.current ?? "알 수 없는 오류",
+        },
+        ...prev,
+      ]);
+    }
+  };
+
   const doneItems = queue.filter((item) => item.announcement);
   const pendingCount = queue.filter(
     (item) => item.status === "대기" || item.status === "실패",
   ).length;
   const createdAnnouncements = [
-    ...crawlItems.map((c) => c.announcement),
+    ...webItems.map((c) => c.announcement),
     ...doneItems.map((d) => d.announcement),
   ].filter((a): a is AnnouncementWithMatch => Boolean(a));
 
@@ -219,7 +260,36 @@ export default function IngestPage() {
         type="file"
       />
 
-      <div className="mt-6 grid gap-4 md:grid-cols-2">
+      <section className="mt-6 rounded-xl border bg-card p-5">
+        <h2 className="flex items-center gap-2 font-semibold text-sm">
+          <Link2Icon className="size-4 text-primary" />링크로 등록
+        </h2>
+        <p className="mt-1 text-muted-foreground text-xs">
+          공고 페이지 주소나 공고문 파일(PDF·이미지) 링크를 붙여넣으면 바로 파이프라인에
+          태웁니다. 위비티·콘테스트코리아 링크는 전용 수집기로 처리돼요.
+        </p>
+        <div className="mt-3 flex gap-2">
+          <Input
+            disabled={linkWf.running}
+            onChange={(e) => setLinkUrl(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && runLink()}
+            placeholder="https://... 공고 페이지 또는 공고문 파일 링크"
+            value={linkUrl}
+          />
+          <Button disabled={linkWf.running || !linkUrl.trim()} onClick={runLink}>
+            {linkWf.running ? (
+              <>
+                <Spinner className="size-4" />
+                분석 중…
+              </>
+            ) : (
+              "등록"
+            )}
+          </Button>
+        </div>
+      </section>
+
+      <div className="mt-4 grid gap-4 md:grid-cols-2">
         <section className="flex flex-col rounded-xl border bg-card p-5">
           <h2 className="flex items-center gap-2 font-semibold text-sm">
             <FileUpIcon className="size-4 text-primary" />파일로 등록
@@ -290,18 +360,23 @@ export default function IngestPage() {
               ))}
             </select>
             <div className="flex gap-2">
-              <select
-                className="h-9 rounded-md border border-input bg-background px-3 text-sm"
-                disabled={crawlWf.running}
-                onChange={(e) => setCrawlLimit(Number(e.target.value))}
-                value={crawlLimit}
-              >
-                {[1, 2, 3].map((n) => (
-                  <option key={n} value={n}>
-                    {n}건
-                  </option>
-                ))}
-              </select>
+              <div className="flex items-center gap-1.5">
+                <Input
+                  className="w-20 text-center"
+                  disabled={crawlWf.running}
+                  max={MAX_CRAWL_LIMIT}
+                  min={1}
+                  onChange={(e) => {
+                    const n = Number.parseInt(e.target.value, 10);
+                    setCrawlLimit(
+                      Number.isFinite(n) ? Math.min(Math.max(1, n), MAX_CRAWL_LIMIT) : 1,
+                    );
+                  }}
+                  type="number"
+                  value={crawlLimit}
+                />
+                <span className="shrink-0 text-muted-foreground text-xs">건 (최대 {MAX_CRAWL_LIMIT})</span>
+              </div>
               <Button className="flex-1" disabled={crawlWf.running} onClick={runCrawl}>
                 {crawlWf.running ? (
                   <>
@@ -320,7 +395,10 @@ export default function IngestPage() {
         </section>
       </div>
 
-      {(queue.length > 0 || crawlWf.steps.length > 0 || crawlItems.length > 0) && (
+      {(queue.length > 0 ||
+        crawlWf.steps.length > 0 ||
+        linkWf.steps.length > 0 ||
+        webItems.length > 0) && (
         <section className="mt-8">
           <h2 className="font-semibold text-lg">처리 현황</h2>
 
@@ -398,6 +476,13 @@ export default function IngestPage() {
             </div>
           )}
 
+          {linkWf.steps.length > 0 && (
+            <div className="mt-4">
+              <p className="mb-1.5 text-muted-foreground text-xs">링크 등록 실행 과정</p>
+              <WorkflowLog steps={linkWf.steps} />
+            </div>
+          )}
+
           {crawlWf.steps.length > 0 && (
             <div className="mt-4">
               <p className="mb-1.5 text-muted-foreground text-xs">자동 수집 실행 과정</p>
@@ -405,9 +490,9 @@ export default function IngestPage() {
             </div>
           )}
 
-          {crawlItems.length > 0 && (
+          {webItems.length > 0 && (
             <ul className="mt-3 space-y-2">
-              {crawlItems.map((item) => (
+              {webItems.map((item) => (
                 <li
                   className="flex items-center gap-3 rounded-lg border bg-card px-3 py-2"
                   key={item.sourceUrl}

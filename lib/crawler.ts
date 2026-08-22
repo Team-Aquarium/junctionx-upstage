@@ -229,6 +229,72 @@ async function fetchContestKoreaDocument(detailUrl: string): Promise<CrawlDocume
 }
 
 // ---------------------------------------------------------------------------
+// 임의 공고 링크 → 문서
+// ---------------------------------------------------------------------------
+
+const FILE_MIME_PATTERN = /pdf|image|hwp|msword|officedocument|octet-stream/i;
+
+/**
+ * 사용자가 붙여넣은 공고 링크에서 문서를 만든다.
+ * - 위비티·콘테스트코리아 링크는 전용 수집기로 처리
+ * - 파일 링크(PDF·이미지·HWP 등)는 그대로 다운로드
+ * - 일반 웹페이지는 본문 HTML을 문서로 감싼다 (JS 렌더링 페이지는 실패)
+ */
+export async function fetchLinkDocument(url: string): Promise<CrawlDocument | null> {
+  const host = new URL(url).hostname;
+  if (host.includes("wevity.com")) {
+    return fetchWevityDocument(url);
+  }
+  if (host.includes("contestkorea.com")) {
+    return fetchContestKoreaDocument(url);
+  }
+
+  const res = await fetch(encodeURI(decodeURI(url)), {
+    headers: {
+      "User-Agent": USER_AGENT,
+      Accept: "text/html,application/xhtml+xml,application/pdf,image/*,*/*",
+      "Accept-Language": "ko-KR,ko;q=0.9",
+    },
+    redirect: "follow",
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+  });
+  if (!res.ok) {
+    throw new Error(`페이지 요청 실패 (HTTP ${res.status})`);
+  }
+
+  const mediaType = res.headers.get("content-type")?.split(";")[0]?.trim() ?? "";
+  if (FILE_MIME_PATTERN.test(mediaType)) {
+    const rawName = decodeURIComponent(url.split("/").pop()?.split("?")[0] || "document");
+    return {
+      bytes: Buffer.from(await res.arrayBuffer()),
+      mediaType: mediaType || "application/octet-stream",
+      filename: rawName.slice(-80) || "document",
+      via: "파일 링크",
+    };
+  }
+
+  const html = await res.text();
+  const title =
+    stripTags(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] ?? "") || "공고";
+  const body = (html.match(/<body[\s\S]*?<\/body>/i)?.[0] ?? html)
+    .replace(/<\/?body[^>]*>/gi, "")
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<noscript[\s\S]*?<\/noscript>/gi, "")
+    .slice(0, 150_000);
+  if (stripTags(body).length < 200) {
+    return null;
+  }
+  const docHtml = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>${title}</title></head><body><h1>${title}</h1>${body}</body></html>`;
+  return {
+    bytes: Buffer.from(docHtml, "utf8"),
+    mediaType: "text/html",
+    filename: `${sanitizeFilename(title)}.html`,
+    via: "웹페이지 본문",
+  };
+}
+
+// ---------------------------------------------------------------------------
 // 공용 진입점
 // ---------------------------------------------------------------------------
 

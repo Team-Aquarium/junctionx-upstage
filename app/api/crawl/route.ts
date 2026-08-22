@@ -13,7 +13,7 @@ import { workflowStream } from "@/lib/workflow";
 export const maxDuration = 300;
 
 /** Studio 실행 과금을 고려해 한 번에 처리할 수 있는 최대 건수 */
-const MAX_PER_RUN = 3;
+const MAX_PER_RUN = 10;
 
 interface CrawlResultItem {
   title: string;
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
       title: `목록 크롤링 — ${sourceLabel}`,
       status: "start",
     });
-    const candidates = await fetchCrawlList(source, 12);
+    const candidates = await fetchCrawlList(source, Math.max(12, limit * 4));
     if (candidates.length === 0) {
       emit({ type: "step", id: "list", title: `목록 크롤링 — ${sourceLabel}`, status: "error" });
       emit({

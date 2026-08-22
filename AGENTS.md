@@ -66,7 +66,8 @@ app/
   notice/[id]/page.tsx        # 공고 상세 (판정 사유·체크리스트)
   chat/page.tsx               # 문서 챗 (기존 툴콜링 UI)
   api/ingest/route.ts         # 공고 인제스트 (파일 업로드 → lib/ingest.ts)
-  api/crawl/route.ts          # 위비티 크롤링 수집 (포스터 이미지 → 같은 파이프라인, 최대 3건/회)
+  api/ingest/link/route.ts    # 공고 링크 직접 등록 (웹페이지 본문·파일 링크·전용 수집기 라우팅)
+  api/crawl/route.ts          # 공모전 크롤링 수집 (콘테스트코리아·위비티, 최대 10건/회)
   api/recommendations/route.ts# Solar 추천 (적합도 점수+이유, 프로필·공고 해시 캐시)
   api/announcements/route.ts  # 공고 목록 + 매칭 판정
   api/profile/route.ts        # 프로필 조회/서류 추출/초기화

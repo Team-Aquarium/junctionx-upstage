@@ -136,7 +136,13 @@ export async function ingestAnnouncementDocument(
 
   const parsed = parseAgentJson(run.outputText);
   if (!parsed) {
-    emit?.({ type: "step", id: `parse-${id}`, title: "출력 JSON 파싱", status: "error" });
+    emit?.({
+      type: "step",
+      id: `parse-${id}`,
+      title: "출력 JSON 파싱",
+      status: "error",
+      payload: clip(run.outputText, 2000),
+    });
     throw new Error("에이전트 출력을 JSON으로 해석하지 못했습니다.");
   }
   emit?.({

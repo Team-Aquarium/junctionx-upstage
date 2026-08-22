@@ -354,6 +354,8 @@ export function parseAgentJson(text: string): Record<string, unknown> | null {
     .trim()
     .replace(/^```(?:json)?\s*/i, "")
     .replace(/```\s*$/, "")
+    // 인용 마커(【†1】)가 JSON 구조 사이에 끼면 파싱이 깨지므로 미리 제거한다.
+    .replace(/【†\d+】/g, "")
     .trim();
 
   for (let i = 0; i < 4; i++) {
