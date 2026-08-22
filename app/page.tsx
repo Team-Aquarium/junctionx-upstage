@@ -1,21 +1,15 @@
 "use client";
 
-import {
-  BadgeCheckIcon,
-  FilePlusIcon,
-  LayoutGridIcon,
-  SparklesIcon,
-  TimerIcon,
-  UserRoundIcon,
-} from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { ArrowRightIcon, FilePlusIcon, UserRoundIcon } from "lucide-react";
 import {
   AnnouncementCard,
   ddayInfo,
   type AnnouncementWithMatch,
 } from "@/components/announcement";
-import { PoweredByUpstage, UPSTAGE_FEATURES, UpstageBadge } from "@/components/upstage";
+import { SearchFilter, type SearchFilterState } from "@/components/search-filter";
+import { UpstageBadge } from "@/components/upstage";
 import { useWorkflowStream, WorkflowLog } from "@/components/workflow";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -25,132 +19,30 @@ import { cn } from "@/lib/utils";
 
 const RECOMMEND_THRESHOLD = 60;
 
-function StatCell({
-  icon: Icon,
-  label,
-  value,
-  hint,
-}: {
-  icon: typeof LayoutGridIcon;
-  label: string;
-  value: number;
-  hint?: string;
-}) {
-  return (
-    <div className="flex items-center gap-3 bg-card px-5 py-4">
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-        <Icon className="size-4.5 text-primary" />
-      </span>
-      <div className="min-w-0">
-        <p className="font-bold text-xl leading-none tracking-tight">{value}</p>
-        <p className="mt-1 truncate text-muted-foreground text-xs">
-          {label}
-          {hint && <span className="text-muted-foreground/70"> · {hint}</span>}
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function ProfileSidebarCard({ profile }: { profile: UserProfile | null }) {
-  if (!profile) {
-    return (
-      <div className="rounded-xl border bg-card p-5">
-        <h3 className="font-semibold text-sm">프로필이 아직 없어요</h3>
-        <p className="mt-1.5 text-muted-foreground text-xs leading-relaxed">
-          개인 링크나 재학증명서를 올리면 공고마다 지원 가능 여부와 적합도를 판정해 드려요.
-        </p>
-        <Button asChild className="mt-3 w-full" size="sm">
-          <Link href="/me">
-            <UserRoundIcon className="size-4" />프로필 만들기
-          </Link>
-        </Button>
-      </div>
-    );
-  }
-
-  const chips = [...profile.interests, ...profile.skills].slice(0, 5);
-  return (
-    <div className="rounded-xl border bg-card p-5">
-      <div className="flex items-center gap-3">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary font-bold text-primary-foreground">
-          {(profile.name ?? "나").slice(0, 1)}
-        </span>
-        <div className="min-w-0">
-          <p className="truncate font-semibold text-sm">{profile.name ?? "이름 미확인"}</p>
-          <p className="truncate text-muted-foreground text-xs">
-            {[profile.university, profile.department].filter(Boolean).join(" · ") ||
-              "학교 정보 없음"}
-          </p>
-        </div>
-      </div>
-      <div className="mt-3 flex flex-wrap gap-1">
-        {profile.grade != null && (
-          <span className="rounded-full bg-secondary px-2 py-0.5 text-secondary-foreground text-xs">
-            {profile.grade}학년
-          </span>
-        )}
-        {profile.enrollment_status && (
-          <span className="rounded-full bg-secondary px-2 py-0.5 text-secondary-foreground text-xs">
-            {profile.enrollment_status}
-          </span>
-        )}
-        {chips.map((chip) => (
-          <span
-            className="rounded-full border border-border px-2 py-0.5 text-muted-foreground text-xs"
-            key={chip}
-          >
-            {chip}
-          </span>
-        ))}
-      </div>
-      <Button asChild className="mt-4 w-full" size="sm" variant="outline">
-        <Link href="/me">프로필 관리</Link>
-      </Button>
-    </div>
-  );
-}
-
-function PipelineSidebarCard() {
-  return (
-    <div className="rounded-xl border bg-card p-5">
-      <h3 className="font-semibold text-sm">이 서비스가 쓰는 Upstage 기능</h3>
-      <ul className="mt-3 space-y-3">
-        {(Object.keys(UPSTAGE_FEATURES) as (keyof typeof UPSTAGE_FEATURES)[]).map((key) => {
-          const meta = UPSTAGE_FEATURES[key];
-          return (
-            <li className="flex items-start gap-2.5" key={key}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                alt={meta.label}
-                className="mt-0.5 size-5 shrink-0 rounded-md"
-                height={20}
-                src={meta.icon}
-                width={20}
-              />
-              <div className="min-w-0">
-                <p className="font-medium text-xs">{meta.label}</p>
-                <p className="text-muted-foreground text-xs">{meta.description}</p>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
-      <div className="mt-4 border-t pt-3">
-        <PoweredByUpstage />
-      </div>
-    </div>
-  );
-}
+const CATEGORIES = [
+  "전체",
+  "공모전/해커톤",
+  "대회/챌린지",
+  "장학금",
+  "대외활동/서포터즈",
+  "채용/인턴",
+  "others",
+] as const;
 
 export default function FeedPage() {
   const [announcements, setAnnouncements] = useState<AnnouncementWithMatch[]>([]);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [hasProfile, setHasProfile] = useState(true);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<string>("전체");
+  const [selectedCategory, setSelectedCategory] = useState<string>("전체");
   const [recommendations, setRecommendations] = useState<RecommendationItem[]>([]);
   const [showRecLog, setShowRecLog] = useState(false);
+  const [searchFilters, setSearchFilters] = useState<SearchFilterState>({
+    keyword: "",
+    verdict: "all",
+    timeline: "all",
+  });
+
   const recWf = useWorkflowStream();
   const recLoading = recWf.running;
   const { run: runRecWf } = recWf;
@@ -180,6 +72,7 @@ export default function FeedPage() {
     load();
   }, [load]);
 
+  // Recommendations
   const recommended = useMemo(() => {
     const byId = new Map(announcements.map((a) => [a.id, a]));
     return recommendations
@@ -191,18 +84,66 @@ export default function FeedPage() {
           entry.item.match.verdict !== "ineligible" &&
           !ddayInfo(entry.item.apply_end).closed,
       )
-      .slice(0, 4);
+      .slice(0, 3);
   }, [announcements, recommendations]);
 
-  const categories = useMemo(
-    () => ["전체", ...new Set(announcements.map((a) => a.category))],
-    [announcements],
-  );
-
+  // Filtering
   const visible = useMemo(() => {
-    const filtered =
-      filter === "전체" ? announcements : announcements.filter((a) => a.category === filter);
-    return [...filtered].sort((a, b) => {
+    let list = announcements;
+
+    if (selectedCategory !== "전체") {
+      list = list.filter((a) => {
+        if (selectedCategory === "공모전/해커톤") {
+          return a.category.includes("공모전") || a.category.includes("해커톤");
+        }
+        if (selectedCategory === "대회/챌린지") {
+          return a.category.includes("대회") || a.category.includes("챌린지");
+        }
+        if (selectedCategory === "대외활동/서포터즈") {
+          return a.category.includes("대외활동") || a.category.includes("서포터즈");
+        }
+        if (selectedCategory === "채용/인턴") {
+          return a.category.includes("채용") || a.category.includes("인턴");
+        }
+        if (selectedCategory === "장학금") {
+          return a.category.includes("장학금");
+        }
+        if (selectedCategory === "others") {
+          return a.category === "others" || a.category === "기타";
+        }
+        return a.category === selectedCategory;
+      });
+    }
+
+    if (searchFilters.keyword.trim()) {
+      const q = searchFilters.keyword.toLowerCase().trim();
+      list = list.filter(
+        (a) =>
+          a.title.toLowerCase().includes(q) ||
+          (a.organizer && a.organizer.toLowerCase().includes(q)) ||
+          (a.field && a.field.toLowerCase().includes(q)) ||
+          (a.benefits && a.benefits.toLowerCase().includes(q)),
+      );
+    }
+
+    if (searchFilters.verdict === "eligible") {
+      list = list.filter((a) => a.match.verdict === "eligible");
+    } else if (searchFilters.verdict === "check") {
+      list = list.filter(
+        (a) => a.match.verdict === "eligible" || a.match.verdict === "check",
+      );
+    }
+
+    if (searchFilters.timeline === "closing") {
+      list = list.filter((a) => {
+        const d = ddayInfo(a.apply_end);
+        return !d.closed && d.days !== null && d.days <= 7;
+      });
+    } else if (searchFilters.timeline === "open") {
+      list = list.filter((a) => !ddayInfo(a.apply_end).closed);
+    }
+
+    return [...list].sort((a, b) => {
       const da = ddayInfo(a.apply_end);
       const db = ddayInfo(b.apply_end);
       if (da.closed !== db.closed) {
@@ -215,7 +156,7 @@ export default function FeedPage() {
       }
       return b.match.score - a.match.score;
     });
-  }, [announcements, filter]);
+  }, [announcements, selectedCategory, searchFilters]);
 
   const stats = useMemo(() => {
     const open = announcements.filter((a) => !ddayInfo(a.apply_end).closed);
@@ -231,151 +172,212 @@ export default function FeedPage() {
   }, [announcements, recommendations]);
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="font-semibold text-[11px] text-primary uppercase tracking-[0.2em]">
-            Document Agent Feed
-          </p>
-          <h1 className="mt-1.5 font-bold text-3xl tracking-tight">공고 피드</h1>
-          <p className="mt-1.5 max-w-xl text-muted-foreground text-sm">
-            에이전트가 공고문을 읽어 만든 카드입니다. 내 프로필 기준의 자격 판정과 적합도가 함께
-            표시됩니다.
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button asChild size="sm" variant="outline">
-            <Link href="/me">
-              <UserRoundIcon className="size-4" />내 프로필
-            </Link>
-          </Button>
-          <Button asChild size="sm">
-            <Link href="/ingest">
-              <FilePlusIcon className="size-4" />공고 등록
-            </Link>
-          </Button>
-        </div>
-      </div>
-
-      {!loading && announcements.length > 0 && (
-        <div className="mt-6 grid grid-cols-2 divide-x divide-y divide-border overflow-hidden rounded-xl border lg:grid-cols-4 lg:divide-y-0">
-          <StatCell icon={LayoutGridIcon} label="전체 공고" value={stats.total} />
-          <StatCell icon={BadgeCheckIcon} label="지원 가능" value={stats.eligible} />
-          <StatCell hint="D-7 이내" icon={TimerIcon} label="마감 임박" value={stats.closing} />
-          <StatCell icon={SparklesIcon} label="AI 추천" value={stats.recommended} />
-        </div>
-      )}
-
-      <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px]">
-        <main className="min-w-0">
-          {!loading && hasProfile && (recLoading || recommended.length > 0) && (
-            <section className="mb-10">
-              <div className="flex items-center justify-between gap-2">
-                <h2 className="flex items-center gap-2 font-semibold text-lg">
-                  <SparklesIcon className="size-4.5 text-primary" />나에게 맞는 공고
-                  <UpstageBadge compact feature="solar" />
-                </h2>
-                {!recLoading && recWf.steps.length > 0 && (
-                  <button
-                    className="text-muted-foreground text-xs underline underline-offset-2 hover:text-foreground"
-                    onClick={() => setShowRecLog((v) => !v)}
-                    type="button"
-                  >
-                    {showRecLog ? "생성 과정 접기" : "생성 과정 보기"}
-                  </button>
-                )}
-              </div>
-              {(recLoading || showRecLog) && recWf.steps.length > 0 && (
-                <div className="mt-3">
-                  <WorkflowLog steps={recWf.steps} />
-                </div>
-              )}
-              {recLoading ? (
-                <div className="mt-3 flex items-center gap-2 rounded-xl border border-dashed px-4 py-6 text-muted-foreground text-sm">
-                  <Spinner className="size-4" />
-                  에이전트가 프로필과 공고를 대조해 추천을 고르는 중…
-                </div>
-              ) : (
-                <div className="mt-3 grid gap-4 sm:grid-cols-2">
-                  {recommended.map(({ rec, item }) => (
-                    <div className="flex flex-col gap-2" key={rec.id}>
-                      <AnnouncementCard item={item} />
-                      <p className="flex items-start gap-1.5 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-xs leading-relaxed">
-                        <SparklesIcon className="mt-0.5 size-3.5 shrink-0 text-primary" />
-                        <span>
-                          <span className="font-semibold text-primary">적합도 {rec.score}</span>
-                          {" · "}
-                          {rec.reason}
-                        </span>
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
-          )}
-
-          {!loading && announcements.length > 0 && (
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 className="flex items-center gap-2 font-semibold text-lg">
-                전체 공고
-                <UpstageBadge compact feature="agents" />
-              </h2>
-              <span className="text-muted-foreground text-xs">{visible.length}건</span>
+    <div className="w-full">
+      {/* 1. Hero Section */}
+      <section className="border-b border-border/80 bg-background py-12 sm:py-16">
+        <div className="mx-auto w-full max-w-6xl px-6 sm:px-8">
+          <div className="max-w-3xl space-y-4">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
+              <span className="inline-block size-1.5 rounded-full bg-primary animate-pulse" />
+              JunctionX Korea 2026 · Upstage Document Agent
             </div>
-          )}
 
-          {categories.length > 1 && (
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {categories.map((category) => (
-                <button
-                  className={cn(
-                    "rounded-full border px-3 py-1 text-sm transition-colors",
-                    filter === category
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-border bg-background text-muted-foreground hover:bg-muted",
-                  )}
-                  key={category}
-                  onClick={() => setFilter(category)}
-                  type="button"
-                >
-                  {category === "others" ? "기타" : category}
-                </button>
-              ))}
-            </div>
-          )}
+            <h1 className="font-bold text-3xl sm:text-5xl tracking-tight text-foreground leading-[1.15]">
+              공고문을 읽는 가장 똑똑한 방법,{" "}
+              <span className="text-primary">모아보라</span>
+            </h1>
 
-          {loading ? (
-            <div className="flex min-h-[40dvh] items-center justify-center">
-              <Spinner className="size-6 text-muted-foreground" />
-            </div>
-          ) : visible.length === 0 ? (
-            <div className="mt-6 flex min-h-[40dvh] flex-col items-center justify-center gap-4 rounded-xl border border-dashed text-center">
-              <div>
-                <p className="font-medium">아직 등록된 공고가 없어요</p>
-                <p className="mt-1 text-muted-foreground text-sm">
-                  공고문 PDF나 포스터 이미지를 올리면 에이전트가 카드로 만들어 드립니다.
-                </p>
-              </div>
-              <Button asChild>
+            <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+              복잡한 PDF·HWP·포스터 공고문을 Upstage Studio 에이전트가 분석하여 핵심 요강을 구조화하고, 내 프로필과 대조해 지원 자격을 판정해 드립니다.
+            </p>
+
+            <div className="flex flex-wrap items-center gap-3 pt-2">
+              <Button asChild size="default">
                 <Link href="/ingest">
-                  <FilePlusIcon className="size-4" />첫 공고 등록하기
+                  <FilePlusIcon className="size-4 mr-1.5" />
+                  공고문 등록하기
+                </Link>
+              </Button>
+              <Button asChild size="default" variant="outline">
+                <Link href="/me">
+                  <UserRoundIcon className="size-4 mr-1.5" />
+                  내 프로필 설정
+                </Link>
+              </Button>
+              <Button asChild size="default" variant="ghost">
+                <Link href="/chat">
+                  문서 챗
+                  <ArrowRightIcon className="size-4 ml-1" />
                 </Link>
               </Button>
             </div>
+          </div>
+
+          {/* Clean Search & Filter */}
+          <div className="mt-10">
+            <SearchFilter onSearchChange={setSearchFilters} />
+          </div>
+
+          {/* Quick Metrics */}
+          {!loading && announcements.length > 0 && (
+            <div className="mt-6 flex flex-wrap items-center gap-6 text-xs text-muted-foreground pt-6 border-t border-border/60">
+              <span>
+                전체 공고 <strong className="font-semibold text-foreground">{stats.total}</strong>건
+              </span>
+              <span>
+                지원 가능 <strong className="font-semibold text-emerald-600 dark:text-emerald-400">{stats.eligible}</strong>건
+              </span>
+              <span>
+                마감 임박 (D-7) <strong className="font-semibold text-foreground">{stats.closing}</strong>건
+              </span>
+              <span>
+                맞춤 추천 <strong className="font-semibold text-primary">{stats.recommended}</strong>건
+              </span>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* 2. Main Content Area */}
+      <div className="mx-auto w-full max-w-6xl px-6 py-10 sm:px-8 space-y-14">
+        {/* Profile Onboarding Banner if empty */}
+        {!loading && !profile && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-border bg-secondary/40 p-6">
+            <div>
+              <h3 className="font-semibold text-sm text-foreground">
+                프로필을 등록하면 지원 가능 여부가 자동으로 판정됩니다
+              </h3>
+              <p className="mt-1 text-xs text-muted-foreground">
+                링크(GitHub, 블로그)나 재학증명서를 올려 나에게 맞는 공고를 확인해보세요.
+              </p>
+            </div>
+            <Button asChild size="sm">
+              <Link href="/me">프로필 등록하기</Link>
+            </Button>
+          </div>
+        )}
+
+        {/* AI Recommendations Section */}
+        {!loading && hasProfile && (recLoading || recommended.length > 0) && (
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <h2 className="font-bold text-xl text-foreground">
+                  맞춤 추천 공고
+                </h2>
+                <UpstageBadge compact feature="solar" />
+              </div>
+
+              {!recLoading && recWf.steps.length > 0 && (
+                <button
+                  className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2"
+                  onClick={() => setShowRecLog((v) => !v)}
+                  type="button"
+                >
+                  {showRecLog ? "과정 접기" : "AI 추천 과정"}
+                </button>
+              )}
+            </div>
+
+            {(recLoading || showRecLog) && recWf.steps.length > 0 && (
+              <div className="rounded-xl border border-border bg-card p-4">
+                <WorkflowLog steps={recWf.steps} />
+              </div>
+            )}
+
+            {recLoading ? (
+              <div className="flex items-center justify-center gap-2.5 rounded-xl border border-dashed border-border py-12 text-xs text-muted-foreground">
+                <Spinner className="size-4 text-primary" />
+                Solar Pro 4가 프로필과 공고를 분석하는 중입니다…
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {recommended.map(({ rec, item }) => (
+                  <AnnouncementCard
+                    item={item}
+                    key={rec.id}
+                    recommendReason={rec.reason}
+                    recommendScore={rec.score}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* All Announcements Section */}
+        <section className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <h2 className="font-bold text-xl text-foreground">
+                전체 공고
+              </h2>
+              <span className="text-xs text-muted-foreground">({visible.length}건)</span>
+            </div>
+
+            {/* Category Navigation Tabs */}
+            <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0">
+              {CATEGORIES.map((category) => {
+                const label =
+                  category === "others"
+                    ? "기타"
+                    : category.replace(/\//g, " · ");
+                const active = selectedCategory === category;
+                return (
+                  <button
+                    className={cn(
+                      "rounded-lg px-2.5 py-1 text-xs font-medium transition-colors shrink-0",
+                      active
+                        ? "bg-secondary text-foreground font-semibold"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/40",
+                    )}
+                    key={category}
+                    onClick={() => setSelectedCategory(category)}
+                    type="button"
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="flex min-h-[30vh] items-center justify-center">
+              <Spinner className="size-6 text-primary" />
+            </div>
+          ) : visible.length === 0 ? (
+            <div className="flex min-h-[30vh] flex-col items-center justify-center rounded-xl border border-dashed border-border p-8 text-center">
+              <p className="font-medium text-sm text-foreground">
+                해당 조건의 공고가 없습니다
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                검색어를 변경하거나 필터를 초기화해 보세요.
+              </p>
+              <div className="mt-4 flex gap-2">
+                <Button
+                  onClick={() => {
+                    setSelectedCategory("전체");
+                    setSearchFilters({ keyword: "", verdict: "all", timeline: "all" });
+                  }}
+                  size="sm"
+                  variant="outline"
+                >
+                  필터 초기화
+                </Button>
+                <Button asChild size="sm">
+                  <Link href="/ingest">공고 등록하기</Link>
+                </Button>
+              </div>
+            </div>
           ) : (
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {visible.map((item) => (
                 <AnnouncementCard item={item} key={item.id} />
               ))}
             </div>
           )}
-        </main>
-
-        <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
-          {!loading && <ProfileSidebarCard profile={profile} />}
-          <PipelineSidebarCard />
-        </aside>
+        </section>
       </div>
     </div>
   );

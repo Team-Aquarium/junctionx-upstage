@@ -10,6 +10,7 @@
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
+
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -39,17 +40,15 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
 }
 
-/* Upstage 브랜드 팔레트 — upstage.ai 공식 토큰 기반
-   brand-500 #5b52ff · neutral(zinc) 스케일 · 다크 카드 #262336 */
+/* Upstage 공식 브랜드 팔레트 (Primary: #5b52ff) & 클린 미니멀 톤앤매너 */
 :root {
   --background: #ffffff;
   --foreground: #18181b;
@@ -57,66 +56,87 @@
   --card-foreground: #18181b;
   --popover: #ffffff;
   --popover-foreground: #18181b;
+
   --primary: #5b52ff;
   --primary-foreground: #ffffff;
-  --secondary: #ebefff;
+  --primary-hover: #483fe6;
+
+  --secondary: #f4f4f8;
   --secondary-foreground: #322790;
-  --muted: #f4f4f7;
+
+  --muted: #f6f6f9;
   --muted-foreground: #71717a;
-  --accent: #dbe2ff;
-  --accent-foreground: #322790;
-  --destructive: #dc2626;
+
+  --accent: #eef1ff;
+  --accent-foreground: #2d2088;
+
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+
   --border: #e4e4e9;
   --input: #e4e4e9;
   --ring: #5b52ff;
-  --chart-1: #99a5ff;
-  --chart-2: #5b52ff;
-  --chart-3: #4d34f4;
-  --chart-4: #3725ad;
-  --chart-5: #1e1650;
-  --radius: 0.625rem;
+
+  --chart-1: #5b52ff;
+  --chart-2: #8078ff;
+  --chart-3: #a59eff;
+  --chart-4: #c9c5ff;
+  --chart-5: #2d2088;
+
+  --radius: 0.5rem;
+
   --sidebar: #fafafc;
   --sidebar-foreground: #18181b;
   --sidebar-primary: #5b52ff;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #dbe2ff;
-  --sidebar-accent-foreground: #322790;
+  --sidebar-accent: #eef1ff;
+  --sidebar-accent-foreground: #2d2088;
   --sidebar-border: #e4e4e9;
   --sidebar-ring: #5b52ff;
 }
 
 .dark {
-  --background: #0e0d17;
-  --foreground: #fafafc;
-  --card: #1b1926;
-  --card-foreground: #fafafc;
-  --popover: #1b1926;
-  --popover-foreground: #fafafc;
-  --primary: #7578ff;
+  --background: #0f0e17;
+  --foreground: #f4f4f7;
+  --card: #181724;
+  --card-foreground: #f4f4f7;
+  --popover: #181724;
+  --popover-foreground: #f4f4f7;
+
+  --primary: #6c63ff;
   --primary-foreground: #ffffff;
-  --secondary: #262336;
+  --primary-hover: #5b52ff;
+
+  --secondary: #222033;
   --secondary-foreground: #dbe2ff;
-  --muted: #211f2f;
-  --muted-foreground: #a1a1ab;
-  --accent: #2b2845;
-  --accent-foreground: #c2cbff;
+
+  --muted: #1e1d2c;
+  --muted-foreground: #9ca3af;
+
+  --accent: #29273e;
+  --accent-foreground: #eef1ff;
+
   --destructive: #f87171;
-  --border: #ffffff1f;
-  --input: #ffffff29;
-  --ring: #7578ff;
-  --chart-1: #c2cbff;
-  --chart-2: #99a5ff;
-  --chart-3: #7578ff;
-  --chart-4: #5b52ff;
-  --chart-5: #4d34f4;
-  --sidebar: #1b1926;
-  --sidebar-foreground: #fafafc;
-  --sidebar-primary: #7578ff;
+  --destructive-foreground: #ffffff;
+
+  --border: #2c2a3e;
+  --input: #2c2a3e;
+  --ring: #6c63ff;
+
+  --chart-1: #6c63ff;
+  --chart-2: #8e87ff;
+  --chart-3: #b1abff;
+  --chart-4: #d3d0ff;
+  --chart-5: #f4f4f7;
+
+  --sidebar: #181724;
+  --sidebar-foreground: #f4f4f7;
+  --sidebar-primary: #6c63ff;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #2b2845;
-  --sidebar-accent-foreground: #c2cbff;
-  --sidebar-border: #ffffff1f;
-  --sidebar-ring: #7578ff;
+  --sidebar-accent: #29273e;
+  --sidebar-accent-foreground: #eef1ff;
+  --sidebar-border: #2c2a3e;
+  --sidebar-ring: #6c63ff;
 }
 
 @layer base {
@@ -124,9 +144,24 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+    color: var(--foreground);
+    background-color: var(--background);
   }
-  html {
-    @apply font-sans;
-  }
+}
+
+/* 절제된 커스텀 스크롤바 */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
 }

@@ -1,11 +1,12 @@
 "use client";
 
 import {
+  ArrowDownIcon,
+  ArrowRightIcon,
   CheckCircle2Icon,
   ChevronDownIcon,
   ChevronRightIcon,
-  ChevronRightIcon as ArrowIcon,
-  FileUpIcon,
+  FileTextIcon,
   GlobeIcon,
   Link2Icon,
   UploadCloudIcon,
@@ -20,7 +21,6 @@ import {
 import { UpstageBadge } from "@/components/upstage";
 import { useWorkflowStream, WorkflowLog, type WorkflowStep } from "@/components/workflow";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 
@@ -38,10 +38,10 @@ interface QueueItem {
 }
 
 const CRAWL_SOURCES = [
-  { value: "ck-it", label: "콘테스트코리아 · 학문/과학/IT" },
+  { value: "ck-it", label: "콘테스트코리아 · IT / SW / AI" },
   { value: "ck-all", label: "콘테스트코리아 · 전체" },
-  { value: "it", label: "위비티 · 웹/모바일/IT" },
-  { value: "idea", label: "위비티 · 기획/아이디어" },
+  { value: "it", label: "위비티 · 웹 / 모바일 / IT" },
+  { value: "idea", label: "위비티 · 기획 / 아이디어" },
   { value: "all", label: "위비티 · 전체" },
 ] as const;
 
@@ -58,23 +58,27 @@ const MAX_CRAWL_LIMIT = 10;
 const PIPELINE_STEPS = [
   {
     icon: "/upstage/document-parse.svg",
-    name: "Parse",
-    description: "문서 구조화·OCR",
+    step: "1",
+    title: "Document Parse",
+    desc: "OCR & 문서 마크다운 구조화",
   },
   {
-    icon: "/upstage/symbol.png",
-    name: "Classify",
-    description: "공고 유형 분류",
+    icon: "/upstage/symbol.svg",
+    step: "2",
+    title: "Category Classify",
+    desc: "공고 유형 분류 (6종)",
   },
   {
     icon: "/upstage/information-extract.svg",
-    name: "Extract",
-    description: "필드 10종 추출",
+    step: "3",
+    title: "Information Extract",
+    desc: "10대 핵심 필드 추출",
   },
   {
     icon: "/upstage/solar-llm.svg",
-    name: "Instruct",
-    description: "요약·자격 규칙화",
+    step: "4",
+    title: "Solar Pro 4",
+    desc: "요약 & 자격 판정 규칙화",
   },
 ] as const;
 
@@ -96,7 +100,6 @@ export default function IngestPage() {
   const [linkUrl, setLinkUrl] = useState("");
   const linkWf = useWorkflowStream();
 
-  // 새로고침 후에도 진행 중이던 작업(크롤·링크·파일 등록)에 다시 붙어 이어본다.
   const { run: runCrawlWf } = crawlWf;
   const { run: runLinkWf } = linkWf;
   const { run: runUploadWf } = uploadWf;
@@ -157,7 +160,7 @@ export default function IngestPage() {
           });
         }
       } catch {
-        // 이어보기 실패는 치명적이지 않다
+        // ignore
       }
     })();
   }, [runCrawlWf, runLinkWf, runUploadWf]);
@@ -273,351 +276,395 @@ export default function IngestPage() {
   ].filter((a): a is AnnouncementWithMatch => Boolean(a));
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 py-8">
-      <p className="font-semibold text-[11px] text-primary uppercase tracking-[0.2em]">
-        Studio Agents Pipeline
-      </p>
-      <h1 className="mt-1.5 flex flex-wrap items-center gap-2.5 font-bold text-3xl tracking-tight">
-        공고 등록
-        <UpstageBadge feature="agents" />
-      </h1>
-      <p className="mt-1.5 max-w-2xl text-muted-foreground text-sm">
-        어떤 형태의 공고든 — 파일이든 웹이든 — 하나의 Studio 에이전트가 읽습니다. 모든 처리
-        단계와 중간 산출물이 실시간으로 표시됩니다.
-      </p>
-
-      <div className="mt-6 rounded-xl border bg-card p-4">
-        <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
-          {PIPELINE_STEPS.map((step, index) => (
-            <div className="flex flex-1 items-center gap-2" key={step.name}>
-              <div className="flex flex-1 items-center gap-2.5 rounded-lg bg-muted/60 px-3 py-2.5">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  alt={step.name}
-                  className="size-6 shrink-0 rounded-md"
-                  height={24}
-                  src={step.icon}
-                  width={24}
-                />
-                <div className="min-w-0">
-                  <p className="font-semibold text-xs">{step.name}</p>
-                  <p className="truncate text-[11px] text-muted-foreground">{step.description}</p>
-                </div>
-              </div>
-              {index < PIPELINE_STEPS.length - 1 && (
-                <ArrowIcon className="size-4 shrink-0 rotate-90 text-muted-foreground/60 sm:rotate-0" />
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <input
-        accept={ACCEPT}
-        className="hidden"
-        multiple
-        onChange={(e) => {
-          if (e.target.files?.length) {
-            addFiles(e.target.files);
-          }
-          e.target.value = "";
-        }}
-        ref={inputRef}
-        type="file"
-      />
-
-      <section className="mt-6 rounded-xl border bg-card p-5">
-        <h2 className="flex items-center gap-2 font-semibold text-sm">
-          <Link2Icon className="size-4 text-primary" />링크로 등록
-        </h2>
-        <p className="mt-1 text-muted-foreground text-xs">
-          공고 페이지 주소나 공고문 파일(PDF·이미지) 링크를 붙여넣으면 바로 파이프라인에
-          태웁니다. 위비티·콘테스트코리아 링크는 전용 수집기로 처리돼요.
-        </p>
-        <div className="mt-3 flex gap-2">
-          <Input
-            disabled={linkWf.running}
-            onChange={(e) => setLinkUrl(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && runLink()}
-            placeholder="https://... 공고 페이지 또는 공고문 파일 링크"
-            value={linkUrl}
-          />
-          <Button disabled={linkWf.running || !linkUrl.trim()} onClick={runLink}>
-            {linkWf.running ? (
-              <>
-                <Spinner className="size-4" />
-                분석 중…
-              </>
-            ) : (
-              "등록"
-            )}
-          </Button>
-        </div>
-      </section>
-
-      <div className="mt-4 grid gap-4 md:grid-cols-2">
-        <section className="flex flex-col rounded-xl border bg-card p-5">
-          <h2 className="flex items-center gap-2 font-semibold text-sm">
-            <FileUpIcon className="size-4 text-primary" />파일로 등록
-          </h2>
-          <p className="mt-1 text-muted-foreground text-xs">
-            PDF · 포스터 이미지 · 오피스 · HWP · HTML, 여러 개 한 번에
+    <div className="w-full py-10 sm:py-14">
+      <div className="mx-auto w-full max-w-6xl px-6 sm:px-8 space-y-10">
+        {/* Header */}
+        <div>
+          <span className="text-xs font-semibold tracking-wider text-primary uppercase">
+            Studio Agents
+          </span>
+          <h1 className="mt-1 flex items-center gap-3 font-bold text-3xl tracking-tight text-foreground">
+            공고 등록
+            <UpstageBadge compact feature="agents" />
+          </h1>
+          <p className="mt-1.5 text-sm text-muted-foreground max-w-2xl leading-relaxed">
+            PDF, 포스터 이미지, 웹페이지, HWP 문서 등 어떤 형태의 공고든 Studio 공고 에이전트가 읽고 구조화합니다.
           </p>
-          <button
-            className={cn(
-              "mt-3 flex flex-1 flex-col items-center justify-center gap-2.5 rounded-lg border-2 border-dashed px-4 py-8 text-center transition-colors",
-              dragOver ? "border-primary bg-primary/5" : "border-border hover:bg-muted/50",
-            )}
-            onClick={() => inputRef.current?.click()}
-            onDragLeave={() => setDragOver(false)}
-            onDragOver={(e) => {
-              e.preventDefault();
-              setDragOver(true);
-            }}
-            onDrop={(e) => {
-              e.preventDefault();
-              setDragOver(false);
-              if (e.dataTransfer.files.length) {
-                addFiles(e.dataTransfer.files);
-              }
-            }}
-            type="button"
-          >
-            <UploadCloudIcon className="size-7 text-primary" />
-            <p className="font-medium text-sm">끌어다 놓거나 클릭해서 선택</p>
-          </button>
-          {queue.length > 0 && (
-            <Button
-              className="mt-3 w-full"
-              disabled={running || pendingCount === 0}
-              onClick={run}
-            >
-              {running ? (
-                <>
-                  <Spinner className="size-4" />
-                  에이전트 실행 중…
-                </>
-              ) : (
-                `에이전트로 분석 (${pendingCount}건)`
-              )}
-            </Button>
-          )}
-        </section>
+        </div>
 
-        <section className="flex flex-col rounded-xl border bg-card p-5">
-          <h2 className="flex items-center gap-2 font-semibold text-sm">
-            <GlobeIcon className="size-4 text-primary" />웹에서 자동 수집
-          </h2>
-          <p className="mt-1 text-muted-foreground text-xs">
-            콘테스트코리아·위비티의 최신 공모전 문서를 첨부 HWP·PDF → 본문 → 포스터 순으로
-            가져와 같은 파이프라인에 태웁니다.
-          </p>
-          <div className="mt-3 flex flex-1 flex-col justify-end gap-2">
-            <select
-              className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-              disabled={crawlWf.running}
-              onChange={(e) => setCrawlSource(e.target.value)}
-              value={crawlSource}
-            >
-              {CRAWL_SOURCES.map((s) => (
-                <option key={s.value} value={s.value}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
-            <div className="flex gap-2">
-              <div className="flex items-center gap-1.5">
-                <Input
-                  className="w-20 text-center"
-                  disabled={crawlWf.running}
-                  max={MAX_CRAWL_LIMIT}
-                  min={1}
-                  onChange={(e) => {
-                    const n = Number.parseInt(e.target.value, 10);
-                    setCrawlLimit(
-                      Number.isFinite(n) ? Math.min(Math.max(1, n), MAX_CRAWL_LIMIT) : 1,
-                    );
-                  }}
-                  type="number"
-                  value={crawlLimit}
-                />
-                <span className="shrink-0 text-muted-foreground text-xs">건 (최대 {MAX_CRAWL_LIMIT})</span>
-              </div>
-              <Button className="flex-1" disabled={crawlWf.running} onClick={runCrawl}>
-                {crawlWf.running ? (
-                  <>
-                    <Spinner className="size-4" />
-                    수집·분석 중…
-                  </>
-                ) : (
-                  "수집 시작"
-                )}
-              </Button>
-            </div>
-            {crawlMessage && (
-              <p className="rounded-lg border bg-muted/50 px-3 py-2 text-xs">{crawlMessage}</p>
-            )}
+        {/* Pipeline Steps Diagram */}
+        <section className="rounded-xl border border-border bg-card p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="font-semibold text-sm text-foreground">
+              Studio 에이전트 실행 파이프라인
+            </h2>
+            <span className="text-xs text-muted-foreground">
+              4단계 순차 처리
+            </span>
           </div>
-        </section>
-      </div>
 
-      {(queue.length > 0 ||
-        uploadWf.steps.length > 0 ||
-        crawlWf.steps.length > 0 ||
-        linkWf.steps.length > 0 ||
-        webItems.length > 0) && (
-        <section className="mt-8">
-          <h2 className="font-semibold text-lg">처리 현황</h2>
-
-          {queue.length > 0 && (
-            <div className="mt-3 space-y-2">
-              {queue.map((item, index) => {
-                const isActive = activeIndex === index;
-                const log = isActive ? uploadWf.steps : item.log;
-                const showLog = isActive || expandedLogs.has(index);
-                return (
-                  <div className="rounded-lg border bg-card" key={`${item.file.name}-${index}`}>
-                    <div className="flex items-center gap-3 px-4 py-3">
-                      <FileUpIcon className="size-4 shrink-0 text-muted-foreground" />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate font-medium text-sm">{item.file.name}</p>
-                        {item.status === "실패" && (
-                          <p className="mt-0.5 break-words text-destructive text-xs">
-                            {item.error}
-                          </p>
-                        )}
-                        {item.announcement && (
-                          <p className="mt-0.5 truncate text-muted-foreground text-xs">
-                            {item.announcement.category} · {item.announcement.title}
-                          </p>
-                        )}
-                      </div>
-                      {log && log.length > 0 && !isActive && (
-                        <button
-                          className="flex shrink-0 items-center gap-1 text-muted-foreground text-xs hover:text-foreground"
-                          onClick={() => toggleLog(index)}
-                          type="button"
-                        >
-                          과정 {log.length}단계
-                          {showLog ? (
-                            <ChevronDownIcon className="size-3.5" />
-                          ) : (
-                            <ChevronRightIcon className="size-3.5" />
-                          )}
-                        </button>
-                      )}
-                      <span className="shrink-0">
-                        {item.status === "대기" && (
-                          <span className="text-muted-foreground text-xs">대기</span>
-                        )}
-                        {item.status === "처리 중" && <Spinner className="size-4 text-primary" />}
-                        {item.status === "완료" && (
-                          <CheckCircle2Icon className="size-4.5 text-primary" />
-                        )}
-                        {item.status === "실패" && (
-                          <XCircleIcon className="size-4.5 text-destructive" />
-                        )}
-                      </span>
-                    </div>
-                    {log && log.length > 0 && showLog && (
-                      <div className="border-t px-4 py-3">
-                        <WorkflowLog steps={log} />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-              <div className="pt-1">
-                <Button
-                  disabled={running}
-                  onClick={() => {
-                    setQueue([]);
-                    setExpandedLogs(new Set());
-                  }}
-                  size="sm"
-                  variant="ghost"
-                >
-                  목록 비우기
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {queue.length === 0 && uploadWf.steps.length > 0 && (
-            <div className="mt-4">
-              <p className="mb-1.5 text-muted-foreground text-xs">
-                파일 등록 실행 과정 (이어보기)
-              </p>
-              <WorkflowLog steps={uploadWf.steps} />
-            </div>
-          )}
-
-          {linkWf.steps.length > 0 && (
-            <div className="mt-4">
-              <p className="mb-1.5 text-muted-foreground text-xs">링크 등록 실행 과정</p>
-              <WorkflowLog steps={linkWf.steps} />
-            </div>
-          )}
-
-          {crawlWf.steps.length > 0 && (
-            <div className="mt-4">
-              <p className="mb-1.5 text-muted-foreground text-xs">자동 수집 실행 과정</p>
-              <WorkflowLog steps={crawlWf.steps} />
-            </div>
-          )}
-
-          {webItems.length > 0 && (
-            <ul className="mt-3 space-y-2">
-              {webItems.map((item) => (
-                <li
-                  className="flex items-center gap-3 rounded-lg border bg-card px-3 py-2"
-                  key={item.sourceUrl}
-                >
-                  <span className="shrink-0">
-                    {item.status === "완료" ? (
-                      <CheckCircle2Icon className="size-4 text-primary" />
-                    ) : (
-                      <XCircleIcon className="size-4 text-destructive" />
-                    )}
-                  </span>
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-2 lg:gap-0">
+            {PIPELINE_STEPS.map((step, idx) => (
+              <div
+                className="flex flex-1 flex-col lg:flex-row items-stretch lg:items-center gap-2"
+                key={step.title}
+              >
+                <div className="flex flex-1 items-start gap-3 rounded-lg bg-secondary/60 p-3.5 border border-border/60">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    alt={step.title}
+                    className="size-6 object-contain shrink-0 mt-0.5"
+                    height={24}
+                    src={step.icon}
+                    width={24}
+                  />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm">{item.title}</p>
-                    {item.error && (
-                      <p className="truncate text-destructive text-xs">{item.error}</p>
-                    )}
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-[11px] text-primary">0{step.step}</span>
+                      <h3 className="font-semibold text-xs text-foreground truncate">
+                        {step.title}
+                      </h3>
+                    </div>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground leading-snug">
+                      {step.desc}
+                    </p>
                   </div>
-                  {item.sourceUrl.startsWith("http") && (
-                    <a
-                      className="shrink-0 text-muted-foreground text-xs underline underline-offset-2"
-                      href={item.sourceUrl}
-                      rel="noreferrer"
-                      target="_blank"
-                    >
-                      원문
-                    </a>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      )}
+                </div>
 
-      {createdAnnouncements.length > 0 && (
-        <section className="mt-8">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="font-semibold text-lg">생성된 공고 카드</h2>
-            <Button asChild size="sm" variant="outline">
-              <Link href="/">피드에서 보기</Link>
-            </Button>
-          </div>
-          <div className="mt-3 grid gap-4 sm:grid-cols-2">
-            {createdAnnouncements.map((announcement) => (
-              <AnnouncementCard item={announcement} key={announcement.id} />
+                {idx < PIPELINE_STEPS.length - 1 && (
+                  <div className="flex items-center justify-center py-1 lg:py-0 lg:px-2 text-muted-foreground/50 shrink-0">
+                    <ArrowRightIcon className="hidden lg:block size-4" />
+                    <ArrowDownIcon className="lg:hidden size-4" />
+                  </div>
+                )}
+              </div>
             ))}
           </div>
         </section>
-      )}
+
+        {/* Ingest Source Cards */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          {/* Method 1: Link */}
+          <section className="flex flex-col justify-between rounded-xl border border-border bg-card p-5 space-y-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <Link2Icon className="size-4 text-primary" />
+                <h3 className="font-semibold text-sm text-foreground">링크 등록</h3>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                공고 페이지 주소나 문서 파일(PDF) URL을 직접 입력합니다.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <input
+                className="h-8 w-full rounded-lg border border-input bg-background px-3 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:border-primary"
+                disabled={linkWf.running}
+                onChange={(e) => setLinkUrl(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && runLink()}
+                placeholder="https://..."
+                type="url"
+                value={linkUrl}
+              />
+              <Button
+                className="h-8 w-full"
+                disabled={linkWf.running || !linkUrl.trim()}
+                onClick={runLink}
+                size="sm"
+              >
+                {linkWf.running ? <Spinner className="size-4" /> : "링크 등록"}
+              </Button>
+            </div>
+          </section>
+
+          {/* Method 2: File Upload */}
+          <section className="flex flex-col justify-between rounded-xl border border-border bg-card p-5 space-y-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <FileTextIcon className="size-4 text-primary" />
+                <h3 className="font-semibold text-sm text-foreground">파일 업로드</h3>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                PDF, 이미지, HWP 등 여러 문서를 한 번에 등록합니다.
+              </p>
+            </div>
+
+            <input
+              accept={ACCEPT}
+              className="hidden"
+              multiple
+              onChange={(e) => {
+                if (e.target.files?.length) {
+                  addFiles(e.target.files);
+                }
+                e.target.value = "";
+              }}
+              ref={inputRef}
+              type="file"
+            />
+
+            <div className="space-y-2">
+              <button
+                className={cn(
+                  "flex w-full flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed p-4 text-center transition-colors cursor-pointer",
+                  dragOver ? "border-primary bg-accent/30" : "border-border hover:bg-muted/40",
+                )}
+                onClick={() => inputRef.current?.click()}
+                onDragLeave={() => setDragOver(false)}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragOver(true);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setDragOver(false);
+                  if (e.dataTransfer.files.length) {
+                    addFiles(e.dataTransfer.files);
+                  }
+                }}
+                type="button"
+              >
+                <UploadCloudIcon className="size-5 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground font-medium">
+                  클릭하거나 파일 드롭
+                </span>
+              </button>
+
+              {queue.length > 0 && (
+                <Button
+                  className="w-full"
+                  disabled={running || pendingCount === 0}
+                  onClick={run}
+                  size="sm"
+                >
+                  {running ? <Spinner className="size-4" /> : `에이전트 실행 (${pendingCount}건)`}
+                </Button>
+              )}
+            </div>
+          </section>
+
+          {/* Method 3: Web Auto Crawler */}
+          <section className="flex flex-col justify-between rounded-xl border border-border bg-card p-5 space-y-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <GlobeIcon className="size-4 text-primary" />
+                <h3 className="font-semibold text-sm text-foreground">웹 자동 수집</h3>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                콘테스트코리아·위비티의 최신 공모전을 자동 수집합니다.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <select
+                className="h-8 w-full rounded-lg border border-input bg-background px-2.5 text-xs text-foreground outline-none focus:border-primary"
+                disabled={crawlWf.running}
+                onChange={(e) => setCrawlSource(e.target.value)}
+                value={crawlSource}
+              >
+                {CRAWL_SOURCES.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-28 shrink-0 items-center justify-between rounded-lg border border-input bg-background px-2.5 text-xs focus-within:border-primary">
+                  <span className="shrink-0 text-[11px] text-muted-foreground whitespace-nowrap">수량</span>
+                  <input
+                    className="w-10 bg-transparent text-center text-xs font-semibold text-foreground outline-none"
+                    disabled={crawlWf.running}
+                    max={MAX_CRAWL_LIMIT}
+                    min={1}
+                    onChange={(e) => {
+                      const n = Number.parseInt(e.target.value, 10);
+                      setCrawlLimit(
+                        Number.isFinite(n) ? Math.min(Math.max(1, n), MAX_CRAWL_LIMIT) : 1,
+                      );
+                    }}
+                    type="number"
+                    value={crawlLimit}
+                  />
+                  <span className="shrink-0 text-[11px] text-muted-foreground whitespace-nowrap">건</span>
+                </div>
+                <Button
+                  className="h-8 flex-1"
+                  disabled={crawlWf.running}
+                  onClick={runCrawl}
+                  size="sm"
+                >
+                  {crawlWf.running ? <Spinner className="size-4" /> : "수집 시작"}
+                </Button>
+              </div>
+              {crawlMessage && (
+                <p className="text-[11px] text-muted-foreground">{crawlMessage}</p>
+              )}
+            </div>
+          </section>
+        </div>
+
+        {/* Processing Queues & Workflow Logs */}
+        {(queue.length > 0 ||
+          uploadWf.steps.length > 0 ||
+          crawlWf.steps.length > 0 ||
+          linkWf.steps.length > 0 ||
+          webItems.length > 0) && (
+          <section className="space-y-3 pt-4 border-t border-border/80">
+            <h2 className="font-bold text-base text-foreground">
+              처리 현황
+            </h2>
+
+            {queue.length > 0 && (
+              <div className="space-y-2">
+                {queue.map((item, index) => {
+                  const isActive = activeIndex === index;
+                  const log = isActive ? uploadWf.steps : item.log;
+                  const showLog = isActive || expandedLogs.has(index);
+                  return (
+                    <div
+                      className="rounded-lg border border-border bg-card p-3.5"
+                      key={`${item.file.name}-${index}`}
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="font-medium text-xs text-foreground truncate">
+                            {item.file.name}
+                          </p>
+                          {item.announcement && (
+                            <p className="text-[11px] text-muted-foreground truncate">
+                              {item.announcement.category} · {item.announcement.title}
+                            </p>
+                          )}
+                          {item.error && (
+                            <p className="text-[11px] text-destructive truncate">{item.error}</p>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-3 shrink-0">
+                          {log && log.length > 0 && !isActive && (
+                            <button
+                              className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
+                              onClick={() => toggleLog(index)}
+                              type="button"
+                            >
+                              과정 ({log.length})
+                              {showLog ? (
+                                <ChevronDownIcon className="size-3" />
+                              ) : (
+                                <ChevronRightIcon className="size-3" />
+                              )}
+                            </button>
+                          )}
+
+                          {item.status === "대기" && (
+                            <span className="text-[11px] text-muted-foreground">대기</span>
+                          )}
+                          {item.status === "처리 중" && (
+                            <Spinner className="size-3.5 text-primary" />
+                          )}
+                          {item.status === "완료" && (
+                            <CheckCircle2Icon className="size-4 text-emerald-600 dark:text-emerald-400" />
+                          )}
+                          {item.status === "실패" && (
+                            <XCircleIcon className="size-4 text-destructive" />
+                          )}
+                        </div>
+                      </div>
+
+                      {log && log.length > 0 && showLog && (
+                        <div className="mt-3 pt-3 border-t border-border">
+                          <WorkflowLog steps={log} />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+
+                <div className="pt-1">
+                  <Button
+                    disabled={running}
+                    onClick={() => {
+                      setQueue([]);
+                      setExpandedLogs(new Set());
+                    }}
+                    size="sm"
+                    variant="ghost"
+                  >
+                    목록 비우기
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {linkWf.steps.length > 0 && (
+              <div className="rounded-lg border border-border bg-card p-4">
+                <WorkflowLog steps={linkWf.steps} />
+              </div>
+            )}
+
+            {crawlWf.steps.length > 0 && (
+              <div className="rounded-lg border border-border bg-card p-4">
+                <WorkflowLog steps={crawlWf.steps} />
+              </div>
+            )}
+
+            {webItems.length > 0 && (
+              <div className="space-y-1.5 pt-2">
+                {webItems.map((item) => (
+                  <div
+                    className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-3 py-2 text-xs"
+                    key={item.sourceUrl}
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      {item.status === "완료" ? (
+                        <CheckCircle2Icon className="size-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      ) : (
+                        <XCircleIcon className="size-3.5 text-destructive shrink-0" />
+                      )}
+                      <p className="font-medium text-foreground truncate">{item.title}</p>
+                    </div>
+
+                    {item.sourceUrl.startsWith("http") && (
+                      <a
+                        className="text-muted-foreground hover:text-foreground underline shrink-0"
+                        href={item.sourceUrl}
+                        rel="noreferrer"
+                        target="_blank"
+                      >
+                        원문
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* Created Announcements Preview */}
+        {createdAnnouncements.length > 0 && (
+          <section className="space-y-4 pt-6 border-t border-border/80">
+            <div className="flex items-center justify-between">
+              <h2 className="font-bold text-lg text-foreground">
+                생성된 공고 ({createdAnnouncements.length}건)
+              </h2>
+              <Button asChild size="sm" variant="outline">
+                <Link href="/">
+                  피드로 이동
+                  <ArrowRightIcon className="size-3.5 ml-1" />
+                </Link>
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {createdAnnouncements.map((announcement) => (
+                <AnnouncementCard item={announcement} key={announcement.id} />
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
     </div>
   );
 }

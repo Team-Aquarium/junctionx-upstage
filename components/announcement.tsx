@@ -1,6 +1,5 @@
 "use client";
 
-import { BuildingIcon, CalendarIcon, TrophyIcon } from "lucide-react";
 import Link from "next/link";
 import type { MatchResult } from "@/lib/matching";
 import type { Announcement } from "@/lib/store";
@@ -30,20 +29,17 @@ export function ddayInfo(applyEnd: string | null): {
   return { label: `D-${days}`, closed: false, days };
 }
 
-const VERDICT_META: Record<MatchResult["verdict"], { label: string; className: string }> = {
-  eligible: {
-    label: "지원 가능",
-    className: "border-primary/30 bg-primary/10 text-primary",
-  },
-  ineligible: {
-    label: "자격 미달",
-    className: "border-destructive/30 bg-destructive/10 text-destructive",
-  },
-  check: {
-    label: "확인 필요",
-    className: "border-border bg-secondary text-secondary-foreground",
-  },
-};
+export function CategoryBadge({ category }: { category: string }) {
+  const label =
+    category === "others"
+      ? "기타"
+      : category.replace(/\//g, " · ");
+  return (
+    <span className="inline-flex items-center rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground">
+      {label}
+    </span>
+  );
+}
 
 export function VerdictBadge({
   verdict,
@@ -52,24 +48,38 @@ export function VerdictBadge({
   verdict: MatchResult["verdict"];
   className?: string;
 }) {
-  const meta = VERDICT_META[verdict];
+  if (verdict === "eligible") {
+    return (
+      <span
+        className={cn(
+          "inline-flex items-center rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400",
+          className,
+        )}
+      >
+        지원 가능
+      </span>
+    );
+  }
+  if (verdict === "check") {
+    return (
+      <span
+        className={cn(
+          "inline-flex items-center rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-muted-foreground",
+          className,
+        )}
+      >
+        확인 필요
+      </span>
+    );
+  }
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full border px-2 py-0.5 font-medium text-xs",
-        meta.className,
+        "inline-flex items-center rounded-md bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive",
         className,
       )}
     >
-      {meta.label}
-    </span>
-  );
-}
-
-export function CategoryBadge({ category }: { category: string }) {
-  return (
-    <span className="inline-flex items-center rounded-full border border-border bg-muted px-2 py-0.5 text-muted-foreground text-xs">
-      {category === "others" ? "기타" : category}
+      자격 미달
     </span>
   );
 }
@@ -79,12 +89,12 @@ export function DdayBadge({ applyEnd }: { applyEnd: string | null }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full px-2 py-0.5 font-semibold text-xs",
+        "text-xs font-medium",
         info.closed
-          ? "bg-muted text-muted-foreground line-through"
+          ? "text-muted-foreground line-through"
           : info.days !== null && info.days <= 7
-            ? "bg-destructive/10 text-destructive"
-            : "bg-primary/10 text-primary",
+            ? "text-primary font-semibold"
+            : "text-muted-foreground",
       )}
     >
       {info.label}
@@ -92,44 +102,71 @@ export function DdayBadge({ applyEnd }: { applyEnd: string | null }) {
   );
 }
 
-export function AnnouncementCard({ item }: { item: AnnouncementWithMatch }) {
-  const closed = ddayInfo(item.apply_end).closed;
+/** 미니멀하고 넓은 여백을 가진 공고 카드 */
+export function AnnouncementCard({
+  item,
+  recommendReason,
+  recommendScore,
+}: {
+  item: AnnouncementWithMatch;
+  recommendReason?: string;
+  recommendScore?: number;
+}) {
+  const dday = ddayInfo(item.apply_end);
+
   return (
     <Link
       className={cn(
-        "flex flex-col gap-3 rounded-xl border bg-card p-4 text-card-foreground transition-shadow hover:shadow-md",
-        closed && "opacity-60",
+        "group flex flex-col justify-between rounded-xl border border-border bg-card p-6 transition-colors hover:border-primary/40",
+        dday.closed && "opacity-50",
       )}
       href={`/notice/${item.id}`}
     >
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-1.5">
-          <CategoryBadge category={item.category} />
-          <VerdictBadge verdict={item.match.verdict} />
+      <div>
+        {/* Top Header: Category, Verdict, D-day */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5">
+            <CategoryBadge category={item.category} />
+            <VerdictBadge verdict={item.match.verdict} />
+          </div>
+          <DdayBadge applyEnd={item.apply_end} />
         </div>
-        <DdayBadge applyEnd={item.apply_end} />
-      </div>
-      <h3 className="line-clamp-2 font-semibold text-base leading-snug">{item.title}</h3>
-      <div className="mt-auto flex flex-col gap-1.5 text-muted-foreground text-xs">
+
+        {/* Title */}
+        <h3 className="mt-4 font-semibold text-base leading-snug text-foreground group-hover:text-primary transition-colors line-clamp-2">
+          {item.title}
+        </h3>
+
+        {/* Organizer */}
         {item.organizer && (
-          <span className="flex items-center gap-1.5 truncate">
-            <BuildingIcon className="size-3.5 shrink-0" />
-            <span className="truncate">{item.organizer}</span>
-          </span>
+          <p className="mt-2 text-xs text-muted-foreground truncate">
+            {item.organizer}
+          </p>
         )}
+
+        {/* Benefits or field */}
         {item.benefits && (
-          <span className="flex items-center gap-1.5 truncate">
-            <TrophyIcon className="size-3.5 shrink-0" />
-            <span className="truncate">{item.benefits}</span>
-          </span>
+          <p className="mt-1 text-xs text-muted-foreground line-clamp-1">
+            혜택: {item.benefits}
+          </p>
         )}
-        {(item.apply_start || item.apply_end) && (
-          <span className="flex items-center gap-1.5 truncate">
-            <CalendarIcon className="size-3.5 shrink-0" />
-            <span className="truncate">
-              {item.apply_start ?? "?"} ~ {item.apply_end ?? "상시"}
+      </div>
+
+      {/* Footer Info & Recommendation */}
+      <div className="mt-6 pt-4 border-t border-border/60 flex flex-col gap-2">
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <span>{item.apply_end ? `${item.apply_end} 마감` : "상시 모집"}</span>
+          {(recommendScore !== undefined || item.match.score > 0) && (
+            <span className="font-semibold text-primary">
+              적합도 {recommendScore ?? item.match.score}점
             </span>
-          </span>
+          )}
+        </div>
+
+        {recommendReason && (
+          <p className="rounded-lg bg-accent/40 p-2.5 text-xs text-accent-foreground leading-relaxed">
+            {recommendReason}
+          </p>
         )}
       </div>
     </Link>

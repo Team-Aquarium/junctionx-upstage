@@ -69,16 +69,16 @@ import {
   ToolInput,
   ToolOutput,
 } from "@/components/ai-elements/tool";
+import { UpstageBadge } from "@/components/upstage";
 import { Button } from "@/components/ui/button";
 
 const ACCEPT_FORMATS =
   ".pdf,.png,.jpg,.jpeg,.bmp,.tif,.tiff,.heic,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.hwp,.hwpx";
 
 const SUGGESTIONS = [
-  "이 문서를 3줄로 요약해줘",
-  "핵심 정보를 JSON으로 추출해줘",
-  "이 문서는 어떤 종류의 문서야?",
-  "문서에 있는 표를 정리해줘",
+  "지원 자격과 마감일을 요약해줘",
+  "핵심 요강 정보를 JSON으로 추출해줘",
+  "제출 서류 및 유의사항 체크리스트를 만들어줘",
 ];
 
 const TOOL_TITLES: Record<string, string> = {
@@ -98,15 +98,15 @@ const FEATURES = [
   {
     icon: "/upstage/document-parse.svg",
     title: "Document Parse",
-    description: "PDF·스캔·오피스·HWP 문서를 마크다운으로 구조화",
+    description: "PDF·스캔·HWP 문서를 마크다운으로 구조화",
   },
   {
     icon: "/upstage/information-extract.svg",
     title: "Information Extract",
-    description: "모델이 스키마를 설계해 핵심 필드를 JSON으로 추출",
+    description: "스키마를 설계해 핵심 필드를 JSON으로 추출",
   },
   {
-    icon: "/upstage/symbol.png",
+    icon: "/upstage/symbol.svg",
     title: "Studio Agents",
     description: "Parse→Classify→Extract→Instruct 파이프라인 실행",
   },
@@ -151,8 +151,8 @@ function AttachButton() {
       onClick={attachments.openFileDialog}
       type="button"
     >
-      <PaperclipIcon className="size-4" />
-      <span className="max-sm:hidden">문서 첨부</span>
+      <PaperclipIcon className="size-4 text-muted-foreground" />
+      <span className="max-sm:hidden text-xs">문서 첨부</span>
     </PromptInputButton>
   );
 }
@@ -193,6 +193,7 @@ function PromptSuggestions({
     <Suggestions className="mb-3">
       {SUGGESTIONS.map((suggestion) => (
         <Suggestion
+          className="rounded-lg border border-border bg-card px-3 py-1.5 text-xs text-foreground hover:border-primary/50 transition-colors"
           key={suggestion}
           onClick={async (text) => {
             const files = await toSendableFiles(attachments.files);
@@ -245,260 +246,273 @@ export default function ChatPage() {
 
   return (
     <PromptInputProvider>
-    <div className="flex h-[calc(100dvh-3.5rem)] flex-col bg-background">
-      {messages.length > 0 && (
-        <div className="mx-auto flex w-full max-w-3xl items-center justify-end gap-1 px-4 pt-2">
-          <ConversationDownload
-            aria-label="대화 내보내기"
-            className="static top-auto right-auto size-7 rounded-lg border-transparent bg-transparent shadow-none hover:bg-muted dark:bg-transparent dark:hover:bg-muted/50"
-            filename="moabora-chat.md"
-            messages={messages}
-            size="icon-sm"
-            variant="ghost"
-          >
-            <DownloadIcon className="size-4" />
-          </ConversationDownload>
-          <Button
-            aria-label="새 대화"
-            onClick={handleNewChat}
-            size="icon-sm"
-            variant="ghost"
-          >
-            <PlusIcon className="size-4" />
-          </Button>
-        </div>
-      )}
-
-      <Conversation className="flex-1">
-        <ConversationContent className="mx-auto w-full max-w-3xl">
-          {messages.length === 0 ? (
-            <div className="flex min-h-[55dvh] flex-col items-center justify-center gap-8 px-4 text-center">
-              <div className="flex flex-col items-center gap-3">
-                <h2 className="font-semibold text-xl">
-                  문서를 첨부하고 무엇이든 물어보세요
-                </h2>
-                <p className="max-w-md text-balance text-muted-foreground text-sm">
-                  모델이 Upstage 문서 API를 도구로 호출해서 문서를 읽고,
-                  추출하고, 처리합니다. 추론 과정도 실시간으로 확인할 수
-                  있습니다.
-                </p>
-              </div>
-              <div className="grid w-full max-w-2xl gap-3 sm:grid-cols-3">
-                {FEATURES.map((feature) => (
-                  <div
-                    className="flex flex-col items-center gap-2 rounded-xl border bg-card p-4 text-card-foreground"
-                    key={feature.title}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      alt={`Upstage ${feature.title}`}
-                      className="size-8 rounded-lg"
-                      height={32}
-                      src={feature.icon}
-                      width={32}
-                    />
-                    <span className="font-medium text-sm">{feature.title}</span>
-                    <span className="text-balance text-muted-foreground text-xs">
-                      {feature.description}
-                    </span>
-                  </div>
-                ))}
-              </div>
+      <div className="flex h-[calc(100dvh-4rem)] flex-col bg-background">
+        {messages.length > 0 && (
+          <div className="mx-auto flex w-full max-w-4xl items-center justify-between px-6 pt-3 pb-2 border-b border-border/60">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-xs text-foreground">AI 문서 챗</span>
+              <UpstageBadge compact feature="solar" />
             </div>
-          ) : (
-            messages.map((message, messageIndex) => {
-              const isLastMessage = messageIndex === messages.length - 1;
-              const showActions =
-                message.role === "assistant" && !(isBusy && isLastMessage);
-
-              return (
-                <Message from={message.role} key={message.id}>
-                  <MessageContent>
-                    {message.parts.map((part, index) => {
-                      const key = `${message.id}-${index}`;
-
-                      if (part.type === "text") {
-                        return message.role === "assistant" ? (
-                          <MessageResponse key={key}>
-                            {part.text}
-                          </MessageResponse>
-                        ) : (
-                          <span key={key}>{part.text}</span>
-                        );
-                      }
-
-                      if (part.type === "reasoning") {
-                        return (
-                          <Reasoning
-                            isStreaming={part.state === "streaming"}
-                            key={key}
-                          >
-                            <ReasoningTrigger
-                              getThinkingMessage={(isStreaming, duration) =>
-                                isStreaming ? (
-                                  <Shimmer duration={1}>추론 중...</Shimmer>
-                                ) : (
-                                  <p>
-                                    {duration
-                                      ? `${duration}초 동안 추론함`
-                                      : "추론 완료"}
-                                  </p>
-                                )
-                              }
-                            />
-                            <ReasoningContent>{part.text}</ReasoningContent>
-                          </Reasoning>
-                        );
-                      }
-
-                      if (part.type === "file") {
-                        return (
-                          <Attachments key={key} variant="inline">
-                            <Attachment data={{ ...part, id: key }}>
-                              <AttachmentPreview />
-                              <AttachmentInfo />
-                            </Attachment>
-                          </Attachments>
-                        );
-                      }
-
-                      if (isStaticToolUIPart(part)) {
-                        return (
-                          <Tool key={part.toolCallId}>
-                            <ToolHeader
-                              state={part.state}
-                              title={TOOL_TITLES[part.type]}
-                              type={part.type}
-                            />
-                            <ToolContent>
-                              <ToolInput input={part.input} />
-                              <ToolOutput
-                                errorText={part.errorText}
-                                output={part.output}
-                              />
-                            </ToolContent>
-                          </Tool>
-                        );
-                      }
-
-                      return null;
-                    })}
-                  </MessageContent>
-                  {showActions && (
-                    <MessageActions>
-                      <MessageAction
-                        onClick={() => handleCopy(message)}
-                        tooltip="답변 복사"
-                      >
-                        {copiedId === message.id ? (
-                          <CheckIcon className="size-3.5 text-green-600" />
-                        ) : (
-                          <CopyIcon className="size-3.5" />
-                        )}
-                      </MessageAction>
-                      {isLastMessage && (
-                        <MessageAction
-                          onClick={() => regenerate({ body: requestBody })}
-                          tooltip="다시 생성"
-                        >
-                          <RefreshCcwIcon className="size-3.5" />
-                        </MessageAction>
-                      )}
-                    </MessageActions>
-                  )}
-                </Message>
-              );
-            })
-          )}
-          {status === "submitted" && (
-            <Message from="assistant">
-              <MessageContent>
-                <Shimmer>생각하는 중...</Shimmer>
-              </MessageContent>
-            </Message>
-          )}
-        </ConversationContent>
-        <ConversationScrollButton />
-      </Conversation>
-
-      <div className="mx-auto w-full max-w-3xl px-4 pb-4">
-        {error && (
-          <div className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-2.5 text-sm">
-            <span className="min-w-0 truncate text-destructive">
-              오류가 발생했습니다: {error.message}
-            </span>
-            <Button
-              onClick={() => regenerate({ body: requestBody })}
-              size="sm"
-              variant="outline"
-            >
-              재시도
-            </Button>
+            <div className="flex items-center gap-1">
+              <ConversationDownload
+                aria-label="대화 내보내기"
+                className="size-7 rounded-md hover:bg-muted"
+                filename="moabora-chat.md"
+                messages={messages}
+                size="icon-sm"
+                variant="ghost"
+              >
+                <DownloadIcon className="size-3.5 text-muted-foreground" />
+              </ConversationDownload>
+              <Button
+                aria-label="새 대화"
+                className="size-7 rounded-md hover:bg-muted"
+                onClick={handleNewChat}
+                size="icon-sm"
+                variant="ghost"
+              >
+                <PlusIcon className="size-3.5 text-muted-foreground" />
+              </Button>
+            </div>
           </div>
         )}
-        {messages.length === 0 && (
-          <PromptSuggestions
-            onSend={(text, files) =>
-              sendMessage({ text, files }, { body: requestBody })
-            }
-          />
-        )}
-        <PromptInput
-          accept={ACCEPT_FORMATS}
-          globalDrop
-          maxFileSize={50 * 1024 * 1024}
-          maxFiles={5}
-          multiple
-          onError={(error) =>
-            setFileError(
-              error.code === "accept"
-                ? "지원하지 않는 파일 형식입니다."
-                : error.code === "max_file_size"
-                  ? "파일 크기는 50MB 이하여야 합니다."
-                  : "파일은 최대 5개까지 첨부할 수 있습니다.",
-            )
-          }
-          onSubmit={handleSubmit}
-        >
-          <InputAttachments />
-          <PromptInputBody>
-            <PromptInputTextarea placeholder="문서를 첨부하고 질문을 입력하세요... (드래그 앤 드롭 지원)" />
-          </PromptInputBody>
-          <PromptInputFooter>
-            <PromptInputTools>
-              <AttachButton />
-              <PromptInputSelect
-                onValueChange={setReasoningEffort}
-                value={reasoningEffort}
-              >
-                <PromptInputSelectTrigger
-                  aria-label="추론 수준"
-                  className="h-8 gap-1.5 text-xs"
-                >
-                  <BrainIcon className="size-4" />
-                  <PromptInputSelectValue />
-                </PromptInputSelectTrigger>
-                <PromptInputSelectContent>
-                  {REASONING_OPTIONS.map((option) => (
-                    <PromptInputSelectItem
-                      key={option.value}
-                      value={option.value}
+
+        <Conversation className="flex-1">
+          <ConversationContent className="mx-auto w-full max-w-4xl px-6 py-8">
+            {messages.length === 0 ? (
+              <div className="flex min-h-[45dvh] flex-col items-center justify-center gap-8 text-center">
+                <div className="space-y-1.5 max-w-md">
+                  <h2 className="font-bold text-2xl text-foreground tracking-tight">
+                    공고 문서를 첨부하고 질문해보세요
+                  </h2>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Solar Pro 4가 Upstage 문서 API 도구들을 호출하여 문서를 정밀하게 분석합니다.
+                  </p>
+                </div>
+
+                <div className="grid w-full max-w-2xl gap-3 sm:grid-cols-3">
+                  {FEATURES.map((feature) => (
+                    <div
+                      className="flex flex-col items-center gap-2 rounded-xl border border-border bg-card p-4 text-center"
+                      key={feature.title}
                     >
-                      {option.label}
-                    </PromptInputSelectItem>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        alt={feature.title}
+                        className="size-7 object-contain"
+                        height={28}
+                        src={feature.icon}
+                        width={28}
+                      />
+                      <span className="font-semibold text-xs text-foreground">{feature.title}</span>
+                      <span className="text-[11px] text-muted-foreground leading-relaxed">
+                        {feature.description}
+                      </span>
+                    </div>
                   ))}
-                </PromptInputSelectContent>
-              </PromptInputSelect>
-            </PromptInputTools>
-            <PromptInputSubmit onStop={stop} status={status} />
-          </PromptInputFooter>
-        </PromptInput>
-        <p className="mt-2 text-center text-muted-foreground text-xs">
-          {fileError ??
-            "지원 형식: PDF · 이미지(JPG/PNG/TIFF/HEIC) · DOCX · PPTX · XLSX · HWP (최대 50MB)"}
-        </p>
+                </div>
+              </div>
+            ) : (
+              messages.map((message, messageIndex) => {
+                const isLastMessage = messageIndex === messages.length - 1;
+                const showActions =
+                  message.role === "assistant" && !(isBusy && isLastMessage);
+
+                return (
+                  <Message from={message.role} key={message.id}>
+                    <MessageContent>
+                      {message.parts.map((part, index) => {
+                        const key = `${message.id}-${index}`;
+
+                        if (part.type === "text") {
+                          return message.role === "assistant" ? (
+                            <MessageResponse key={key}>
+                              {part.text}
+                            </MessageResponse>
+                          ) : (
+                            <span key={key}>{part.text}</span>
+                          );
+                        }
+
+                        if (part.type === "reasoning") {
+                          return (
+                            <Reasoning
+                              isStreaming={part.state === "streaming"}
+                              key={key}
+                            >
+                              <ReasoningTrigger
+                                getThinkingMessage={(isStreaming, duration) =>
+                                  isStreaming ? (
+                                    <Shimmer duration={1}>추론 중...</Shimmer>
+                                  ) : (
+                                    <p>
+                                      {duration
+                                        ? `${duration}초 동안 추론함`
+                                        : "추론 완료"}
+                                    </p>
+                                  )
+                                }
+                              />
+                              <ReasoningContent>{part.text}</ReasoningContent>
+                            </Reasoning>
+                          );
+                        }
+
+                        if (part.type === "file") {
+                          return (
+                            <Attachments key={key} variant="inline">
+                              <Attachment data={{ ...part, id: key }}>
+                                <AttachmentPreview />
+                                <AttachmentInfo />
+                              </Attachment>
+                            </Attachments>
+                          );
+                        }
+
+                        if (isStaticToolUIPart(part)) {
+                          return (
+                            <Tool key={part.toolCallId}>
+                              <ToolHeader
+                                state={part.state}
+                                title={TOOL_TITLES[part.type]}
+                                type={part.type}
+                              />
+                              <ToolContent>
+                                <ToolInput input={part.input} />
+                                <ToolOutput
+                                  errorText={part.errorText}
+                                  output={part.output}
+                                />
+                              </ToolContent>
+                            </Tool>
+                          );
+                        }
+
+                        return null;
+                      })}
+                    </MessageContent>
+                    {showActions && (
+                      <MessageActions>
+                        <MessageAction
+                          onClick={() => handleCopy(message)}
+                          tooltip="답변 복사"
+                        >
+                          {copiedId === message.id ? (
+                            <CheckIcon className="size-3.5 text-primary" />
+                          ) : (
+                            <CopyIcon className="size-3.5" />
+                          )}
+                        </MessageAction>
+                        {isLastMessage && (
+                          <MessageAction
+                            onClick={() => regenerate({ body: requestBody })}
+                            tooltip="다시 생성"
+                          >
+                            <RefreshCcwIcon className="size-3.5" />
+                          </MessageAction>
+                        )}
+                      </MessageActions>
+                    )}
+                  </Message>
+                );
+              })
+            )}
+            {status === "submitted" && (
+              <Message from="assistant">
+                <MessageContent>
+                  <Shimmer>생각하는 중...</Shimmer>
+                </MessageContent>
+              </Message>
+            )}
+          </ConversationContent>
+          <ConversationScrollButton />
+        </Conversation>
+
+        {/* Input Area */}
+        <div className="mx-auto w-full max-w-4xl px-6 pb-6">
+          {error && (
+            <div className="mb-3 flex items-center justify-between gap-3 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-2.5 text-xs text-destructive">
+              <span>오류가 발생했습니다: {error.message}</span>
+              <Button
+                onClick={() => regenerate({ body: requestBody })}
+                size="xs"
+                variant="outline"
+              >
+                재시도
+              </Button>
+            </div>
+          )}
+
+          {messages.length === 0 && (
+            <PromptSuggestions
+              onSend={(text, files) =>
+                sendMessage({ text, files }, { body: requestBody })
+              }
+            />
+          )}
+
+          <div className="rounded-xl border border-border bg-card p-2 focus-within:border-primary transition-colors">
+            <PromptInput
+              accept={ACCEPT_FORMATS}
+              globalDrop
+              maxFileSize={50 * 1024 * 1024}
+              maxFiles={5}
+              multiple
+              onError={(error) =>
+                setFileError(
+                  error.code === "accept"
+                    ? "지원하지 않는 파일 형식입니다."
+                    : error.code === "max_file_size"
+                      ? "파일 크기는 50MB 이하여야 합니다."
+                      : "파일은 최대 5개까지 첨부할 수 있습니다.",
+                )
+              }
+              onSubmit={handleSubmit}
+            >
+              <InputAttachments />
+              <PromptInputBody>
+                <PromptInputTextarea
+                  className="text-xs placeholder:text-muted-foreground"
+                  placeholder="공고 문서를 첨부하고 질문해보세요..."
+                />
+              </PromptInputBody>
+              <PromptInputFooter>
+                <PromptInputTools>
+                  <AttachButton />
+                  <PromptInputSelect
+                    onValueChange={setReasoningEffort}
+                    value={reasoningEffort}
+                  >
+                    <PromptInputSelectTrigger
+                      aria-label="추론 수준"
+                      className="h-7 gap-1 rounded-md border-border text-xs text-muted-foreground"
+                    >
+                      <BrainIcon className="size-3.5" />
+                      <PromptInputSelectValue />
+                    </PromptInputSelectTrigger>
+                    <PromptInputSelectContent className="rounded-lg border border-border">
+                      {REASONING_OPTIONS.map((option) => (
+                        <PromptInputSelectItem
+                          key={option.value}
+                          value={option.value}
+                        >
+                          {option.label}
+                        </PromptInputSelectItem>
+                      ))}
+                    </PromptInputSelectContent>
+                  </PromptInputSelect>
+                </PromptInputTools>
+                <PromptInputSubmit onStop={stop} status={status} />
+              </PromptInputFooter>
+            </PromptInput>
+          </div>
+
+          <p className="mt-2 text-center text-muted-foreground text-[11px]">
+            {fileError ??
+              "지원 파일: PDF · 이미지 · DOCX · PPTX · XLSX · HWP (최대 50MB) · Powered by Upstage"}
+          </p>
+        </div>
       </div>
-    </div>
     </PromptInputProvider>
   );
 }

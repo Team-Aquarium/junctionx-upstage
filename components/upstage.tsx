@@ -1,8 +1,7 @@
 import { cn } from "@/lib/utils";
 
-/* eslint-disable @next/next/no-img-element -- 로컬 정적 브랜드 에셋이라 next/image 불필요 */
+/* eslint-disable @next/next/no-img-element -- 로컬 정적 브랜드 에셋 */
 
-/** 화면 곳곳에서 "어떤 Upstage 기능을 쓰는지"를 공식 심볼과 함께 표기하는 배지. */
 export type UpstageFeature =
   | "document-parse"
   | "information-extract"
@@ -30,7 +29,7 @@ export const UPSTAGE_FEATURES: Record<
   },
   agents: {
     label: "Studio Agents",
-    icon: "/upstage/symbol.png",
+    icon: "/upstage/symbol.svg",
     description: "Parse→Classify→Extract→Instruct 파이프라인",
   },
 };
@@ -48,46 +47,44 @@ export function UpstageBadge({
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center gap-1.5 rounded-full border border-primary/25 bg-primary/5 py-0.5 pr-2.5 pl-1 font-medium text-[11px] text-primary",
+        "inline-flex items-center gap-1.5 rounded-md bg-accent/60 px-2 py-0.5 text-xs font-medium text-accent-foreground",
         className,
       )}
       title={`Upstage ${meta.label} — ${meta.description}`}
     >
       <img
         alt="Upstage"
-        className="size-4 rounded-full"
-        height={16}
+        className="size-3.5 rounded-xs object-contain"
+        height={14}
         src={meta.icon}
-        width={16}
+        width={14}
       />
-      {compact ? meta.label : `Upstage ${meta.label}`}
+      <span>{compact ? meta.label : `Upstage ${meta.label}`}</span>
     </span>
   );
 }
 
-/** 헤더·푸터용 "Powered by Upstage" 마크. */
 export function PoweredByUpstage({ className }: { className?: string }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 text-muted-foreground text-xs",
+        "inline-flex items-center gap-1.5 text-xs text-muted-foreground",
         className,
       )}
     >
       Powered by
       <img
         alt="Upstage"
-        className="size-4 rounded-full"
-        height={16}
-        src="/upstage/symbol.png"
-        width={16}
+        className="size-3.5 object-contain"
+        height={14}
+        src="/upstage/symbol.svg"
+        width={14}
       />
       <span className="font-semibold text-foreground">Upstage</span>
     </span>
   );
 }
 
-/** 워크플로우 단계 제목에서 사용된 Upstage 기능을 추론한다. (단계 로그에 아이콘 표시용) */
 export function featureFromStepTitle(title: string): UpstageFeature | null {
   if (/parse/i.test(title)) {
     return "document-parse";

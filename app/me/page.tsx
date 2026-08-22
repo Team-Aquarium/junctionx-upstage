@@ -3,25 +3,23 @@
 import {
   CheckCircle2Icon,
   CircleDashedIcon,
-  FileUpIcon,
-  LinkIcon,
   RotateCcwIcon,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { UpstageBadge } from "@/components/upstage";
 import { useWorkflowStream, WorkflowLog } from "@/components/workflow";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Spinner } from "@/components/ui/spinner";
 import type { UserProfile } from "@/lib/store";
+import { cn } from "@/lib/utils";
 
 const PROFILE_DOC_ACCEPT = ".pdf,.png,.jpg,.jpeg,.bmp,.tif,.tiff,.heic";
 
 const REQUIRED_FIELDS = [
   { key: "name", label: "이름" },
-  { key: "university", label: "학교" },
-  { key: "department", label: "학과" },
+  { key: "university", label: "대학교" },
+  { key: "department", label: "학과 / 전공" },
   { key: "grade", label: "학년" },
   { key: "enrollment_status", label: "학적 상태" },
   { key: "birth_year", label: "출생연도" },
@@ -40,13 +38,13 @@ function fieldValue(profile: UserProfile, key: (typeof REQUIRED_FIELDS)[number][
 
 function Chips({ items, empty }: { items: string[]; empty: string }) {
   if (items.length === 0) {
-    return <p className="text-muted-foreground text-xs">{empty}</p>;
+    return <p className="text-xs text-muted-foreground">{empty}</p>;
   }
   return (
     <div className="flex flex-wrap gap-1.5">
       {items.map((item) => (
         <span
-          className="rounded-full border border-border bg-secondary px-2 py-0.5 text-secondary-foreground text-xs"
+          className="rounded-md bg-secondary px-2.5 py-1 text-xs font-medium text-foreground"
           key={item}
         >
           {item}
@@ -66,17 +64,19 @@ export default function ProfilePage() {
   const wf = useWorkflowStream();
 
   const load = async () => {
-    const res = await fetch("/api/profile");
-    const data = await res.json();
-    setProfile(data.profile);
-    setLoading(false);
+    try {
+      const res = await fetch("/api/profile");
+      const data = await res.json();
+      setProfile(data.profile);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     load();
   }, []);
 
-  // 새로고침 후에도 진행 중이던 프로필 작업(링크·서류)에 다시 붙어 이어본다.
   const { run: runWf } = wf;
   useEffect(() => {
     (async () => {
@@ -93,11 +93,11 @@ export default function ProfilePage() {
         );
         if (data?.profile) {
           setProfile(data.profile);
-          setMessage("진행 중이던 작업을 이어받아 완료했어요.");
+          setMessage("진행 중이던 작업을 이어받아 완료했습니다.");
         }
         setBusy(null);
       } catch {
-        // 이어보기 실패는 치명적이지 않다
+        // ignore
       }
     })();
   }, [runWf]);
@@ -116,9 +116,9 @@ export default function ProfilePage() {
     if (data?.profile) {
       setProfile(data.profile);
       setLinkUrl("");
-      setMessage("링크에서 프로필을 업데이트했어요.");
+      setMessage("링크에서 프로필을 성공적으로 업데이트했습니다.");
     } else {
-      setMessage(wf.errorRef.current ?? "링크 처리에 실패했어요.");
+      setMessage(wf.errorRef.current ?? "링크 처리에 실패했습니다.");
     }
     setBusy(null);
   };
@@ -134,9 +134,9 @@ export default function ProfilePage() {
     });
     if (data?.profile) {
       setProfile(data.profile);
-      setMessage(`${file.name}에서 프로필을 업데이트했어요.`);
+      setMessage(`${file.name}에서 프로필을 성공적으로 추출했습니다.`);
     } else {
-      setMessage(wf.errorRef.current ?? "서류 처리에 실패했어요.");
+      setMessage(wf.errorRef.current ?? "서류 처리에 실패했습니다.");
     }
     setBusy(null);
   };
@@ -145,7 +145,7 @@ export default function ProfilePage() {
     setBusy("reset");
     await fetch("/api/profile", { method: "DELETE" });
     setProfile(null);
-    setMessage("프로필을 초기화했어요.");
+    setMessage("프로필을 초기화했습니다.");
     setBusy(null);
   };
 
@@ -159,205 +159,259 @@ export default function ProfilePage() {
   }, [profile]);
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 py-8">
-      <p className="font-semibold text-[11px] text-primary uppercase tracking-[0.2em]">
-        My Profile
-      </p>
-      <h1 className="mt-1.5 font-bold text-3xl tracking-tight">내 프로필</h1>
-      <p className="mt-1.5 max-w-2xl text-muted-foreground text-sm">
-        링크는 관심사·역량을 채워 <span className="font-medium text-foreground">맞춤 추천</span>에,
-        서류는 학년·학적을 채워{" "}
-        <span className="font-medium text-foreground">자격 판정</span>에 쓰입니다.
-      </p>
+    <div className="w-full py-10 sm:py-14">
+      <div className="mx-auto w-full max-w-6xl px-6 sm:px-8 space-y-10">
+        {/* Header */}
+        <div>
+          <span className="text-xs font-semibold tracking-wider text-primary uppercase">
+            Profile & Eligibility
+          </span>
+          <h1 className="mt-1 font-bold text-3xl tracking-tight text-foreground">
+            내 프로필
+          </h1>
+          <p className="mt-1.5 text-sm text-muted-foreground max-w-2xl leading-relaxed">
+            개인 링크는 관심사와 역량을 채워 맞춤 추천에, 서류는 학년·학적을 채워 자격 판정에 활용됩니다.
+          </p>
+        </div>
 
-      <div className="mt-6 rounded-xl border bg-card p-5">
-        {loading ? (
-          <div className="flex min-h-20 items-center justify-center">
-            <Spinner className="size-5 text-muted-foreground" />
-          </div>
-        ) : (
-          <div className="flex flex-wrap items-center gap-5">
-            <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-primary font-bold text-primary-foreground text-xl">
-              {(profile?.name ?? "나").slice(0, 1)}
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="font-semibold text-lg leading-tight">
-                {profile?.name ?? "아직 프로필이 없어요"}
-              </p>
-              <p className="truncate text-muted-foreground text-sm">
-                {profile
-                  ? [profile.university, profile.department].filter(Boolean).join(" · ") ||
-                    "학교 정보 없음"
-                  : "아래에서 링크나 서류를 추가해 보세요"}
-              </p>
-              <div className="mt-2.5 flex items-center gap-3">
-                <Progress className="h-2 max-w-64" value={completeness} />
-                <span className="shrink-0 font-medium text-muted-foreground text-xs">
-                  완성도 {completeness}%
-                </span>
+        {/* Profile Card */}
+        <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
+          {loading ? (
+            <div className="flex min-h-20 items-center justify-center">
+              <Spinner className="size-5 text-primary" />
+            </div>
+          ) : (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2.5">
+                  <h2 className="font-bold text-xl sm:text-2xl text-foreground">
+                    {profile?.name ?? "프로필을 등록해주세요"}
+                  </h2>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {profile
+                    ? [profile.university, profile.department].filter(Boolean).join(" · ") ||
+                      "소속 정보 없음"
+                    : "링크나 증명 서류를 등록하여 맞춤 자격 판정을 시작하세요."}
+                </p>
+                <div className="pt-2 flex items-center gap-3">
+                  <Progress className="h-1.5 w-44" value={completeness} />
+                  <span className="text-xs text-muted-foreground">
+                    완성도 {completeness}%
+                  </span>
+                </div>
               </div>
+
+              {profile && (
+                <Button
+                  disabled={busy !== null}
+                  onClick={reset}
+                  size="sm"
+                  variant="outline"
+                >
+                  <RotateCcwIcon className="size-3.5" />
+                  초기화
+                </Button>
+              )}
             </div>
-            {profile && (
-              <Button
-                disabled={busy !== null}
-                onClick={reset}
-                size="sm"
-                variant="ghost"
-              >
-                <RotateCcwIcon className="size-3.5" />초기화
-              </Button>
-            )}
-          </div>
-        )}
-      </div>
-
-      <div className="mt-6 grid gap-6 md:grid-cols-[320px_minmax(0,1fr)]">
-        <div className="space-y-4">
-          <section className="rounded-xl border bg-card p-4">
-            <h2 className="flex flex-wrap items-center gap-2 font-semibold text-sm">
-              <LinkIcon className="size-4 text-primary" />개인 링크로 추가
-              <UpstageBadge compact feature="solar" />
-            </h2>
-            <p className="mt-1 text-muted-foreground text-xs">
-              GitHub · 블로그 · 링크트리 · 공개 포트폴리오 (로그인 필요 페이지 불가)
-            </p>
-            <div className="mt-3 flex gap-2">
-              <Input
-                disabled={busy !== null}
-                onChange={(e) => setLinkUrl(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && submitLink()}
-                placeholder="https://github.com/username"
-                value={linkUrl}
-              />
-              <Button disabled={busy !== null || !linkUrl.trim()} onClick={submitLink}>
-                {busy === "link" ? <Spinner className="size-4" /> : "분석"}
-              </Button>
-            </div>
-          </section>
-
-          <section className="rounded-xl border bg-card p-4">
-            <h2 className="flex flex-wrap items-center gap-2 font-semibold text-sm">
-              <FileUpIcon className="size-4 text-primary" />서류로 추가
-              <UpstageBadge compact feature="information-extract" />
-            </h2>
-            <p className="mt-1 text-muted-foreground text-xs">
-              재학증명서·성적증명서 (PDF/이미지) — 학년·학적 상태가 채워져 자격 판정이
-              정확해져요
-            </p>
-            <input
-              accept={PROFILE_DOC_ACCEPT}
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  submitFile(file);
-                }
-                e.target.value = "";
-              }}
-              ref={fileRef}
-              type="file"
-            />
-            <Button
-              className="mt-3 w-full"
-              disabled={busy !== null}
-              onClick={() => fileRef.current?.click()}
-              variant="outline"
-            >
-              {busy === "file" ? <Spinner className="size-4" /> : "서류 선택"}
-            </Button>
-          </section>
-
-          {message && (
-            <p className="rounded-lg border bg-muted/50 px-3 py-2 text-sm">{message}</p>
-          )}
-
-          {wf.steps.length > 0 && (
-            <section className="rounded-xl border bg-card p-4">
-              <p className="mb-2 font-semibold text-sm">실행 과정</p>
-              <WorkflowLog steps={wf.steps} />
-            </section>
           )}
         </div>
 
-        <div className="space-y-4">
-          <section className="rounded-xl border bg-card p-4">
-            <h2 className="font-semibold text-sm">자격 판정용 정보</h2>
-            <p className="mt-1 text-muted-foreground text-xs">
-              공고의 학년·학적·나이 요건과 대조하는 필드입니다.
-            </p>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2">
-              {REQUIRED_FIELDS.map((field) => {
-                const value = profile ? fieldValue(profile, field.key) : null;
-                return (
-                  <div
-                    className="flex items-center gap-2.5 rounded-lg border bg-background px-3 py-2.5"
-                    key={field.key}
-                  >
-                    {value ? (
-                      <CheckCircle2Icon className="size-4 shrink-0 text-primary" />
-                    ) : (
-                      <CircleDashedIcon className="size-4 shrink-0 text-muted-foreground/60" />
-                    )}
-                    <div className="min-w-0">
-                      <p className="text-muted-foreground text-xs">{field.label}</p>
-                      <p className="truncate font-medium text-sm">
-                        {value ?? <span className="text-muted-foreground/70">미확인</span>}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
+        {/* 2-Column Inputs & Extracted Data */}
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[340px_1fr]">
+          {/* Left Column: Data Sources */}
+          <div className="space-y-6">
+            {/* Link Input */}
+            <section className="rounded-xl border border-border bg-card p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-sm text-foreground">
+                  개인 링크 추가
+                </h3>
+                <UpstageBadge compact feature="solar" />
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                GitHub, 블로그, 포트폴리오 주소를 입력하면 역량과 관심사를 자동 추출합니다.
+              </p>
 
-          <section className="rounded-xl border bg-card p-4">
-            <h2 className="font-semibold text-sm">추천용 정보</h2>
-            <p className="mt-1 text-muted-foreground text-xs">
-              Solar가 공고와의 적합도를 평가할 때 쓰는 관심사·역량입니다.
-            </p>
-            <div className="mt-3 space-y-3">
-              <div>
-                <p className="mb-1.5 text-muted-foreground text-xs">관심 분야</p>
-                <Chips
-                  empty="링크를 추가하면 채워져요"
-                  items={profile?.interests ?? []}
+              <div className="space-y-2 pt-1">
+                <input
+                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary"
+                  disabled={busy !== null}
+                  onChange={(e) => setLinkUrl(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && submitLink()}
+                  placeholder="https://github.com/username"
+                  type="url"
+                  value={linkUrl}
                 />
+                <Button
+                  className="w-full"
+                  disabled={busy !== null || !linkUrl.trim()}
+                  onClick={submitLink}
+                  size="sm"
+                >
+                  {busy === "link" ? <Spinner className="size-4" /> : "링크 분석"}
+                </Button>
               </div>
-              <div>
-                <p className="mb-1.5 text-muted-foreground text-xs">기술·역량</p>
-                <Chips empty="링크를 추가하면 채워져요" items={profile?.skills ?? []} />
-              </div>
-              <div>
-                <p className="mb-1.5 text-muted-foreground text-xs">활동 이력</p>
-                <Chips
-                  empty="링크를 추가하면 채워져요"
-                  items={profile?.activities ?? []}
-                />
-              </div>
-            </div>
-          </section>
-
-          {profile && profile.sources.length > 0 && (
-            <section className="rounded-xl border bg-card p-4">
-              <h2 className="font-semibold text-sm">출처</h2>
-              <ul className="mt-2 space-y-1.5">
-                {profile.sources.map((source) => (
-                  <li
-                    className="flex items-center gap-2 text-muted-foreground text-xs"
-                    key={`${source.label}-${source.addedAt}`}
-                  >
-                    <span className="rounded border border-border px-1.5 py-0.5 text-[10px]">
-                      {source.type === "link" ? "링크" : "서류"}
-                    </span>
-                    <span className="min-w-0 flex-1 truncate">{source.label}</span>
-                    <span className="shrink-0">
-                      {new Date(source.addedAt).toLocaleDateString("ko-KR")}
-                    </span>
-                  </li>
-                ))}
-              </ul>
             </section>
-          )}
+
+            {/* Document Input */}
+            <section className="rounded-xl border border-border bg-card p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-sm text-foreground">
+                  증명 서류 추가
+                </h3>
+                <UpstageBadge compact feature="information-extract" />
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                재학증명서, 성적증명서(PDF/이미지)를 올려 학년·학적 정보를 자동으로 채웁니다.
+              </p>
+
+              <input
+                accept={PROFILE_DOC_ACCEPT}
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    submitFile(file);
+                  }
+                  e.target.value = "";
+                }}
+                ref={fileRef}
+                type="file"
+              />
+
+              <Button
+                className="w-full"
+                disabled={busy !== null}
+                onClick={() => fileRef.current?.click()}
+                size="sm"
+                variant="outline"
+              >
+                {busy === "file" ? <Spinner className="size-4" /> : "서류 파일 선택"}
+              </Button>
+            </section>
+
+            {message && (
+              <div className="rounded-lg border border-border bg-muted/40 p-3 text-xs text-foreground">
+                {message}
+              </div>
+            )}
+
+            {wf.steps.length > 0 && (
+              <div className="rounded-xl border border-border bg-card p-4 space-y-2">
+                <span className="text-xs font-semibold text-foreground">진행 과정</span>
+                <WorkflowLog steps={wf.steps} />
+              </div>
+            )}
+          </div>
+
+          {/* Right Column: Information Display */}
+          <div className="space-y-8">
+            {/* Qualification Core Info */}
+            <section className="space-y-3">
+              <div>
+                <h3 className="font-bold text-base text-foreground">
+                  자격 판정용 핵심 정보
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  공고 요강의 학년, 학적, 전공, 연령 요건과 대조되는 데이터입니다.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {REQUIRED_FIELDS.map((field) => {
+                  const val = profile ? fieldValue(profile, field.key) : null;
+                  return (
+                    <div
+                      className="flex items-center gap-3 rounded-lg border border-border bg-card p-3.5"
+                      key={field.key}
+                    >
+                      {val ? (
+                        <CheckCircle2Icon className="size-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      ) : (
+                        <CircleDashedIcon className="size-4 text-muted-foreground/40 shrink-0" />
+                      )}
+                      <div className="min-w-0">
+                        <span className="text-[11px] text-muted-foreground block">{field.label}</span>
+                        <p className="font-medium text-sm text-foreground truncate">
+                          {val ?? <span className="text-muted-foreground/60 font-normal">미등록</span>}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* Recommendation Info */}
+            <section className="space-y-3">
+              <div>
+                <h3 className="font-bold text-base text-foreground">
+                  맞춤 추천용 역량 및 관심사
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Solar Pro 4가 공고와의 적합도 점수를 산정할 때 활용합니다.
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-border bg-card p-5 space-y-4">
+                <div>
+                  <span className="text-xs text-muted-foreground block mb-1.5 font-medium">
+                    관심 분야
+                  </span>
+                  <Chips
+                    empty="링크를 등록하면 관심 분야가 추출됩니다."
+                    items={profile?.interests ?? []}
+                  />
+                </div>
+                <div>
+                  <span className="text-xs text-muted-foreground block mb-1.5 font-medium">
+                    기술 스택 및 역량
+                  </span>
+                  <Chips
+                    empty="링크를 등록하면 기술 스택이 추출됩니다."
+                    items={profile?.skills ?? []}
+                  />
+                </div>
+                <div>
+                  <span className="text-xs text-muted-foreground block mb-1.5 font-medium">
+                    주요 활동 이력
+                  </span>
+                  <Chips
+                    empty="링크나 서류에서 활동 이력이 추출됩니다."
+                    items={profile?.activities ?? []}
+                  />
+                </div>
+              </div>
+            </section>
+
+            {/* Sources List */}
+            {profile && profile.sources.length > 0 && (
+              <section className="space-y-3">
+                <h3 className="font-bold text-base text-foreground">
+                  등록된 출처 ({profile.sources.length}건)
+                </h3>
+                <ul className="space-y-1.5">
+                  {profile.sources.map((source) => (
+                    <li
+                      className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-3 py-2 text-xs"
+                      key={`${source.label}-${source.addedAt}`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="rounded bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-foreground">
+                          {source.type === "link" ? "링크" : "서류"}
+                        </span>
+                        <span className="truncate text-foreground font-medium">{source.label}</span>
+                      </div>
+                      <span className="text-muted-foreground shrink-0">
+                        {new Date(source.addedAt).toLocaleDateString("ko-KR")}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+          </div>
         </div>
       </div>
     </div>
