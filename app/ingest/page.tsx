@@ -64,7 +64,7 @@ const PIPELINE_STEPS = [
     descKey: "ingest.step1Desc",
   },
   {
-    icon: "/upstage/symbol.svg",
+    icon: "/upstage/studio-agents.svg",
     step: "2",
     title: "Category Classify",
     descKey: "ingest.step2Desc",

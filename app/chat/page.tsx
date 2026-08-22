@@ -94,7 +94,7 @@ const FEATURES = [
     descKey: "chat.extractDesc",
   },
   {
-    icon: "/upstage/symbol.svg",
+    icon: "/upstage/studio-agents.svg",
     title: "Studio Agents",
     descKey: "chat.agentsDesc",
   },

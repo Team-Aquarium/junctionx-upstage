@@ -32,7 +32,7 @@ export const UPSTAGE_FEATURES: Record<
   },
   agents: {
     label: "Studio Agents",
-    icon: "/upstage/symbol.svg",
+    icon: "/upstage/studio-agents.svg",
     description: "Parse → Classify → Extract → Instruct pipeline",
   },
 };
