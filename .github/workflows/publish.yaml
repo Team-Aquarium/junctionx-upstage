@@ -1,0 +1,12 @@
+name: Publish to Docker
+on: [push]
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+    - run: docker build -t upstage .
+
+  run:
+    runs-on: self-hosted
+    steps:
+    - run: docker run -dp 3000:3000 --name upstage-run upstage
