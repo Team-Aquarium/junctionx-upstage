@@ -156,6 +156,9 @@ Solar 챗 API는 파일 입력을 받지 못한다. 그래서:
   - `prompt-input.tsx` — `matchesAccept`에 `.pdf` 같은 확장자 패턴 지원 추가
   - `message.tsx`, `reasoning.tsx` — streamdown/shiki 중첩 버전 타입 캐스팅
   - `context.tsx`, `agent.tsx`, `schema-display.tsx` — AI SDK v7 타입 호환 수정
+  - `tool.tsx` — `ToolHeader`의 `title`을 ReactNode로 확장 (워크플로우 로그가 Upstage 아이콘 포함 제목 전달)
+- 워크플로우 로그(components/workflow.tsx)는 챗과 동일한 AI Elements를 쓴다:
+  Solar 추론 단계(id="reasoning")는 `Reasoning`, 나머지 단계는 `Tool` 패널로 렌더.
 - 스타일은 Tailwind 유틸리티 + `cn()`(`lib/utils.ts`)만 사용. CSS 파일 추가 금지.
 - 테마 토큰(`bg-background`, `text-muted-foreground` 등)을 쓰고 색상 하드코딩 금지.
 - UI 문구는 한국어가 기본이다.

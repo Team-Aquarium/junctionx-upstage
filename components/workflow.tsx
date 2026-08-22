@@ -1,14 +1,20 @@
 "use client";
 
+import type { ToolUIPart } from "ai";
+import { useCallback, useRef, useState } from "react";
 import {
-  CheckCircle2Icon,
-  ChevronDownIcon,
-  ChevronRightIcon,
-  XCircleIcon,
-} from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+  Reasoning,
+  ReasoningContent,
+  ReasoningTrigger,
+} from "@/components/ai-elements/reasoning";
+import { Shimmer } from "@/components/ai-elements/shimmer";
+import {
+  Tool,
+  ToolContent,
+  ToolHeader,
+  ToolOutput,
+} from "@/components/ai-elements/tool";
 import { featureFromStepTitle, UPSTAGE_FEATURES } from "@/components/upstage";
-import { Spinner } from "@/components/ui/spinner";
 import type { WorkflowEvent } from "@/lib/workflow";
 import { cn } from "@/lib/utils";
 
@@ -139,29 +145,43 @@ export function useWorkflowStream() {
   return { steps, stepsRef, running, error, errorRef, run, reset };
 }
 
-function PayloadView({ payload, streaming = false }: { payload: unknown; streaming?: boolean }) {
-  const text =
-    typeof payload === "string" ? payload : JSON.stringify(payload, null, 2);
-  const preRef = useRef<HTMLPreElement>(null);
+/** 워크플로우 단계 상태 → 챗 툴 패널 상태 매핑 */
+function toToolState(status: WorkflowStep["status"]): ToolUIPart["state"] {
+  if (status === "start") {
+    return "input-available";
+  }
+  if (status === "error") {
+    return "output-error";
+  }
+  return "output-available";
+}
 
-  // 스트리밍 중에는 새 내용이 보이도록 스크롤을 바닥에 붙인다.
-  useEffect(() => {
-    if (streaming && preRef.current) {
-      preRef.current.scrollTop = preRef.current.scrollHeight;
-    }
-  }, [streaming, text]);
-
+function StepTitle({ step }: { step: WorkflowStep }) {
+  const feature = featureFromStepTitle(step.title);
   return (
-    <pre
-      className="max-h-64 overflow-auto whitespace-pre-wrap break-all rounded-md bg-muted/60 p-3 font-mono text-[11px] leading-relaxed"
-      ref={preRef}
-    >
-      {text}
-      {streaming && <span className="animate-pulse text-primary"> ▍</span>}
-    </pre>
+    <span className="flex min-w-0 items-center gap-1.5">
+      {feature && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          alt={`Upstage ${UPSTAGE_FEATURES[feature].label}`}
+          className="size-4 shrink-0 rounded-full"
+          height={16}
+          src={UPSTAGE_FEATURES[feature].icon}
+          title={`Upstage ${UPSTAGE_FEATURES[feature].label}`}
+          width={16}
+        />
+      )}
+      <span className="truncate">{step.title}</span>
+      {step.detail && (
+        <span className="shrink-0 font-normal text-muted-foreground text-xs">
+          · {step.detail}
+        </span>
+      )}
+    </span>
   );
 }
 
+/** 문서 챗과 동일한 AI Elements(Reasoning·Tool)로 워크플로우 단계를 렌더한다. */
 export function WorkflowLog({
   steps,
   className,
@@ -169,80 +189,61 @@ export function WorkflowLog({
   steps: WorkflowStep[];
   className?: string;
 }) {
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
-
   if (steps.length === 0) {
     return null;
   }
 
-  const toggle = (id: string) => {
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  };
-
   return (
-    <div className={cn("space-y-1", className)}>
+    <div className={cn("space-y-0", className)}>
       {steps.map((step) => {
-        const hasPayload = step.payload !== undefined && step.payload !== null;
-        const streaming = step.status === "start" && hasPayload;
-        // 스트리밍 중인 단계(예: Solar 추론)는 자동으로 펼쳐 실시간으로 보여준다.
-        const open = expanded.has(step.id) || streaming;
-        const feature = featureFromStepTitle(step.title);
-        return (
-          <div className="rounded-lg border bg-background" key={step.id}>
-            <button
-              className={cn(
-                "flex w-full items-center gap-2 px-3 py-2 text-left text-sm",
-                hasPayload && "hover:bg-muted/50",
-              )}
-              disabled={!hasPayload}
-              onClick={() => toggle(step.id)}
-              type="button"
+        // Solar 추론 단계는 챗의 Reasoning UI로 (스트리밍 중 자동 열림, 종료 후 자동 접힘)
+        if (step.id === "reasoning") {
+          return (
+            <Reasoning
+              className="mb-2 rounded-md border px-3 py-2.5"
+              isStreaming={step.status === "start"}
+              key={step.id}
             >
-              <span className="shrink-0">
-                {step.status === "start" ? (
-                  <Spinner className="size-3.5 text-primary" />
-                ) : step.status === "done" ? (
-                  <CheckCircle2Icon className="size-3.5 text-primary" />
-                ) : (
-                  <XCircleIcon className="size-3.5 text-destructive" />
-                )}
-              </span>
-              <span className="min-w-0 flex-1 truncate">{step.title}</span>
-              {feature && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  alt={`Upstage ${UPSTAGE_FEATURES[feature].label}`}
-                  className="size-4 shrink-0 rounded-full"
-                  height={16}
-                  src={UPSTAGE_FEATURES[feature].icon}
-                  title={`Upstage ${UPSTAGE_FEATURES[feature].label}`}
-                  width={16}
+              <ReasoningTrigger
+                getThinkingMessage={(isStreaming, duration) =>
+                  isStreaming ? (
+                    <Shimmer duration={1}>추론 중...</Shimmer>
+                  ) : (
+                    <p>{duration ? `${duration}초 동안 추론함` : "추론 완료"}</p>
+                  )
+                }
+              />
+              <ReasoningContent>
+                {typeof step.payload === "string" ? step.payload : ""}
+              </ReasoningContent>
+            </Reasoning>
+          );
+        }
+
+        // 나머지 단계는 챗의 Tool 패널 UI로
+        const hasPayload = step.payload !== undefined && step.payload !== null;
+        return (
+          <Tool className="mb-2" key={step.id}>
+            <ToolHeader
+              state={toToolState(step.status)}
+              title={<StepTitle step={step} />}
+              type={`tool-${step.id}`}
+            />
+            {(hasPayload || step.status === "error") && (
+              <ToolContent>
+                <ToolOutput
+                  errorText={
+                    step.status === "error"
+                      ? typeof step.payload === "string"
+                        ? undefined
+                        : (step.detail ?? "단계 실행에 실패했습니다.")
+                      : undefined
+                  }
+                  output={step.payload ?? undefined}
                 />
-              )}
-              {step.detail && (
-                <span className="shrink-0 text-muted-foreground text-xs">{step.detail}</span>
-              )}
-              {hasPayload &&
-                (open ? (
-                  <ChevronDownIcon className="size-3.5 shrink-0 text-muted-foreground" />
-                ) : (
-                  <ChevronRightIcon className="size-3.5 shrink-0 text-muted-foreground" />
-                ))}
-            </button>
-            {hasPayload && open && (
-              <div className="border-t px-3 py-2">
-                <PayloadView payload={step.payload} streaming={streaming} />
-              </div>
+              </ToolContent>
             )}
-          </div>
+          </Tool>
         );
       })}
     </div>
