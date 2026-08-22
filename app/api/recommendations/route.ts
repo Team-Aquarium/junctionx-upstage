@@ -7,6 +7,7 @@ import {
   listAnnouncements,
   saveRecommendationCache,
 } from "@/lib/store";
+import { clip, workflowStream } from "@/lib/workflow";
 
 export const maxDuration = 120;
 
@@ -29,32 +30,78 @@ export async function GET() {
     .update(JSON.stringify({ p: profileKey, a: announcements.map((a) => a.id).sort() }))
     .digest("hex");
 
-  const cache = getRecommendationCache();
-  if (cache?.hash === hash) {
-    return NextResponse.json({ recommendations: cache.items, cached: true });
-  }
+  return workflowStream(async (emit) => {
+    const cache = getRecommendationCache();
+    if (cache?.hash === hash) {
+      emit({
+        type: "step",
+        id: "cache",
+        title: "캐시된 추천 사용 (프로필·공고 변경 없음)",
+        status: "done",
+        detail: new Date(cache.createdAt).toLocaleTimeString("ko-KR"),
+        payload: cache.items,
+      });
+      emit({ type: "result", data: { recommendations: cache.items, cached: true } });
+      return;
+    }
 
-  try {
-    const items = await recommendAnnouncements(
-      profileKey,
-      announcements.map((a) => ({
-        id: a.id,
-        category: a.category,
-        title: a.title,
-        field: a.field,
-        benefits: a.benefits,
-        summary: a.summary,
-      })),
-    );
-    const knownIds = new Set(announcements.map((a) => a.id));
-    const valid = items.filter((item) => knownIds.has(item.id));
-    saveRecommendationCache({ hash, createdAt: new Date().toISOString(), items: valid });
-    return NextResponse.json({ recommendations: valid, cached: false });
-  } catch (error) {
-    // 추천이 실패해도 피드는 정상 동작해야 한다.
-    return NextResponse.json({
-      recommendations: [],
-      error: error instanceof Error ? error.message : String(error),
+    emit({
+      type: "step",
+      id: "prep",
+      title: "프로필 × 공고 목록 준비",
+      status: "done",
+      detail: `공고 ${announcements.length}건`,
+      payload: profileKey,
     });
-  }
+
+    emit({
+      type: "step",
+      id: "solar",
+      title: "Solar 적합도 평가 (solar-pro4)",
+      status: "start",
+    });
+    try {
+      const { items, reasoning } = await recommendAnnouncements(
+        profileKey,
+        announcements.map((a) => ({
+          id: a.id,
+          category: a.category,
+          title: a.title,
+          field: a.field,
+          benefits: a.benefits,
+          summary: a.summary,
+        })),
+      );
+      if (reasoning) {
+        emit({
+          type: "step",
+          id: "reasoning",
+          title: "Solar 추론 과정",
+          status: "done",
+          payload: clip(reasoning),
+        });
+      }
+      const knownIds = new Set(announcements.map((a) => a.id));
+      const valid = items.filter((item) => knownIds.has(item.id));
+      emit({
+        type: "step",
+        id: "solar",
+        title: "Solar 적합도 평가 (solar-pro4)",
+        status: "done",
+        detail: `${valid.length}건 평가`,
+        payload: valid,
+      });
+      saveRecommendationCache({ hash, createdAt: new Date().toISOString(), items: valid });
+      emit({ type: "result", data: { recommendations: valid, cached: false } });
+    } catch (error) {
+      // 추천이 실패해도 피드는 정상 동작해야 한다.
+      emit({
+        type: "step",
+        id: "solar",
+        title: "Solar 적합도 평가 (solar-pro4)",
+        status: "error",
+      });
+      emit({ type: "result", data: { recommendations: [] } });
+    }
+  });
 }

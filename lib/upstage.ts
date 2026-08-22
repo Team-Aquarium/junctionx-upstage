@@ -244,11 +244,19 @@ export interface StudioAgentDetailedResult {
   error?: unknown;
 }
 
+export interface StudioPollSnapshot {
+  status: string;
+  elapsedMs: number;
+  steps: StudioStepOutput[];
+  jobId: string;
+}
+
 /** include 없이 실행해 모든 스텝의 출력을 수집한다. (공고 인제스트 파이프라인용) */
 export async function runStudioAgentDetailed(
   docs: StoredDocument[],
   agentId: string,
   timeoutMs = 300_000,
+  onProgress?: (snapshot: StudioPollSnapshot) => void,
 ): Promise<StudioAgentDetailedResult> {
   const fileIds: string[] = [];
   for (const doc of docs) {
@@ -275,8 +283,40 @@ export async function runStudioAgentDetailed(
     throw new Error(`에이전트 실행 실패 (${createRes.status}): ${await createRes.text()}`);
   }
 
+  type OutputContent = { type: string; text?: string };
+  type OutputItem = { type: string; model?: string; content?: OutputContent[] };
+  const collectSteps = (output: unknown): StudioStepOutput[] =>
+    ((output ?? []) as OutputItem[])
+      .filter((item) => item.type === "message")
+      .map((item) => ({
+        model: item.model ?? "unknown",
+        text: (item.content ?? [])
+          .filter((content) => content.type === "output_text" && content.text)
+          .map((content) => content.text)
+          .join("\n"),
+      }))
+      .filter((step) => step.text.length > 0);
+
+  // 폴링 응답마다 output에 담기는 메시지 집합이 달라질 수 있어(중간엔 개별 노드,
+  // 완료 시점엔 마지막 메시지만) 스냅샷을 누적해 전체 노드 출력을 보존한다.
+  const accumulated = new Map<string, string>();
+  const accumulate = (output: unknown): StudioStepOutput[] => {
+    for (const step of collectSteps(output)) {
+      accumulated.set(step.model, step.text);
+    }
+    return [...accumulated.entries()].map(([model, text]) => ({ model, text }));
+  };
+
   let job = await createRes.json();
-  const deadline = Date.now() + timeoutMs;
+  const startedAt = Date.now();
+  const deadline = startedAt + timeoutMs;
+  onProgress?.({
+    status: job.status,
+    elapsedMs: 0,
+    steps: accumulate(job.output),
+    jobId: job.id,
+  });
+
   while ((job.status === "queued" || job.status === "in_progress") && Date.now() < deadline) {
     await sleep(2500);
     const pollRes = await fetch(`${API_BASE}/v2/responses/${job.id}`, {
@@ -286,25 +326,21 @@ export async function runStudioAgentDetailed(
       throw new Error(`에이전트 상태 조회 실패 (${pollRes.status}): ${await pollRes.text()}`);
     }
     job = await pollRes.json();
+    onProgress?.({
+      status: job.status,
+      elapsedMs: Date.now() - startedAt,
+      steps: accumulate(job.output),
+      jobId: job.id,
+    });
   }
 
-  type OutputContent = { type: string; text?: string };
-  type OutputItem = { type: string; model?: string; content?: OutputContent[] };
-  const steps: StudioStepOutput[] = ((job.output ?? []) as OutputItem[])
-    .filter((item) => item.type === "message")
-    .map((item) => ({
-      model: item.model ?? "unknown",
-      text: (item.content ?? [])
-        .filter((content) => content.type === "output_text" && content.text)
-        .map((content) => content.text)
-        .join("\n"),
-    }))
-    .filter((step) => step.text.length > 0);
-
+  const steps = accumulate(job.output);
+  // 최종 산출물은 Instruct 노드 출력을 우선 사용하고, 없으면 마지막 노드를 쓴다.
+  const instructStep = steps.filter((step) => /instruct/i.test(step.model)).at(-1);
   return {
     status: job.status,
     steps,
-    outputText: steps.at(-1)?.text ?? "",
+    outputText: instructStep?.text ?? steps.at(-1)?.text ?? "",
     error: job.error ?? undefined,
   };
 }
@@ -368,7 +404,7 @@ export async function recommendAnnouncements(
     benefits: string | null;
     summary: string[];
   }[],
-): Promise<RecommendationItem[]> {
+): Promise<{ items: RecommendationItem[]; reasoning: string | null }> {
   const res = await fetch(`${API_BASE}/v1/chat/completions`, {
     method: "POST",
     headers: {
@@ -377,6 +413,7 @@ export async function recommendAnnouncements(
     },
     body: JSON.stringify({
       model: process.env.UPSTAGE_CHAT_MODEL ?? "solar-pro4",
+      reasoning_effort: "low",
       messages: [
         {
           role: "system",
@@ -394,10 +431,15 @@ export async function recommendAnnouncements(
     throw new Error(`추천 생성 실패 (${res.status}): ${await res.text()}`);
   }
   const data = await res.json();
-  const content: string = data.choices?.[0]?.message?.content ?? "";
+  const message = data.choices?.[0]?.message ?? {};
+  const content: string = message.content ?? "";
+  const reasoning: string | null =
+    typeof message.reasoning === "string" && message.reasoning.trim()
+      ? message.reasoning.trim()
+      : null;
   const parsed = parseAgentJson(content);
   const list = Array.isArray(parsed?.recommendations) ? parsed.recommendations : [];
-  return list
+  const items = list
     .filter(
       (item): item is { id: string; score: number; reason: string } =>
         !!item &&
@@ -410,13 +452,16 @@ export async function recommendAnnouncements(
       score: Math.max(0, Math.min(100, Math.round(Number(item.score) || 0))),
       reason: item.reason.trim(),
     }));
+  return { items, reasoning };
 }
 
 // ---------------------------------------------------------------------------
 // Solar 텍스트 기반 프로필 추출 (개인 링크 → HTML 텍스트 → JSON)
 // ---------------------------------------------------------------------------
 
-export async function extractProfileFromText(text: string): Promise<Record<string, unknown>> {
+export async function extractProfileFromText(
+  text: string,
+): Promise<{ extracted: Record<string, unknown>; reasoning: string | null }> {
   const res = await fetch(`${API_BASE}/v1/chat/completions`, {
     method: "POST",
     headers: {
@@ -425,6 +470,7 @@ export async function extractProfileFromText(text: string): Promise<Record<strin
     },
     body: JSON.stringify({
       model: process.env.UPSTAGE_CHAT_MODEL ?? "solar-pro4",
+      reasoning_effort: "low",
       messages: [
         {
           role: "system",
@@ -439,6 +485,11 @@ export async function extractProfileFromText(text: string): Promise<Record<strin
     throw new Error(`프로필 추출 실패 (${res.status}): ${await res.text()}`);
   }
   const data = await res.json();
-  const content: string = data.choices?.[0]?.message?.content ?? "{}";
-  return parseAgentJson(content) ?? {};
+  const message = data.choices?.[0]?.message ?? {};
+  const content: string = message.content ?? "{}";
+  const reasoning: string | null =
+    typeof message.reasoning === "string" && message.reasoning.trim()
+      ? message.reasoning.trim()
+      : null;
+  return { extracted: parseAgentJson(content) ?? {}, reasoning };
 }

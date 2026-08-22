@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { extractProfileFromText } from "@/lib/upstage";
 import { getProfile, mergeProfile, saveProfile } from "@/lib/store";
+import { clip, workflowStream } from "@/lib/workflow";
 
 export const maxDuration = 120;
 
@@ -26,7 +27,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "http(s) 링크를 입력해 주세요." }, { status: 400 });
   }
 
-  try {
+  return workflowStream(async (emit) => {
+    emit({ type: "step", id: "fetch", title: `페이지 요청 — ${url}`, status: "start" });
     const res = await fetch(url, {
       headers: {
         "User-Agent":
@@ -37,34 +39,84 @@ export async function POST(req: Request) {
       signal: AbortSignal.timeout(15_000),
     });
     if (!res.ok) {
-      return NextResponse.json(
-        { error: `링크를 불러오지 못했습니다 (HTTP ${res.status}). 공개 페이지인지 확인해 주세요.` },
-        { status: 422 },
-      );
+      emit({
+        type: "step",
+        id: "fetch",
+        title: `페이지 요청 — ${url}`,
+        status: "error",
+        detail: `HTTP ${res.status}`,
+      });
+      emit({
+        type: "error",
+        message: `링크를 불러오지 못했습니다 (HTTP ${res.status}). 공개 페이지인지 확인해 주세요.`,
+      });
+      return;
     }
-    const text = htmlToText(await res.text());
-    if (text.length < 80) {
-      return NextResponse.json(
-        {
-          error:
-            "페이지에서 읽을 수 있는 텍스트가 거의 없어요. 로그인 필요 페이지거나 스크립트로만 그려지는 페이지일 수 있습니다. (GitHub·블로그·링크트리 추천)",
-        },
-        { status: 422 },
-      );
-    }
+    const html = await res.text();
+    emit({
+      type: "step",
+      id: "fetch",
+      title: `페이지 요청 — ${url}`,
+      status: "done",
+      detail: `HTTP ${res.status} · ${(html.length / 1024).toFixed(0)}KB`,
+    });
 
-    const extracted = await extractProfileFromText(text);
+    const text = htmlToText(html);
+    if (text.length < 80) {
+      emit({
+        type: "step",
+        id: "text",
+        title: "본문 텍스트 추출",
+        status: "error",
+        detail: `${text.length}자`,
+      });
+      emit({
+        type: "error",
+        message:
+          "페이지에서 읽을 수 있는 텍스트가 거의 없어요. 로그인 필요 페이지거나 스크립트로만 그려지는 페이지일 수 있습니다. (GitHub·블로그·링크트리 추천)",
+      });
+      return;
+    }
+    emit({
+      type: "step",
+      id: "text",
+      title: "본문 텍스트 추출",
+      status: "done",
+      detail: `${text.length.toLocaleString()}자`,
+      payload: clip(text, 1200),
+    });
+
+    emit({
+      type: "step",
+      id: "solar",
+      title: "Solar 프로필 추출 (solar-pro4)",
+      status: "start",
+    });
+    const { extracted, reasoning } = await extractProfileFromText(text);
+    if (reasoning) {
+      emit({
+        type: "step",
+        id: "reasoning",
+        title: "Solar 추론 과정",
+        status: "done",
+        payload: clip(reasoning),
+      });
+    }
+    emit({
+      type: "step",
+      id: "solar",
+      title: "Solar 프로필 추출 (solar-pro4)",
+      status: "done",
+      payload: extracted,
+    });
+
     const profile = mergeProfile(getProfile(), extracted, {
       type: "link",
       label: url,
       addedAt: new Date().toISOString(),
     });
     saveProfile(profile);
-    return NextResponse.json({ profile, extracted });
-  } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : String(error) },
-      { status: 500 },
-    );
-  }
+    emit({ type: "step", id: "merge", title: "프로필 병합·저장", status: "done", payload: profile });
+    emit({ type: "result", data: { profile, extracted } });
+  });
 }

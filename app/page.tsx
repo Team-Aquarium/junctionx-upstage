@@ -8,6 +8,7 @@ import {
   ddayInfo,
   type AnnouncementWithMatch,
 } from "@/components/announcement";
+import { useWorkflowStream, WorkflowLog } from "@/components/workflow";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import type { RecommendationItem } from "@/lib/upstage";
@@ -21,7 +22,10 @@ export default function FeedPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("전체");
   const [recommendations, setRecommendations] = useState<RecommendationItem[]>([]);
-  const [recLoading, setRecLoading] = useState(false);
+  const [showRecLog, setShowRecLog] = useState(false);
+  const recWf = useWorkflowStream();
+  const recLoading = recWf.running;
+  const { run: runRecWf } = recWf;
 
   const load = useCallback(async () => {
     try {
@@ -30,17 +34,14 @@ export default function FeedPage() {
       setAnnouncements(data.announcements ?? []);
       setHasProfile(Boolean(data.hasProfile));
       if (data.hasProfile && (data.announcements ?? []).length > 0) {
-        setRecLoading(true);
-        fetch("/api/recommendations")
-          .then((r) => r.json())
-          .then((rec) => setRecommendations(rec.recommendations ?? []))
-          .catch(() => setRecommendations([]))
-          .finally(() => setRecLoading(false));
+        runRecWf<{ recommendations: RecommendationItem[] }>("/api/recommendations").then(
+          (rec) => setRecommendations(rec?.recommendations ?? []),
+        );
       }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [runRecWf]);
 
   useEffect(() => {
     load();
@@ -122,9 +123,25 @@ export default function FeedPage() {
 
       {!loading && hasProfile && (recLoading || recommended.length > 0) && (
         <section className="mt-8">
-          <h2 className="flex items-center gap-2 font-semibold text-lg">
-            <SparklesIcon className="size-4.5 text-primary" />나에게 맞는 공고
-          </h2>
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="flex items-center gap-2 font-semibold text-lg">
+              <SparklesIcon className="size-4.5 text-primary" />나에게 맞는 공고
+            </h2>
+            {!recLoading && recWf.steps.length > 0 && (
+              <button
+                className="text-muted-foreground text-xs underline underline-offset-2 hover:text-foreground"
+                onClick={() => setShowRecLog((v) => !v)}
+                type="button"
+              >
+                {showRecLog ? "생성 과정 접기" : "생성 과정 보기"}
+              </button>
+            )}
+          </div>
+          {(recLoading || showRecLog) && recWf.steps.length > 0 && (
+            <div className="mt-3">
+              <WorkflowLog steps={recWf.steps} />
+            </div>
+          )}
           {recLoading ? (
             <div className="mt-3 flex items-center gap-2 rounded-xl border border-dashed px-4 py-6 text-muted-foreground text-sm">
               <Spinner className="size-4" />

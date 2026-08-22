@@ -7,6 +7,7 @@ import {
   UserRoundIcon,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useWorkflowStream, WorkflowLog } from "@/components/workflow";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
@@ -48,6 +49,7 @@ export default function ProfilePage() {
   const [message, setMessage] = useState<string | null>(null);
   const [linkUrl, setLinkUrl] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
+  const wf = useWorkflowStream();
 
   const load = async () => {
     const res = await fetch("/api/profile");
@@ -66,46 +68,37 @@ export default function ProfilePage() {
     }
     setBusy("link");
     setMessage(null);
-    try {
-      const res = await fetch("/api/profile/link", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: linkUrl.trim() }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setMessage(data.error ?? "링크 처리에 실패했어요.");
-        return;
-      }
+    const data = await wf.run<{ profile: UserProfile }>("/api/profile/link", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url: linkUrl.trim() }),
+    });
+    if (data?.profile) {
       setProfile(data.profile);
       setLinkUrl("");
       setMessage("링크에서 프로필을 업데이트했어요.");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : String(error));
-    } finally {
-      setBusy(null);
+    } else {
+      setMessage(wf.errorRef.current ?? "링크 처리에 실패했어요.");
     }
+    setBusy(null);
   };
 
   const submitFile = async (file: File) => {
     setBusy("file");
     setMessage(null);
-    try {
-      const form = new FormData();
-      form.append("file", file);
-      const res = await fetch("/api/profile", { method: "POST", body: form });
-      const data = await res.json();
-      if (!res.ok) {
-        setMessage(data.error ?? "서류 처리에 실패했어요.");
-        return;
-      }
+    const form = new FormData();
+    form.append("file", file);
+    const data = await wf.run<{ profile: UserProfile }>("/api/profile", {
+      method: "POST",
+      body: form,
+    });
+    if (data?.profile) {
       setProfile(data.profile);
       setMessage(`${file.name}에서 프로필을 업데이트했어요.`);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : String(error));
-    } finally {
-      setBusy(null);
+    } else {
+      setMessage(wf.errorRef.current ?? "서류 처리에 실패했어요.");
     }
+    setBusy(null);
   };
 
   const reset = async () => {
@@ -180,6 +173,13 @@ export default function ProfilePage() {
 
       {message && (
         <p className="mt-3 rounded-lg border bg-muted/50 px-3 py-2 text-sm">{message}</p>
+      )}
+
+      {wf.steps.length > 0 && (
+        <div className="mt-3 rounded-xl border bg-card p-4">
+          <p className="mb-2 font-semibold text-sm">실행 과정</p>
+          <WorkflowLog steps={wf.steps} />
+        </div>
       )}
 
       <div className="mt-6 rounded-xl border bg-card p-4">

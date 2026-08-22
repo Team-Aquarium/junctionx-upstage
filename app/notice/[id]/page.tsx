@@ -20,6 +20,7 @@ import {
   VerdictBadge,
   type AnnouncementWithMatch,
 } from "@/components/announcement";
+import { readWorkflowResult } from "@/components/workflow";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
@@ -63,12 +64,11 @@ export default function NoticeDetailPage() {
         setLoading(false);
       }
     })();
-    fetch("/api/recommendations")
-      .then((r) => r.json())
+    readWorkflowResult<{ recommendations: { id: string; score: number; reason: string }[] }>(
+      "/api/recommendations",
+    )
       .then((data) => {
-        const found = (data.recommendations ?? []).find(
-          (r: { id: string }) => r.id === id,
-        );
+        const found = (data?.recommendations ?? []).find((r) => r.id === id);
         setRec(found ?? null);
       })
       .catch(() => setRec(null));

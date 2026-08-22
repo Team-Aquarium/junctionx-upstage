@@ -2,6 +2,8 @@
 
 import {
   CheckCircle2Icon,
+  ChevronDownIcon,
+  ChevronRightIcon,
   FileUpIcon,
   GlobeIcon,
   UploadCloudIcon,
@@ -13,6 +15,7 @@ import {
   AnnouncementCard,
   type AnnouncementWithMatch,
 } from "@/components/announcement";
+import { useWorkflowStream, WorkflowLog, type WorkflowStep } from "@/components/workflow";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
@@ -27,9 +30,8 @@ interface QueueItem {
   status: ItemStatus;
   error?: string;
   announcement?: AnnouncementWithMatch;
+  log?: WorkflowStep[];
 }
-
-const PIPELINE = ["Parse", "Classify", "Extract", "Instruct"] as const;
 
 const CRAWL_SOURCES = [
   { value: "ck-it", label: "콘테스트코리아 · 학문/과학/IT" },
@@ -50,38 +52,17 @@ interface CrawlItem {
 export default function IngestPage() {
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [running, setRunning] = useState(false);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [expandedLogs, setExpandedLogs] = useState<Set<number>>(new Set());
   const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const uploadWf = useWorkflowStream();
+
   const [crawlSource, setCrawlSource] = useState<string>("ck-it");
   const [crawlLimit, setCrawlLimit] = useState(2);
-  const [crawlBusy, setCrawlBusy] = useState(false);
   const [crawlMessage, setCrawlMessage] = useState<string | null>(null);
   const [crawlItems, setCrawlItems] = useState<CrawlItem[]>([]);
-
-  const runCrawl = async () => {
-    setCrawlBusy(true);
-    setCrawlMessage(null);
-    try {
-      const res = await fetch("/api/crawl", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ source: crawlSource, limit: crawlLimit }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setCrawlMessage(data.error ?? `HTTP ${res.status}`);
-        return;
-      }
-      setCrawlItems((prev) => [...(data.results ?? []), ...prev]);
-      if (data.message) {
-        setCrawlMessage(data.message);
-      }
-    } catch (error) {
-      setCrawlMessage(error instanceof Error ? error.message : String(error));
-    } finally {
-      setCrawlBusy(false);
-    }
-  };
+  const crawlWf = useWorkflowStream();
 
   const addFiles = (files: FileList | File[]) => {
     const items = [...files].map((file) => ({ file, status: "대기" as ItemStatus }));
@@ -92,42 +73,76 @@ export default function IngestPage() {
     setQueue((prev) => prev.map((item, i) => (i === index ? { ...item, ...patch } : item)));
   };
 
+  const toggleLog = (index: number) => {
+    setExpandedLogs((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) {
+        next.delete(index);
+      } else {
+        next.add(index);
+      }
+      return next;
+    });
+  };
+
   const run = async () => {
     setRunning(true);
     for (let i = 0; i < queue.length; i++) {
       if (queue[i].status === "완료") {
         continue;
       }
-      updateItem(i, { status: "처리 중", error: undefined });
-      try {
-        const form = new FormData();
-        form.append("file", queue[i].file);
-        const res = await fetch("/api/ingest", { method: "POST", body: form });
-        const data = await res.json();
-        if (!res.ok) {
-          updateItem(i, { status: "실패", error: data.error ?? `HTTP ${res.status}` });
-          continue;
-        }
-        updateItem(i, { status: "완료", announcement: data.announcement });
-      } catch (error) {
+      setActiveIndex(i);
+      updateItem(i, { status: "처리 중", error: undefined, log: undefined });
+      const form = new FormData();
+      form.append("file", queue[i].file);
+      const data = await uploadWf.run<{ announcement: AnnouncementWithMatch }>("/api/ingest", {
+        method: "POST",
+        body: form,
+      });
+      const log = [...uploadWf.stepsRef.current];
+      if (data?.announcement) {
+        updateItem(i, { status: "완료", announcement: data.announcement, log });
+      } else {
         updateItem(i, {
           status: "실패",
-          error: error instanceof Error ? error.message : String(error),
+          error: uploadWf.errorRef.current ?? "알 수 없는 오류",
+          log,
         });
       }
     }
+    setActiveIndex(null);
     setRunning(false);
   };
 
+  const runCrawl = async () => {
+    setCrawlMessage(null);
+    const data = await crawlWf.run<{ results: CrawlItem[]; message?: string }>("/api/crawl", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ source: crawlSource, limit: crawlLimit }),
+    });
+    if (data) {
+      setCrawlItems((prev) => [...(data.results ?? []), ...prev]);
+      if (data.message) {
+        setCrawlMessage(data.message);
+      }
+    } else if (crawlWf.errorRef.current) {
+      setCrawlMessage(crawlWf.errorRef.current);
+    }
+  };
+
   const doneItems = queue.filter((item) => item.announcement);
-  const pendingCount = queue.filter((item) => item.status === "대기" || item.status === "실패").length;
+  const pendingCount = queue.filter(
+    (item) => item.status === "대기" || item.status === "실패",
+  ).length;
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-8">
       <h1 className="font-bold text-2xl tracking-tight">공고 등록</h1>
       <p className="mt-1 text-muted-foreground text-sm">
         공고문 PDF·포스터 이미지·HWP를 올리면 Studio 에이전트(Parse → Classify → Extract →
-        Instruct)가 구조화된 공고 카드로 만들어 줍니다.
+        Instruct)가 구조화된 공고 카드로 만들어 줍니다. 모든 단계와 중간 산출물이 아래에 실시간으로
+        표시됩니다.
       </p>
 
       <input
@@ -175,42 +190,60 @@ export default function IngestPage() {
 
       {queue.length > 0 && (
         <div className="mt-4 space-y-2">
-          {queue.map((item, index) => (
-            <div
-              className="flex items-center gap-3 rounded-lg border bg-card px-4 py-3"
-              key={`${item.file.name}-${index}`}
-            >
-              <FileUpIcon className="size-4 shrink-0 text-muted-foreground" />
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-medium text-sm">{item.file.name}</p>
-                {item.status === "처리 중" && (
-                  <p className="mt-0.5 flex items-center gap-1.5 text-muted-foreground text-xs">
-                    {PIPELINE.join(" → ")} 실행 중… (약 30초~2분)
-                  </p>
-                )}
-                {item.status === "실패" && (
-                  <p className="mt-0.5 break-words text-destructive text-xs">{item.error}</p>
-                )}
-                {item.announcement && (
-                  <p className="mt-0.5 text-muted-foreground text-xs">
-                    {item.announcement.category} · {item.announcement.title}
-                  </p>
+          {queue.map((item, index) => {
+            const isActive = activeIndex === index;
+            const log = isActive ? uploadWf.steps : item.log;
+            const showLog = isActive || expandedLogs.has(index);
+            return (
+              <div className="rounded-lg border bg-card" key={`${item.file.name}-${index}`}>
+                <div className="flex items-center gap-3 px-4 py-3">
+                  <FileUpIcon className="size-4 shrink-0 text-muted-foreground" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium text-sm">{item.file.name}</p>
+                    {item.status === "실패" && (
+                      <p className="mt-0.5 break-words text-destructive text-xs">{item.error}</p>
+                    )}
+                    {item.announcement && (
+                      <p className="mt-0.5 text-muted-foreground text-xs">
+                        {item.announcement.category} · {item.announcement.title}
+                      </p>
+                    )}
+                  </div>
+                  {log && log.length > 0 && !isActive && (
+                    <button
+                      className="flex shrink-0 items-center gap-1 text-muted-foreground text-xs hover:text-foreground"
+                      onClick={() => toggleLog(index)}
+                      type="button"
+                    >
+                      과정 {log.length}단계
+                      {showLog ? (
+                        <ChevronDownIcon className="size-3.5" />
+                      ) : (
+                        <ChevronRightIcon className="size-3.5" />
+                      )}
+                    </button>
+                  )}
+                  <span className="shrink-0">
+                    {item.status === "대기" && (
+                      <span className="text-muted-foreground text-xs">대기</span>
+                    )}
+                    {item.status === "처리 중" && <Spinner className="size-4 text-primary" />}
+                    {item.status === "완료" && (
+                      <CheckCircle2Icon className="size-4.5 text-primary" />
+                    )}
+                    {item.status === "실패" && (
+                      <XCircleIcon className="size-4.5 text-destructive" />
+                    )}
+                  </span>
+                </div>
+                {log && log.length > 0 && showLog && (
+                  <div className="border-t px-4 py-3">
+                    <WorkflowLog steps={log} />
+                  </div>
                 )}
               </div>
-              <span className="shrink-0">
-                {item.status === "대기" && (
-                  <span className="text-muted-foreground text-xs">대기</span>
-                )}
-                {item.status === "처리 중" && <Spinner className="size-4 text-primary" />}
-                {item.status === "완료" && (
-                  <CheckCircle2Icon className="size-4.5 text-primary" />
-                )}
-                {item.status === "실패" && (
-                  <XCircleIcon className="size-4.5 text-destructive" />
-                )}
-              </span>
-            </div>
-          ))}
+            );
+          })}
 
           <div className="flex items-center gap-2 pt-1">
             <Button disabled={running || pendingCount === 0} onClick={run}>
@@ -225,7 +258,10 @@ export default function IngestPage() {
             </Button>
             <Button
               disabled={running}
-              onClick={() => setQueue([])}
+              onClick={() => {
+                setQueue([]);
+                setExpandedLogs(new Set());
+              }}
               variant="ghost"
             >
               비우기
@@ -245,7 +281,7 @@ export default function IngestPage() {
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <select
             className="h-9 rounded-md border border-input bg-background px-3 text-sm"
-            disabled={crawlBusy}
+            disabled={crawlWf.running}
             onChange={(e) => setCrawlSource(e.target.value)}
             value={crawlSource}
           >
@@ -257,7 +293,7 @@ export default function IngestPage() {
           </select>
           <select
             className="h-9 rounded-md border border-input bg-background px-3 text-sm"
-            disabled={crawlBusy}
+            disabled={crawlWf.running}
             onChange={(e) => setCrawlLimit(Number(e.target.value))}
             value={crawlLimit}
           >
@@ -267,11 +303,11 @@ export default function IngestPage() {
               </option>
             ))}
           </select>
-          <Button disabled={crawlBusy} onClick={runCrawl}>
-            {crawlBusy ? (
+          <Button disabled={crawlWf.running} onClick={runCrawl}>
+            {crawlWf.running ? (
               <>
                 <Spinner className="size-4" />
-                수집·분석 중… (건당 30초~2분)
+                수집·분석 중…
               </>
             ) : (
               "수집 시작"
@@ -280,6 +316,12 @@ export default function IngestPage() {
         </div>
         {crawlMessage && (
           <p className="mt-2 rounded-lg border bg-muted/50 px-3 py-2 text-sm">{crawlMessage}</p>
+        )}
+        {crawlWf.steps.length > 0 && (
+          <div className="mt-3">
+            <p className="mb-1.5 text-muted-foreground text-xs">실행 과정</p>
+            <WorkflowLog steps={crawlWf.steps} />
+          </div>
         )}
         {crawlItems.length > 0 && (
           <ul className="mt-3 space-y-2">

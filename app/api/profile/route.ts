@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { extractInformation, type StoredDocument } from "@/lib/upstage";
 import { clearProfile, getProfile, mergeProfile, saveProfile } from "@/lib/store";
+import { workflowStream } from "@/lib/workflow";
 
 export const maxDuration = 120;
 
@@ -37,25 +38,51 @@ export async function POST(req: Request) {
     url: `data:${mediaType};base64,${bytes.toString("base64")}`,
   };
 
-  try {
+  return workflowStream(async (emit) => {
+    emit({
+      type: "step",
+      id: "recv",
+      title: `서류 수신 — ${file.name}`,
+      status: "done",
+      detail: `${(bytes.length / 1024).toFixed(0)}KB`,
+    });
+
+    emit({
+      type: "step",
+      id: "uie",
+      title: "Universal Information Extraction 호출 (student_profile 스키마)",
+      status: "start",
+      payload: { schema: Object.keys(PROFILE_PROPERTIES) },
+    });
     const result = await extractInformation(doc, "student_profile", { ...PROFILE_PROPERTIES });
     const extracted =
       result.extracted && typeof result.extracted === "object"
         ? (result.extracted as Record<string, unknown>)
         : {};
+    emit({
+      type: "step",
+      id: "uie",
+      title: "Universal Information Extraction 호출 (student_profile 스키마)",
+      status: "done",
+      detail: result.model,
+      payload: extracted,
+    });
+
     const profile = mergeProfile(getProfile(), extracted, {
       type: "file",
       label: file.name,
       addedAt: new Date().toISOString(),
     });
     saveProfile(profile);
-    return NextResponse.json({ profile, extracted });
-  } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : String(error) },
-      { status: 500 },
-    );
-  }
+    emit({
+      type: "step",
+      id: "merge",
+      title: "프로필 병합·저장",
+      status: "done",
+      payload: profile,
+    });
+    emit({ type: "result", data: { profile, extracted } });
+  });
 }
 
 export async function DELETE() {

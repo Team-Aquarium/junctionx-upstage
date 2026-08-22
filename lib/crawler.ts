@@ -50,6 +50,8 @@ export interface CrawlDocument {
   bytes: Buffer;
   mediaType: string;
   filename: string;
+  /** 문서를 어떤 경로로 얻었는지: 첨부 공고문 / 본문 HTML / 포스터 이미지 */
+  via: string;
 }
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -74,7 +76,11 @@ async function fetchHtml(url: string): Promise<string> {
   return res.text();
 }
 
-async function downloadFile(url: string, referer: string): Promise<CrawlDocument | null> {
+async function downloadFile(
+  url: string,
+  referer: string,
+  via: string,
+): Promise<CrawlDocument | null> {
   const res = await fetch(encodeURI(decodeURI(url)), {
     headers: { "User-Agent": USER_AGENT, Referer: referer },
     redirect: "follow",
@@ -89,6 +95,7 @@ async function downloadFile(url: string, referer: string): Promise<CrawlDocument
     bytes: Buffer.from(await res.arrayBuffer()),
     mediaType,
     filename: rawName.slice(-80),
+    via,
   };
 }
 
@@ -138,7 +145,7 @@ async function fetchWevityDocument(detailUrl: string): Promise<CrawlDocument | n
   if (!match) {
     return null;
   }
-  return downloadFile(new URL(match[1], WEVITY_BASE).toString(), detailUrl);
+  return downloadFile(new URL(match[1], WEVITY_BASE).toString(), detailUrl, "포스터 이미지");
 }
 
 // ---------------------------------------------------------------------------
@@ -182,7 +189,11 @@ async function fetchContestKoreaDocument(detailUrl: string): Promise<CrawlDocume
   // 1) 첨부 공고문 (HWP/PDF/DOC) — 진짜 공고 문서가 있으면 최우선으로 쓴다.
   const attachment = html.match(/href="([^"]+\.(?:hwpx?|pdf|docx?))(?:"|\?)/i);
   if (attachment) {
-    const doc = await downloadFile(new URL(attachment[1], detailUrl).toString(), detailUrl);
+    const doc = await downloadFile(
+      new URL(attachment[1], detailUrl).toString(),
+      detailUrl,
+      "첨부 공고문",
+    );
     if (doc) {
       return doc;
     }
@@ -200,6 +211,7 @@ async function fetchContestKoreaDocument(detailUrl: string): Promise<CrawlDocume
         bytes: Buffer.from(docHtml, "utf8"),
         mediaType: "text/html",
         filename: `${sanitizeFilename(title)}.html`,
+        via: "본문 HTML",
       };
     }
   }
@@ -207,7 +219,11 @@ async function fetchContestKoreaDocument(detailUrl: string): Promise<CrawlDocume
   // 3) 포스터 이미지 폴백
   const poster = html.match(/class="img_area">[\s\S]*?<img src="([^"]+\.(?:jpe?g|png|gif|webp))"/i);
   if (poster) {
-    return downloadFile(new URL(poster[1], CONTESTKOREA_BASE).toString(), detailUrl);
+    return downloadFile(
+      new URL(poster[1], CONTESTKOREA_BASE).toString(),
+      detailUrl,
+      "포스터 이미지",
+    );
   }
   return null;
 }

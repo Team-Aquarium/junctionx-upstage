@@ -26,7 +26,14 @@ Upstage Studio 에이전트가 읽어 구조화된 공고 카드로 만들고, �
   Extract 필드 10개(title/organizer/field/eligibility_text/apply_start/apply_end/
   result_date/benefits/contact/apply_url), Instruct는 순수 JSON만 출력하도록 프롬프트됨.
 - Instruct 출력은 JSON 문자열로 **이중 인코딩**되어 오고, 값에 인용 마커(【†1】)가 섞일 수 있다.
-  `parseAgentJson` + ingest 라우트의 `clean()`이 처리하므로 파서를 우회하지 말 것.
+  `parseAgentJson` + lib/ingest.ts의 `clean()`이 처리하므로 파서를 우회하지 말 것.
+- AI가 개입하는 라우트(ingest/crawl/profile/profile-link/recommendations)는 모두
+  **NDJSON 워크플로우 스트림**(`lib/workflow.ts`)으로 응답한다. 단계·중간 산출물·Solar 추론이
+  실시간으로 흐르고, 클라이언트는 `useWorkflowStream`/`WorkflowLog`(components/workflow.tsx)로 렌더한다.
+  Content-Type이 `application/x-ndjson`이므로 클라이언트에서 `includes("json")`으로
+  일반 JSON과 구분하면 안 된다 (`application/json` 정확 매칭 필요).
+- Studio Job 폴링 응답의 output은 스냅샷마다 담기는 메시지가 달라서(중간엔 개별 노드,
+  완료 시점엔 마지막만) `runStudioAgentDetailed`가 누적 맵으로 전체 노드 출력을 보존한다.
 - 저장소는 `data/` 파일 기반(JSON + uploads). 전역 DB 도입 금지 — 데모 스코프.
 - 데모 샘플: `samples/` (공고문 2종 + 재학증명서, Chrome headless로 HTML→PDF 변환).
 
@@ -69,7 +76,8 @@ app/
   layout.tsx                  # ThemeProvider, TooltipProvider, SiteHeader
 lib/
   upstage.ts                  # Upstage REST 클라이언트 (Parse/Extract/Files/Jobs/파서/추천)
-  ingest.ts                   # 공고 문서 → 에이전트 실행 → Announcement 저장 (공용)
+  workflow.ts                 # NDJSON 워크플로우 스트림 (서버 헬퍼 + 이벤트 타입)
+  ingest.ts                   # 공고 문서 → 에이전트 실행 → Announcement 저장 (공용, 단계 emit)
   crawler.ts                  # 공모전 크롤러: 콘테스트코리아·위비티 (둘 다 robots Allow 확인됨)
                               #  문서 우선순위: 첨부 HWP/PDF > 본문 HTML > 포스터 이미지
   store.ts                    # 파일 기반 저장소 (공고·프로필·업로드·추천 캐시)
@@ -77,6 +85,7 @@ lib/
 components/
   site-header.tsx             # 전역 헤더 (네비 + 테마 토글)
   announcement.tsx            # 공고 카드·뱃지·D-day 계산
+  workflow.tsx                # 워크플로우 스트림 훅(useWorkflowStream) + 단계 로그 UI
   ai-elements/                # AI Elements 컴포넌트 (로컬 패치 있음 — 아래 주의사항)
   ui/                         # shadcn/ui 컴포넌트
 samples/                      # 데모용 샘플 문서 (HTML 원본 + PDF)
