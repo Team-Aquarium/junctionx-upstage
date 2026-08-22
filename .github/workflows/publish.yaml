@@ -1,13 +1,28 @@
-name: Publish to Docker
+name: Publish on Docker
+
 on: [push]
+
+env:
+  INAME: ${{ github.repository_id }}
+  CNAME: ${{ github.repository_id }}-run
+
 jobs:
   build:
+    name: Builds a Docker image
     runs-on: self-hosted
     steps:
-    - run: docker build -t upstage .
+    - run: docker build -t ${{ env.INAME }} .
 
-  run:
+  deploy:
+    name: Deploys a Docker container
     needs: build
     runs-on: self-hosted
     steps:
-    - run: docker run -dp 3000:3000 --name upstage-run upstage
+    - name: Stops old
+      run: docker stop ${{ env.CNAME }} || true
+    - name: Starts new
+      run: |
+        docker run \
+          -dp 3000:3000 \
+          --name ${{ env.CNAME }} \
+          ${{ env.INAME }}
