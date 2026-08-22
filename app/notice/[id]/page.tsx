@@ -23,6 +23,7 @@ import { UpstageBadge } from "@/components/upstage";
 import { readWorkflowResult } from "@/components/workflow";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { createDemoNotice, createDemoRecommendation, DEMO_NOTICE_ID } from "@/lib/demo-notice";
 import { useI18n } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 
@@ -37,6 +38,13 @@ export default function NoticeDetailPage() {
 
   useEffect(() => {
     if (!id) return;
+
+    if (id === DEMO_NOTICE_ID) {
+      setItem(createDemoNotice(t));
+      setRec(createDemoRecommendation(t));
+      setLoading(false);
+      return;
+    }
 
     (async () => {
       try {
@@ -58,7 +66,7 @@ export default function NoticeDetailPage() {
         setRec(found ?? null);
       })
       .catch(() => setRec(null));
-  }, [id, locale]);
+  }, [id, locale, t]);
 
   const toggleCheck = (index: number) => {
     setChecked((prev) => {

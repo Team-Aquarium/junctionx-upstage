@@ -2,11 +2,9 @@
 
 import Link from "next/link";
 import { ArrowRightIcon, FilePlusIcon } from "lucide-react";
-import {
-  AnnouncementCard,
-  type AnnouncementWithMatch,
-} from "@/components/announcement";
+import { AnnouncementCard } from "@/components/announcement";
 import { Button } from "@/components/ui/button";
+import { createDemoNotice } from "@/lib/demo-notice";
 import { useT } from "@/lib/i18n/client";
 
 interface HeroProps {
@@ -20,32 +18,7 @@ interface HeroProps {
 
 export function Hero({ stats: _stats }: HeroProps) {
   const t = useT();
-  const demo: AnnouncementWithMatch = {
-    id: "demo-hero-notice",
-    category: "공모전/해커톤",
-    title: t("hero.demoTitle"),
-    organizer: "Upstage",
-    field: t("hero.demoField"),
-    apply_start: "2026-08-01",
-    apply_end: "2026-08-31",
-    result_date: "2026-09-10",
-    benefits: t("hero.demoBenefits"),
-    contact: null,
-    apply_url: null,
-    summary: [t("hero.demoSummary1"), t("hero.demoSummary2")],
-    rules: {
-      majors: ["Computer Science", "Artificial Intelligence", "Software"],
-      status: ["Enrolled", "On leave", "Expected graduate"],
-    },
-    todo_checklist: ["Proposal", "Prototype video", "GitHub repo"],
-    sourceFile: { name: t("hero.previewFile"), mediaType: "application/pdf" },
-    createdAt: "2026-08-01T00:00:00.000Z",
-    match: {
-      verdict: "eligible",
-      score: 96,
-      reasons: [t("hero.demoReasonFit"), t("hero.demoReasonStatus")],
-    },
-  };
+  const demo = createDemoNotice(t);
 
   return (
     <section className="border-b border-border/80 bg-background py-24 sm:py-32 lg:py-40">

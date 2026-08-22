@@ -64,6 +64,11 @@ export const en = {
     demoBenefits: "KRW 20M in total prizes and an Upstage hiring-screen waiver",
     demoSummary1: "Build a real-service prototype on Upstage Document AI",
     demoSummary2: "Individual or teams of up to 4",
+    demoSummary3: "Open to enrolled students, leave of absence, and expected graduates",
+    demoContact: "challenge@upstage.ai",
+    demoTodo1: "Submit a 1-page proposal",
+    demoTodo2: "Record a 2-minute prototype video",
+    demoTodo3: "Share a public GitHub repository",
     demoReason:
       "A CS major and AI project history match the skills this challenge asks for.",
     demoReasonFit: "CS major match",
