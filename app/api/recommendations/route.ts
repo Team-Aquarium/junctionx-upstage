@@ -12,7 +12,7 @@ import {
 import { clipTail } from "@/lib/workflow";
 import { runWorkflowSession } from "@/lib/workflow-session";
 
-export const maxDuration = 120;
+export const maxDuration = 240;
 
 export async function GET(req: Request) {
   const locale = localeFromRequest(req);

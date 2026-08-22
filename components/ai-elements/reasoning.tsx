@@ -210,16 +210,22 @@ const streamdownPlugins = { cjk, code, math, mermaid } as unknown as ComponentPr
 >["plugins"];
 
 export const ReasoningContent = memo(
-  ({ className, children, ...props }: ReasoningContentProps) => (
+  ({ className, children, ref, ...props }: ReasoningContentProps) => (
     <CollapsibleContent
       className={cn(
-        "mt-4 text-sm",
-        "data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 text-muted-foreground outline-none data-[state=closed]:animate-out data-[state=open]:animate-in",
-        className
+        "mt-4 text-sm outline-none",
+        // 스트리밍 중 내용이 늘어나면 Radix가 처음 잰 높이에 가둬 아래가 잘린다.
+        "data-[state=open]:h-auto data-[state=open]:overflow-visible",
+        "data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 data-[state=closed]:animate-out data-[state=open]:animate-in",
       )}
       {...props}
     >
-      <Streamdown plugins={streamdownPlugins}>{children}</Streamdown>
+      <div
+        className={cn("text-muted-foreground", className)}
+        ref={ref}
+      >
+        <Streamdown plugins={streamdownPlugins}>{children}</Streamdown>
+      </div>
     </CollapsibleContent>
   )
 );
