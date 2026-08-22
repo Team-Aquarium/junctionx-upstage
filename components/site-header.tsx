@@ -73,6 +73,7 @@ export function SiteHeader() {
     { href: "/ingest", label: t("nav.ingest") },
     { href: "/me", label: t("nav.profile") },
     { href: "/chat", label: t("nav.chat") },
+    { href: "/pitch", label: t("nav.pitch") },
   ] as const;
 
   return (

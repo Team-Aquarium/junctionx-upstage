@@ -219,7 +219,7 @@
 
   <div style="margin: auto 0;">
     <p class="eyebrow">Upstage Document Agent</p>
-    <h1 style="font-family:Espeak, Geist, sans-serif;font-size:54px;font-weight:600;letter-spacing:-0.02em;line-height:1.15;margin-bottom:18px;">
+    <h1 style="font-family:Espeak, Geist, sans-serif;font-size:46px;font-weight:600;letter-spacing:-0.02em;line-height:1.2;margin-bottom:18px;">
       From notice analysis to eligibility —<br />
       <span style="color:var(--primary-soft-fg);">Moabora</span>
     </h1>
@@ -931,16 +931,26 @@
 </section>
 
 <script>
-  const n = new URLSearchParams(location.search).get("s");
-  if (n) {
+  function showSlide(n) {
+    const index = Number(n);
+    if (!Number.isFinite(index) || index < 1) return;
     document.querySelectorAll("section.slide").forEach((el, i) => {
-      el.style.display = i + 1 === Number(n) ? "flex" : "none";
+      el.style.display = i + 1 === index ? "flex" : "none";
       el.style.margin = "0";
     });
-    document.documentElement.style.background = "#0f0e17";
-    document.body.style.background = "#0f0e17";
+    document.documentElement.style.background = "#0c0b14";
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.background = "#0c0b14";
     document.body.style.margin = "0";
+    document.body.style.overflow = "hidden";
   }
+
+  const initial = new URLSearchParams(location.search).get("s");
+  if (initial) showSlide(initial);
+
+  window.addEventListener("message", (event) => {
+    if (event.data?.type === "moabora-slide") showSlide(event.data.n);
+  });
 </script>
 </body>
 </html>

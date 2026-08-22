@@ -38,6 +38,9 @@ export function SiteFooter() {
             <Link className="hover:text-foreground transition-colors" href="/chat">
               {t("nav.chat")}
             </Link>
+            <Link className="hover:text-foreground transition-colors" href="/pitch">
+              {t("nav.pitch")}
+            </Link>
             <a
               className="hover:text-foreground transition-colors"
               href="https://github.com/Team-Aquarium/junctionx-upstage"
