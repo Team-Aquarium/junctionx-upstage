@@ -71,46 +71,34 @@ import {
 } from "@/components/ai-elements/tool";
 import { UpstageBadge } from "@/components/upstage";
 import { Button } from "@/components/ui/button";
+import { useT } from "@/lib/i18n/client";
 
 const ACCEPT_FORMATS =
   ".pdf,.png,.jpg,.jpeg,.bmp,.tif,.tiff,.heic,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.hwp,.hwpx";
 
-const SUGGESTIONS = [
-  "지원 자격과 마감일을 요약해줘",
-  "핵심 요강 정보를 JSON으로 추출해줘",
-  "제출 서류 및 유의사항 체크리스트를 만들어줘",
-];
-
-const TOOL_TITLES: Record<string, string> = {
-  "tool-parse_document": "Document Parse — 문서 구조화",
-  "tool-extract_information": "Information Extract — 필드 추출",
-  "tool-run_studio_agent": "Studio Agent 실행",
-};
-
-const REASONING_OPTIONS = [
-  { value: "off", label: "추론 끄기" },
-  { value: "low", label: "추론 낮음" },
-  { value: "medium", label: "추론 보통" },
-  { value: "high", label: "추론 높음" },
+const SUGGESTION_KEYS = [
+  "chat.suggestion1",
+  "chat.suggestion2",
+  "chat.suggestion3",
 ] as const;
 
 const FEATURES = [
   {
     icon: "/upstage/document-parse.svg",
     title: "Document Parse",
-    description: "PDF·스캔·HWP 문서를 마크다운으로 구조화",
+    descKey: "chat.parseDesc",
   },
   {
     icon: "/upstage/information-extract.svg",
     title: "Information Extract",
-    description: "스키마를 설계해 핵심 필드를 JSON으로 추출",
+    descKey: "chat.extractDesc",
   },
   {
     icon: "/upstage/symbol.svg",
     title: "Studio Agents",
-    description: "Parse→Classify→Extract→Instruct 파이프라인 실행",
+    descKey: "chat.agentsDesc",
   },
-];
+] as const;
 
 function getMessageText(message: UIMessage): string {
   return message.parts
@@ -144,15 +132,16 @@ function InputAttachments() {
 }
 
 function AttachButton() {
+  const t = useT();
   const attachments = usePromptInputAttachments();
   return (
     <PromptInputButton
-      aria-label="문서 첨부"
+      aria-label={t("chat.attach")}
       onClick={attachments.openFileDialog}
       type="button"
     >
       <PaperclipIcon className="size-4 text-muted-foreground" />
-      <span className="max-sm:hidden text-xs">문서 첨부</span>
+      <span className="max-sm:hidden text-xs">{t("chat.attach")}</span>
     </PromptInputButton>
   );
 }
@@ -187,11 +176,13 @@ function PromptSuggestions({
 }: {
   onSend: (text: string, files: FileUIPart[]) => void;
 }) {
+  const t = useT();
   const attachments = usePromptInputAttachments();
+  const suggestions = SUGGESTION_KEYS.map((key) => t(key));
 
   return (
     <Suggestions className="mb-3">
-      {SUGGESTIONS.map((suggestion) => (
+      {suggestions.map((suggestion) => (
         <Suggestion
           className="rounded-lg border border-border bg-card px-3 py-1.5 text-xs text-foreground hover:border-primary/50 transition-colors"
           key={suggestion}
@@ -208,6 +199,7 @@ function PromptSuggestions({
 }
 
 export default function ChatPage() {
+  const t = useT();
   const { messages, sendMessage, status, stop, regenerate, setMessages, error, clearError } =
     useChat({
       transport: new DefaultChatTransport({ api: "/api/chat" }),
@@ -219,6 +211,19 @@ export default function ChatPage() {
   const requestBody = { reasoningEffort };
   const isBusy = status === "submitted" || status === "streaming";
 
+  const toolTitles: Record<string, string> = {
+    "tool-parse_document": t("chat.toolParse"),
+    "tool-extract_information": t("chat.toolExtract"),
+    "tool-run_studio_agent": t("chat.toolAgent"),
+  };
+
+  const reasoningOptions = [
+    { value: "off", label: t("chat.reasoningOff") },
+    { value: "low", label: t("chat.reasoningLow") },
+    { value: "medium", label: t("chat.reasoningMedium") },
+    { value: "high", label: t("chat.reasoningHigh") },
+  ] as const;
+
   const handleSubmit = (message: PromptInputMessage) => {
     const text = message.text.trim();
     if (!text && message.files.length === 0) {
@@ -226,7 +231,7 @@ export default function ChatPage() {
     }
     setFileError(null);
     sendMessage(
-      { text: text || "첨부한 문서를 분석해줘.", files: message.files },
+      { text: text || t("chat.defaultPrompt"), files: message.files },
       { body: requestBody },
     );
   };
@@ -250,12 +255,12 @@ export default function ChatPage() {
         {messages.length > 0 && (
           <div className="mx-auto flex w-full max-w-4xl items-center justify-between px-6 pt-3 pb-2 border-b border-border/60">
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-xs text-foreground">AI 문서 챗</span>
+              <span className="font-semibold text-xs text-foreground">{t("chat.title")}</span>
               <UpstageBadge compact feature="solar" />
             </div>
             <div className="flex items-center gap-1">
               <ConversationDownload
-                aria-label="대화 내보내기"
+                aria-label={t("chat.export")}
                 className="size-7 rounded-md hover:bg-muted"
                 filename="moabora-chat.md"
                 messages={messages}
@@ -265,7 +270,7 @@ export default function ChatPage() {
                 <DownloadIcon className="size-3.5 text-muted-foreground" />
               </ConversationDownload>
               <Button
-                aria-label="새 대화"
+                aria-label={t("chat.newChat")}
                 className="size-7 rounded-md hover:bg-muted"
                 onClick={handleNewChat}
                 size="icon-sm"
@@ -283,10 +288,10 @@ export default function ChatPage() {
               <div className="flex min-h-[45dvh] flex-col items-center justify-center gap-8 text-center">
                 <div className="space-y-1.5 max-w-md">
                   <h2 className="font-bold text-2xl text-foreground tracking-tight">
-                    공고 문서를 첨부하고 질문해보세요
+                    {t("chat.emptyTitle")}
                   </h2>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Solar Pro 4가 Upstage 문서 API 도구들을 호출하여 문서를 정밀하게 분석합니다.
+                    {t("chat.emptyBody")}
                   </p>
                 </div>
 
@@ -306,7 +311,7 @@ export default function ChatPage() {
                       />
                       <span className="font-semibold text-xs text-foreground">{feature.title}</span>
                       <span className="text-[11px] text-muted-foreground leading-relaxed">
-                        {feature.description}
+                        {t(feature.descKey)}
                       </span>
                     </div>
                   ))}
@@ -343,12 +348,12 @@ export default function ChatPage() {
                               <ReasoningTrigger
                                 getThinkingMessage={(isStreaming, duration) =>
                                   isStreaming ? (
-                                    <Shimmer duration={1}>추론 중...</Shimmer>
+                                    <Shimmer duration={1}>{t("chat.reasoning")}</Shimmer>
                                   ) : (
                                     <p>
                                       {duration
-                                        ? `${duration}초 동안 추론함`
-                                        : "추론 완료"}
+                                        ? t("chat.reasoned", { n: duration })
+                                        : t("chat.reasonedDone")}
                                     </p>
                                   )
                                 }
@@ -374,7 +379,7 @@ export default function ChatPage() {
                             <Tool key={part.toolCallId}>
                               <ToolHeader
                                 state={part.state}
-                                title={TOOL_TITLES[part.type]}
+                                title={toolTitles[part.type]}
                                 type={part.type}
                               />
                               <ToolContent>
@@ -395,7 +400,7 @@ export default function ChatPage() {
                       <MessageActions>
                         <MessageAction
                           onClick={() => handleCopy(message)}
-                          tooltip="답변 복사"
+                          tooltip={t("chat.copy")}
                         >
                           {copiedId === message.id ? (
                             <CheckIcon className="size-3.5 text-primary" />
@@ -406,7 +411,7 @@ export default function ChatPage() {
                         {isLastMessage && (
                           <MessageAction
                             onClick={() => regenerate({ body: requestBody })}
-                            tooltip="다시 생성"
+                            tooltip={t("chat.regenerate")}
                           >
                             <RefreshCcwIcon className="size-3.5" />
                           </MessageAction>
@@ -420,7 +425,7 @@ export default function ChatPage() {
             {status === "submitted" && (
               <Message from="assistant">
                 <MessageContent>
-                  <Shimmer>생각하는 중...</Shimmer>
+                  <Shimmer>{t("chat.thinking")}</Shimmer>
                 </MessageContent>
               </Message>
             )}
@@ -432,13 +437,13 @@ export default function ChatPage() {
         <div className="mx-auto w-full max-w-4xl px-6 pb-6">
           {error && (
             <div className="mb-3 flex items-center justify-between gap-3 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-2.5 text-xs text-destructive">
-              <span>오류가 발생했습니다: {error.message}</span>
+              <span>{t("chat.error", { message: error.message })}</span>
               <Button
                 onClick={() => regenerate({ body: requestBody })}
                 size="xs"
                 variant="outline"
               >
-                재시도
+                {t("chat.retry")}
               </Button>
             </div>
           )}
@@ -457,13 +462,13 @@ export default function ChatPage() {
             maxFileSize={50 * 1024 * 1024}
             maxFiles={5}
             multiple
-            onError={(error) =>
+            onError={(err) =>
               setFileError(
-                error.code === "accept"
-                  ? "지원하지 않는 파일 형식입니다."
-                  : error.code === "max_file_size"
-                    ? "파일 크기는 50MB 이하여야 합니다."
-                    : "파일은 최대 5개까지 첨부할 수 있습니다.",
+                err.code === "accept"
+                  ? t("chat.unsupportedType")
+                  : err.code === "max_file_size"
+                    ? t("chat.tooLarge")
+                    : t("chat.tooMany"),
               )
             }
             onSubmit={handleSubmit}
@@ -472,7 +477,7 @@ export default function ChatPage() {
             <PromptInputBody>
               <PromptInputTextarea
                 className="text-xs placeholder:text-muted-foreground"
-                placeholder="공고 문서를 첨부하고 질문해보세요..."
+                placeholder={t("chat.placeholder")}
               />
             </PromptInputBody>
             <PromptInputFooter>
@@ -483,14 +488,14 @@ export default function ChatPage() {
                   value={reasoningEffort}
                 >
                   <PromptInputSelectTrigger
-                    aria-label="추론 수준"
+                    aria-label={t("chat.reasoningLevel")}
                     className="h-7 gap-1 rounded-md border-border text-xs text-muted-foreground"
                   >
                     <BrainIcon className="size-3.5" />
                     <PromptInputSelectValue />
                   </PromptInputSelectTrigger>
                   <PromptInputSelectContent className="rounded-lg border border-border">
-                    {REASONING_OPTIONS.map((option) => (
+                    {reasoningOptions.map((option) => (
                       <PromptInputSelectItem
                         key={option.value}
                         value={option.value}
@@ -506,8 +511,7 @@ export default function ChatPage() {
           </PromptInput>
 
           <p className="mt-2 text-center text-muted-foreground text-[11px]">
-            {fileError ??
-              "지원 파일: PDF · 이미지 · DOCX · PPTX · XLSX · HWP (최대 50MB) · Powered by Upstage"}
+            {fileError ?? t("chat.footer")}
           </p>
         </div>
       </div>

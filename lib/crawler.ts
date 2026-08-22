@@ -13,27 +13,27 @@ const CONTESTKOREA_BASE = "https://www.contestkorea.com/";
 
 export const CRAWL_SOURCES = {
   "ck-it": {
-    label: "콘테스트코리아 · 학문/과학/IT",
+    label: "ContestKorea · Science / IT",
     site: "contestkorea",
     listUrl: `${CONTESTKOREA_BASE}sub/list.php?int_gbn=1&Txt_bcode=030310001`,
   },
   "ck-all": {
-    label: "콘테스트코리아 · 전체",
+    label: "ContestKorea · All",
     site: "contestkorea",
     listUrl: `${CONTESTKOREA_BASE}sub/list.php?int_gbn=1`,
   },
   it: {
-    label: "위비티 · 웹/모바일/IT",
+    label: "Wevity · Web / Mobile / IT",
     site: "wevity",
     listUrl: `${WEVITY_BASE}?c=find&s=1&gub=1&cidx=20`,
   },
   idea: {
-    label: "위비티 · 기획/아이디어",
+    label: "Wevity · Planning / Ideas",
     site: "wevity",
     listUrl: `${WEVITY_BASE}?c=find&s=1&gub=1&cidx=21`,
   },
   all: {
-    label: "위비티 · 전체 공모전",
+    label: "Wevity · All contests",
     site: "wevity",
     listUrl: `${WEVITY_BASE}?c=find&s=1&gub=1`,
   },
@@ -79,7 +79,7 @@ async function fetchHtml(url: string): Promise<string> {
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   });
   if (!res.ok) {
-    throw new Error(`페이지 요청 실패 (HTTP ${res.status}): ${url}`);
+    throw new Error(`Page request failed (HTTP ${res.status}): ${url}`);
   }
   return res.text();
 }
@@ -153,7 +153,7 @@ async function fetchWevityDocument(detailUrl: string): Promise<CrawlDocument | n
   if (!match) {
     return null;
   }
-  return downloadFile(new URL(match[1], WEVITY_BASE).toString(), detailUrl, "포스터 이미지");
+  return downloadFile(new URL(match[1], WEVITY_BASE).toString(), detailUrl, "poster image");
 }
 
 // ---------------------------------------------------------------------------
@@ -240,7 +240,7 @@ async function fetchContestKoreaAttachment(
         bytes,
         mediaType: contentType || "application/octet-stream",
         filename: sanitizeFilename(candidate.name) || "attachment.hwp",
-        via: "첨부 공고문",
+        via: "attached notice",
       };
     } catch {
       // 다음 후보 시도
@@ -280,14 +280,14 @@ async function fetchContestKoreaDocument(detailUrl: string): Promise<CrawlDocume
   if (attachmentDoc) {
     return {
       ...attachmentDoc,
-      via: bodyDoc ? "첨부 공고문 + 본문" : attachmentDoc.via,
+      via: bodyDoc ? "attached notice + page body" : attachmentDoc.via,
       extras: bodyDoc ? [bodyDoc] : undefined,
     };
   }
 
   // 2) 본문 영역 HTML
   if (bodyDoc) {
-    return { ...bodyDoc, via: "본문 HTML" };
+    return { ...bodyDoc, via: "page HTML" };
   }
 
   // 3) 포스터 이미지 폴백
@@ -296,7 +296,7 @@ async function fetchContestKoreaDocument(detailUrl: string): Promise<CrawlDocume
     return downloadFile(
       new URL(poster[1], CONTESTKOREA_BASE).toString(),
       detailUrl,
-      "포스터 이미지",
+      "poster image",
     );
   }
   return null;
@@ -333,7 +333,7 @@ export async function fetchLinkDocument(url: string): Promise<CrawlDocument | nu
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   });
   if (!res.ok) {
-    throw new Error(`페이지 요청 실패 (HTTP ${res.status})`);
+    throw new Error(`Page request failed (HTTP ${res.status})`);
   }
 
   const mediaType = res.headers.get("content-type")?.split(";")[0]?.trim() ?? "";
@@ -343,13 +343,13 @@ export async function fetchLinkDocument(url: string): Promise<CrawlDocument | nu
       bytes: Buffer.from(await res.arrayBuffer()),
       mediaType: mediaType || "application/octet-stream",
       filename: rawName.slice(-80) || "document",
-      via: "파일 링크",
+      via: "file link",
     };
   }
 
   const html = await res.text();
   const title =
-    stripTags(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] ?? "") || "공고";
+    stripTags(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] ?? "") || "notice";
   const body = (html.match(/<body[\s\S]*?<\/body>/i)?.[0] ?? html)
     .replace(/<\/?body[^>]*>/gi, "")
     .replace(/<script[\s\S]*?<\/script>/gi, "")
@@ -364,7 +364,7 @@ export async function fetchLinkDocument(url: string): Promise<CrawlDocument | nu
     bytes: Buffer.from(docHtml, "utf8"),
     mediaType: "text/html",
     filename: `${sanitizeFilename(title)}.html`,
-    via: "웹페이지 본문",
+    via: "web page body",
   };
 }
 

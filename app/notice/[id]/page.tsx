@@ -23,9 +23,11 @@ import { UpstageBadge } from "@/components/upstage";
 import { readWorkflowResult } from "@/components/workflow";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { useI18n } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 
 export default function NoticeDetailPage() {
+  const { t, locale } = useI18n();
   const params = useParams();
   const id = typeof params?.id === "string" ? params.id : Array.isArray(params?.id) ? params.id[0] : "";
   const [item, setItem] = useState<AnnouncementWithMatch | null>(null);
@@ -56,7 +58,7 @@ export default function NoticeDetailPage() {
         setRec(found ?? null);
       })
       .catch(() => setRec(null));
-  }, [id]);
+  }, [id, locale]);
 
   const toggleCheck = (index: number) => {
     setChecked((prev) => {
@@ -81,14 +83,14 @@ export default function NoticeDetailPage() {
   if (!item) {
     return (
       <div className="mx-auto flex min-h-[50vh] w-full max-w-4xl flex-col items-center justify-center gap-4 px-6 text-center">
-        <h2 className="font-bold text-lg text-foreground">공고를 찾을 수 없습니다</h2>
+        <h2 className="font-bold text-lg text-foreground">{t("notice.notFoundTitle")}</h2>
         <p className="text-xs text-muted-foreground">
-          삭제되었거나 존재하지 않는 공고입니다.
+          {t("notice.notFoundBody")}
         </p>
         <Button asChild size="sm" variant="outline">
           <Link href="/feed">
             <ArrowLeftIcon className="size-4" />
-            피드로 돌아가기
+            {t("notice.backFeed")}
           </Link>
         </Button>
       </div>
@@ -107,7 +109,7 @@ export default function NoticeDetailPage() {
             href="/feed"
           >
             <ArrowLeftIcon className="size-3.5" />
-            목록으로 돌아가기
+            {t("notice.backList")}
           </Link>
         </div>
 
@@ -130,7 +132,7 @@ export default function NoticeDetailPage() {
 
           {item.organizer && (
             <p className="text-sm text-muted-foreground">
-              주최·주관: <span className="font-medium text-foreground">{item.organizer}</span>
+              {t("notice.organizer")} <span className="font-medium text-foreground">{item.organizer}</span>
             </p>
           )}
         </div>
@@ -144,9 +146,11 @@ export default function NoticeDetailPage() {
               <section className="rounded-xl border border-border bg-card p-6 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-primary uppercase tracking-wider">
-                    Solar Pro 4 적합도 평가
+                    {t("notice.solarFit")}
                   </span>
-                  <span className="font-bold text-lg text-primary">{rec.score}점</span>
+                  <span className="font-bold text-lg text-primary">
+                    {t("notice.points", { score: rec.score })}
+                  </span>
                 </div>
                 <p className="text-sm text-foreground leading-relaxed">{rec.reason}</p>
               </section>
@@ -157,7 +161,7 @@ export default function NoticeDetailPage() {
               <section className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h2 className="font-bold text-lg text-foreground">
-                    에이전트 요약
+                    {t("notice.summary")}
                   </h2>
                   <UpstageBadge compact feature="agents" />
                 </div>
@@ -178,7 +182,7 @@ export default function NoticeDetailPage() {
             <section className="space-y-3">
               <div className="flex items-center justify-between">
                 <h2 className="font-bold text-lg text-foreground">
-                  자격 판정 결과
+                  {t("notice.verdictTitle")}
                 </h2>
                 <VerdictBadge verdict={item.match.verdict} />
               </div>
@@ -202,7 +206,7 @@ export default function NoticeDetailPage() {
             {item.todo_checklist.length > 0 && (
               <section className="space-y-3">
                 <h2 className="font-bold text-lg text-foreground">
-                  지원 준비 체크리스트
+                  {t("notice.checklist")}
                 </h2>
                 <div className="rounded-xl border border-border bg-card p-4 space-y-1">
                   {item.todo_checklist.map((todo, index) => {
@@ -240,30 +244,30 @@ export default function NoticeDetailPage() {
             {/* Detailed Info */}
             <section className="space-y-3">
               <h2 className="font-bold text-lg text-foreground">
-                상세 요강
+                {t("notice.details")}
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 <div className="rounded-xl border border-border bg-card p-4 sm:col-span-2">
-                  <span className="text-xs text-muted-foreground block mb-1">접수 기간</span>
+                  <span className="text-xs text-muted-foreground block mb-1">{t("notice.period")}</span>
                   <p className="font-medium text-foreground">
-                    {item.apply_start ?? "?"} ~ {item.apply_end ?? "상시"}
+                    {item.apply_start ?? "?"} ~ {item.apply_end ?? t("common.openEnded")}
                   </p>
                 </div>
                 {item.result_date && (
                   <div className="rounded-xl border border-border bg-card p-4">
-                    <span className="text-xs text-muted-foreground block mb-1">결과 발표</span>
+                    <span className="text-xs text-muted-foreground block mb-1">{t("notice.resultDate")}</span>
                     <p className="font-medium text-foreground">{item.result_date}</p>
                   </div>
                 )}
                 {item.benefits && (
                   <div className="rounded-xl border border-border bg-card p-4 sm:col-span-2">
-                    <span className="text-xs text-muted-foreground block mb-1">시상 및 혜택</span>
+                    <span className="text-xs text-muted-foreground block mb-1">{t("notice.awards")}</span>
                     <p className="font-medium text-foreground">{item.benefits}</p>
                   </div>
                 )}
                 {item.contact && (
                   <div className="rounded-xl border border-border bg-card p-4 sm:col-span-2">
-                    <span className="text-xs text-muted-foreground block mb-1">문의</span>
+                    <span className="text-xs text-muted-foreground block mb-1">{t("notice.contact")}</span>
                     <p className="font-medium text-foreground">{item.contact}</p>
                   </div>
                 )}
@@ -275,12 +279,12 @@ export default function NoticeDetailPage() {
           <div className="lg:sticky lg:top-24 lg:self-start space-y-4">
             <div className="rounded-xl border border-border bg-card p-5 space-y-5">
               <div className="space-y-1">
-                <span className="text-xs text-muted-foreground">접수 마감</span>
+                <span className="text-xs text-muted-foreground">{t("notice.deadline")}</span>
                 <p className="font-bold text-xl text-foreground">
                   {dday.label}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {item.apply_end ?? "상시 모집"}
+                  {item.apply_end ?? t("common.alwaysOpen")}
                 </p>
               </div>
 
@@ -288,14 +292,14 @@ export default function NoticeDetailPage() {
                 {item.apply_url ? (
                   <Button asChild className="w-full">
                     <a href={item.apply_url} rel="noreferrer" target="_blank">
-                      공식 접수처 바로가기
+                      {t("notice.applyOfficial")}
                       <ExternalLinkIcon className="size-3.5 ml-1.5" />
                     </a>
                   </Button>
                 ) : item.sourceUrl ? (
                   <Button asChild className="w-full">
                     <a href={item.sourceUrl} rel="noreferrer" target="_blank">
-                      공고 페이지 바로가기
+                      {t("notice.applyPage")}
                       <ExternalLinkIcon className="size-3.5 ml-1.5" />
                     </a>
                   </Button>
@@ -305,7 +309,7 @@ export default function NoticeDetailPage() {
                   <Button asChild className="w-full" size="sm" variant="outline">
                     <a href={`/api/files/${item.id}`} rel="noreferrer" target="_blank">
                       <FileTextIcon className="size-3.5" />
-                      원문 파일 열기
+                      {t("notice.openFile")}
                     </a>
                   </Button>
                 )}

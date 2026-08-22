@@ -22,12 +22,13 @@ import { UpstageBadge } from "@/components/upstage";
 import { useWorkflowStream, WorkflowLog, type WorkflowStep } from "@/components/workflow";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { useT } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 
 const ACCEPT =
   ".pdf,.png,.jpg,.jpeg,.bmp,.tif,.tiff,.heic,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.hwp,.hwpx,.html";
 
-type ItemStatus = "대기" | "처리 중" | "완료" | "실패";
+type ItemStatus = "queued" | "processing" | "done" | "failed";
 
 interface QueueItem {
   file: File;
@@ -38,17 +39,17 @@ interface QueueItem {
 }
 
 const CRAWL_SOURCES = [
-  { value: "ck-it", label: "콘테스트코리아 · IT / SW / AI" },
-  { value: "ck-all", label: "콘테스트코리아 · 전체" },
-  { value: "it", label: "위비티 · 웹 / 모바일 / IT" },
-  { value: "idea", label: "위비티 · 기획 / 아이디어" },
-  { value: "all", label: "위비티 · 전체" },
+  { value: "ck-it", labelKey: "ingest.sourceCkIt" },
+  { value: "ck-all", labelKey: "ingest.sourceCkAll" },
+  { value: "it", labelKey: "ingest.sourceWevityIt" },
+  { value: "idea", labelKey: "ingest.sourceWevityIdea" },
+  { value: "all", labelKey: "ingest.sourceWevityAll" },
 ] as const;
 
 interface WebItem {
   title: string;
   sourceUrl: string;
-  status: "완료" | "실패" | "건너뜀";
+  status: "done" | "failed" | "skipped";
   error?: string;
   announcement?: AnnouncementWithMatch;
 }
@@ -60,29 +61,30 @@ const PIPELINE_STEPS = [
     icon: "/upstage/document-parse.svg",
     step: "1",
     title: "Document Parse",
-    desc: "OCR & 문서 마크다운 구조화",
+    descKey: "ingest.step1Desc",
   },
   {
     icon: "/upstage/symbol.svg",
     step: "2",
     title: "Category Classify",
-    desc: "공고 유형 분류 (6종)",
+    descKey: "ingest.step2Desc",
   },
   {
     icon: "/upstage/information-extract.svg",
     step: "3",
     title: "Information Extract",
-    desc: "10대 핵심 필드 추출",
+    descKey: "ingest.step3Desc",
   },
   {
     icon: "/upstage/solar-llm.svg",
     step: "4",
     title: "Solar Pro 4",
-    desc: "요약 & 자격 판정 규칙화",
+    descKey: "ingest.step4Desc",
   },
 ] as const;
 
 export default function IngestPage() {
+  const t = useT();
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [running, setRunning] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -132,7 +134,7 @@ export default function IngestPage() {
                 {
                   title: data.announcement.title,
                   sourceUrl: linkKey.slice(5),
-                  status: "완료",
+                  status: "done",
                   announcement: data.announcement,
                 },
                 ...prev,
@@ -151,7 +153,7 @@ export default function IngestPage() {
                 {
                   title: data.announcement.title,
                   sourceUrl: `resumed-${data.announcement.id}`,
-                  status: "완료",
+                  status: "done",
                   announcement: data.announcement,
                 },
                 ...prev,
@@ -166,7 +168,7 @@ export default function IngestPage() {
   }, [runCrawlWf, runLinkWf, runUploadWf]);
 
   const addFiles = (files: FileList | File[]) => {
-    const items = [...files].map((file) => ({ file, status: "대기" as ItemStatus }));
+    const items = [...files].map((file) => ({ file, status: "queued" as ItemStatus }));
     setQueue((prev) => [...prev, ...items]);
   };
 
@@ -189,11 +191,11 @@ export default function IngestPage() {
   const run = async () => {
     setRunning(true);
     for (let i = 0; i < queue.length; i++) {
-      if (queue[i].status === "완료") {
+      if (queue[i].status === "done") {
         continue;
       }
       setActiveIndex(i);
-      updateItem(i, { status: "처리 중", error: undefined, log: undefined });
+      updateItem(i, { status: "processing", error: undefined, log: undefined });
       const form = new FormData();
       form.append("file", queue[i].file);
       const data = await uploadWf.run<{ announcement: AnnouncementWithMatch }>("/api/ingest", {
@@ -202,11 +204,11 @@ export default function IngestPage() {
       });
       const log = [...uploadWf.stepsRef.current];
       if (data?.announcement) {
-        updateItem(i, { status: "완료", announcement: data.announcement, log });
+        updateItem(i, { status: "done", announcement: data.announcement, log });
       } else {
         updateItem(i, {
-          status: "실패",
-          error: uploadWf.errorRef.current ?? "알 수 없는 오류",
+          status: "failed",
+          error: uploadWf.errorRef.current ?? t("common.unknownError"),
           log,
         });
       }
@@ -247,7 +249,7 @@ export default function IngestPage() {
         {
           title: data.announcement.title,
           sourceUrl: url,
-          status: "완료",
+          status: "done",
           announcement: data.announcement,
         },
         ...prev,
@@ -258,8 +260,8 @@ export default function IngestPage() {
         {
           title: url,
           sourceUrl: url,
-          status: "실패",
-          error: linkWf.errorRef.current ?? "알 수 없는 오류",
+          status: "failed",
+          error: linkWf.errorRef.current ?? t("common.unknownError"),
         },
         ...prev,
       ]);
@@ -268,7 +270,7 @@ export default function IngestPage() {
 
   const doneItems = queue.filter((item) => item.announcement);
   const pendingCount = queue.filter(
-    (item) => item.status === "대기" || item.status === "실패",
+    (item) => item.status === "queued" || item.status === "failed",
   ).length;
   const createdAnnouncements = [
     ...webItems.map((c) => c.announcement),
@@ -284,11 +286,11 @@ export default function IngestPage() {
             Studio Agents
           </span>
           <h1 className="mt-1 flex items-center gap-3 font-bold text-3xl tracking-tight text-foreground">
-            공고 등록
+            {t("ingest.title")}
             <UpstageBadge compact feature="agents" />
           </h1>
           <p className="mt-1.5 text-sm text-muted-foreground max-w-2xl leading-relaxed">
-            PDF, 포스터 이미지, 웹페이지, HWP 문서 등 어떤 형태의 공고든 Studio 공고 에이전트가 읽고 구조화합니다.
+            {t("ingest.subtitle")}
           </p>
         </div>
 
@@ -296,10 +298,10 @@ export default function IngestPage() {
         <section className="rounded-xl border border-border bg-card p-5 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold text-sm text-foreground">
-              Studio 에이전트 실행 파이프라인
+              {t("ingest.pipelineTitle")}
             </h2>
             <span className="text-xs text-muted-foreground">
-              4단계 순차 처리
+              {t("ingest.pipelineHint")}
             </span>
           </div>
 
@@ -326,7 +328,7 @@ export default function IngestPage() {
                       </h3>
                     </div>
                     <p className="mt-0.5 text-[11px] text-muted-foreground leading-snug">
-                      {step.desc}
+                      {t(step.descKey)}
                     </p>
                   </div>
                 </div>
@@ -349,10 +351,10 @@ export default function IngestPage() {
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <Link2Icon className="size-4 text-primary" />
-                <h3 className="font-semibold text-sm text-foreground">링크 등록</h3>
+                <h3 className="font-semibold text-sm text-foreground">{t("ingest.linkTitle")}</h3>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                공고 페이지 주소나 문서 파일(PDF) URL을 직접 입력합니다.
+                {t("ingest.linkBody")}
               </p>
             </div>
 
@@ -372,7 +374,7 @@ export default function IngestPage() {
                 onClick={runLink}
                 size="sm"
               >
-                {linkWf.running ? <Spinner className="size-4" /> : "링크 등록"}
+                {linkWf.running ? <Spinner className="size-4" /> : t("ingest.linkCta")}
               </Button>
             </div>
           </section>
@@ -382,10 +384,10 @@ export default function IngestPage() {
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <FileTextIcon className="size-4 text-primary" />
-                <h3 className="font-semibold text-sm text-foreground">파일 업로드</h3>
+                <h3 className="font-semibold text-sm text-foreground">{t("ingest.fileTitle")}</h3>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                PDF, 이미지, HWP 등 여러 문서를 한 번에 등록합니다.
+                {t("ingest.fileBody")}
               </p>
             </div>
 
@@ -426,7 +428,7 @@ export default function IngestPage() {
               >
                 <UploadCloudIcon className="size-5 text-muted-foreground" />
                 <span className="text-xs text-muted-foreground font-medium">
-                  클릭하거나 파일 드롭
+                  {t("ingest.drop")}
                 </span>
               </button>
 
@@ -437,7 +439,7 @@ export default function IngestPage() {
                   onClick={run}
                   size="sm"
                 >
-                  {running ? <Spinner className="size-4" /> : `에이전트 실행 (${pendingCount}건)`}
+                  {running ? <Spinner className="size-4" /> : t("ingest.runAgent", { n: pendingCount })}
                 </Button>
               )}
             </div>
@@ -448,10 +450,10 @@ export default function IngestPage() {
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <GlobeIcon className="size-4 text-primary" />
-                <h3 className="font-semibold text-sm text-foreground">웹 자동 수집</h3>
+                <h3 className="font-semibold text-sm text-foreground">{t("ingest.crawlTitle")}</h3>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                콘테스트코리아·위비티의 최신 공모전을 자동 수집합니다.
+                {t("ingest.crawlBody")}
               </p>
             </div>
 
@@ -464,14 +466,14 @@ export default function IngestPage() {
               >
                 {CRAWL_SOURCES.map((s) => (
                   <option key={s.value} value={s.value}>
-                    {s.label}
+                    {t(s.labelKey)}
                   </option>
                 ))}
               </select>
 
               <div className="flex items-center gap-2">
                 <div className="flex h-8 w-28 shrink-0 items-center justify-between rounded-lg border border-input bg-background px-2.5 text-xs focus-within:border-primary">
-                  <span className="shrink-0 text-[11px] text-muted-foreground whitespace-nowrap">수량</span>
+                  <span className="shrink-0 text-[11px] text-muted-foreground whitespace-nowrap">{t("ingest.crawlQty")}</span>
                   <input
                     className="w-10 bg-transparent text-center text-xs font-semibold text-foreground outline-none"
                     disabled={crawlWf.running}
@@ -486,7 +488,7 @@ export default function IngestPage() {
                     type="number"
                     value={crawlLimit}
                   />
-                  <span className="shrink-0 text-[11px] text-muted-foreground whitespace-nowrap">건</span>
+                  <span className="shrink-0 text-[11px] text-muted-foreground whitespace-nowrap">{t("ingest.crawlUnit")}</span>
                 </div>
                 <Button
                   className="h-8 flex-1"
@@ -494,7 +496,7 @@ export default function IngestPage() {
                   onClick={runCrawl}
                   size="sm"
                 >
-                  {crawlWf.running ? <Spinner className="size-4" /> : "수집 시작"}
+                  {crawlWf.running ? <Spinner className="size-4" /> : t("ingest.crawlStart")}
                 </Button>
               </div>
               {crawlMessage && (
@@ -512,7 +514,7 @@ export default function IngestPage() {
           webItems.length > 0) && (
           <section className="space-y-3 pt-4 border-t border-border/80">
             <h2 className="font-bold text-base text-foreground">
-              처리 현황
+              {t("ingest.statusTitle")}
             </h2>
 
             {queue.length > 0 && (
@@ -548,7 +550,7 @@ export default function IngestPage() {
                               onClick={() => toggleLog(index)}
                               type="button"
                             >
-                              과정 ({log.length})
+                              {t("ingest.process", { n: log.length })}
                               {showLog ? (
                                 <ChevronDownIcon className="size-3" />
                               ) : (
@@ -557,16 +559,16 @@ export default function IngestPage() {
                             </button>
                           )}
 
-                          {item.status === "대기" && (
-                            <span className="text-[11px] text-muted-foreground">대기</span>
+                          {item.status === "queued" && (
+                            <span className="text-[11px] text-muted-foreground">{t("ingest.queued")}</span>
                           )}
-                          {item.status === "처리 중" && (
+                          {item.status === "processing" && (
                             <Spinner className="size-3.5 text-primary" />
                           )}
-                          {item.status === "완료" && (
+                          {item.status === "done" && (
                             <CheckCircle2Icon className="size-4 text-emerald-600 dark:text-emerald-400" />
                           )}
-                          {item.status === "실패" && (
+                          {item.status === "failed" && (
                             <XCircleIcon className="size-4 text-destructive" />
                           )}
                         </div>
@@ -591,7 +593,7 @@ export default function IngestPage() {
                     size="sm"
                     variant="ghost"
                   >
-                    목록 비우기
+                    {t("ingest.clearList")}
                   </Button>
                 </div>
               </div>
@@ -617,8 +619,12 @@ export default function IngestPage() {
                     key={item.sourceUrl}
                   >
                     <div className="flex items-center gap-2 min-w-0">
-                      {item.status === "완료" ? (
+                      {item.status === "done" ? (
                         <CheckCircle2Icon className="size-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      ) : item.status === "skipped" ? (
+                        <span className="text-[11px] text-muted-foreground shrink-0">
+                          {t("ingest.skipped")}
+                        </span>
                       ) : (
                         <XCircleIcon className="size-3.5 text-destructive shrink-0" />
                       )}
@@ -632,7 +638,7 @@ export default function IngestPage() {
                         rel="noreferrer"
                         target="_blank"
                       >
-                        원문
+                        {t("common.original")}
                       </a>
                     )}
                   </div>
@@ -647,11 +653,11 @@ export default function IngestPage() {
           <section className="space-y-4 pt-6 border-t border-border/80">
             <div className="flex items-center justify-between">
               <h2 className="font-bold text-lg text-foreground">
-                생성된 공고 ({createdAnnouncements.length}건)
+                {t("ingest.createdTitle", { n: createdAnnouncements.length })}
               </h2>
               <Button asChild size="sm" variant="outline">
                 <Link href="/feed">
-                  피드로 이동
+                  {t("ingest.goFeed")}
                   <ArrowRightIcon className="size-3.5 ml-1" />
                 </Link>
               </Button>

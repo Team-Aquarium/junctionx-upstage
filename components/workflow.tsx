@@ -15,6 +15,7 @@ import {
   ToolOutput,
 } from "@/components/ai-elements/tool";
 import { featureFromStepTitle, UPSTAGE_FEATURES } from "@/components/upstage";
+import { useT } from "@/lib/i18n/client";
 import type { WorkflowEvent } from "@/lib/workflow";
 import { cn } from "@/lib/utils";
 
@@ -31,7 +32,7 @@ async function consumeStream(
   onEvent: (event: WorkflowEvent) => void,
 ): Promise<void> {
   if (!res.body) {
-    throw new Error("응답 스트림을 열 수 없습니다.");
+    throw new Error("Could not open the response stream.");
   }
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
@@ -187,6 +188,7 @@ function StepTitle({ step }: { step: WorkflowStep }) {
  * 자동 열림 이펙트가 사용자 조작을 되돌리는 문제) 열림 상태를 밖에서 제어한다.
  */
 function ReasoningStep({ step }: { step: WorkflowStep }) {
+  const t = useT();
   const streaming = step.status === "start";
   const text = typeof step.payload === "string" ? step.payload : "";
   const [open, setOpen] = useState(streaming);
@@ -228,9 +230,9 @@ function ReasoningStep({ step }: { step: WorkflowStep }) {
       <ReasoningTrigger
         getThinkingMessage={(isStreaming, duration) =>
           isStreaming ? (
-            <Shimmer duration={1}>추론 중...</Shimmer>
+            <Shimmer duration={1}>{t("workflow.reasoning")}</Shimmer>
           ) : (
-            <p>{duration ? `${duration}초 동안 추론함` : "추론 완료"}</p>
+            <p>{duration ? t("workflow.reasoned", { n: duration }) : t("workflow.reasonedDone")}</p>
           )
         }
       />
@@ -249,6 +251,7 @@ export function WorkflowLog({
   steps: WorkflowStep[];
   className?: string;
 }) {
+  const t = useT();
   if (steps.length === 0) {
     return null;
   }
@@ -276,7 +279,7 @@ export function WorkflowLog({
                     step.status === "error"
                       ? typeof step.payload === "string"
                         ? undefined
-                        : (step.detail ?? "단계 실행에 실패했습니다.")
+                        : (step.detail ?? t("workflow.stepFailed"))
                       : undefined
                   }
                   output={step.payload ?? undefined}

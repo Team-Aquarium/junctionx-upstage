@@ -74,7 +74,7 @@ export async function ingestAnnouncementDocument(
 ): Promise<Announcement> {
   const agentId = process.env.UPSTAGE_AGENT_ID;
   if (!agentId) {
-    throw new Error("UPSTAGE_AGENT_ID가 설정되지 않았습니다. (.env.local 확인)");
+    throw new Error("UPSTAGE_AGENT_ID is not set. Check .env.local.");
   }
 
   const id = crypto.randomUUID().slice(0, 8);
@@ -94,13 +94,13 @@ export async function ingestAnnouncementDocument(
   ];
 
   const agentStepId = `agent-${id}`;
-  const agentTitle = "Studio 에이전트 실행 (Parse → Classify → Extract → Instruct)";
+  const agentTitle = "Studio agent (Parse → Classify → Extract → Instruct)";
   emit?.({
     type: "step",
     id: agentStepId,
     title: agentTitle,
     status: "start",
-    detail: "파일 업로드 중",
+    detail: "Uploading file",
   });
 
   const seenNodes = new Set<string>();
@@ -113,7 +113,7 @@ export async function ingestAnnouncementDocument(
       emit?.({
         type: "step",
         id: `node-${id}-${node.model}`,
-        title: `노드 출력 — ${node.model}`,
+        title: `Node output — ${node.model}`,
         status: "done",
         payload: clip(node.text),
       });
@@ -126,14 +126,14 @@ export async function ingestAnnouncementDocument(
       id: agentStepId,
       title: agentTitle,
       status: "start",
-      detail: `${snapshot.status} · ${Math.round(snapshot.elapsedMs / 1000)}초`,
+      detail: `${snapshot.status} · ${Math.round(snapshot.elapsedMs / 1000)}s`,
       payload: { job_id: snapshot.jobId, agent_id: agentId },
     });
     emitNodes(snapshot.steps);
   });
   if (run.status !== "completed") {
     emit?.({ type: "step", id: agentStepId, title: agentTitle, status: "error", detail: run.status });
-    throw new Error(`에이전트 실행이 완료되지 않았습니다 (status: ${run.status})`);
+    throw new Error(`Agent run did not complete (status: ${run.status})`);
   }
   emitNodes(run.steps);
   emit?.({
@@ -141,7 +141,7 @@ export async function ingestAnnouncementDocument(
     id: agentStepId,
     title: agentTitle,
     status: "done",
-    detail: `노드 출력 ${run.steps.length}개`,
+    detail: `${run.steps.length} node outputs`,
   });
 
   const parsed = parseAgentJson(run.outputText);
@@ -149,16 +149,16 @@ export async function ingestAnnouncementDocument(
     emit?.({
       type: "step",
       id: `parse-${id}`,
-      title: "출력 JSON 파싱",
+      title: "Parse output JSON",
       status: "error",
       payload: clip(run.outputText, 2000),
     });
-    throw new Error("에이전트 출력을 JSON으로 해석하지 못했습니다.");
+    throw new Error("Could not parse the agent output as JSON.");
   }
   emit?.({
     type: "step",
     id: `parse-${id}`,
-    title: "출력 JSON 파싱 (이중 인코딩·인용 마커 정리)",
+    title: "Parse output JSON (unwrap encoding & citation markers)",
     status: "done",
     payload: parsed,
   });
@@ -188,7 +188,7 @@ export async function ingestAnnouncementDocument(
   emit?.({
     type: "step",
     id: `save-${id}`,
-    title: "공고 카드 저장",
+    title: "Save notice card",
     status: "done",
     detail: `${announcement.category} · ${announcement.title.slice(0, 30)}`,
   });

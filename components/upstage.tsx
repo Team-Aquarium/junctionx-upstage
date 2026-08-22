@@ -1,3 +1,6 @@
+"use client";
+
+import { useT } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 
 /* eslint-disable @next/next/no-img-element -- 로컬 정적 브랜드 에셋 */
@@ -15,22 +18,22 @@ export const UPSTAGE_FEATURES: Record<
   "document-parse": {
     label: "Document Parse",
     icon: "/upstage/document-parse.svg",
-    description: "문서 구조화·OCR",
+    description: "Document structure & OCR",
   },
   "information-extract": {
     label: "Information Extract",
     icon: "/upstage/information-extract.svg",
-    description: "스키마 기반 필드 추출",
+    description: "Schema-based field extraction",
   },
   solar: {
     label: "Solar Pro 4",
     icon: "/upstage/solar-llm.svg",
-    description: "LLM 추론·생성",
+    description: "LLM reasoning & generation",
   },
   agents: {
     label: "Studio Agents",
     icon: "/upstage/symbol.svg",
-    description: "Parse→Classify→Extract→Instruct 파이프라인",
+    description: "Parse → Classify → Extract → Instruct pipeline",
   },
 };
 
@@ -43,14 +46,23 @@ export function UpstageBadge({
   className?: string;
   compact?: boolean;
 }) {
+  const t = useT();
   const meta = UPSTAGE_FEATURES[feature];
+  const desc =
+    feature === "document-parse"
+      ? t("upstage.parseDesc")
+      : feature === "information-extract"
+        ? t("upstage.extractDesc")
+        : feature === "solar"
+          ? t("upstage.solarDesc")
+          : t("upstage.agentsDesc");
   return (
     <span
       className={cn(
         "inline-flex items-center gap-1.5 rounded-md bg-accent/60 px-2 py-0.5 text-xs font-medium text-accent-foreground shrink-0 max-w-full",
         className,
       )}
-      title={`Upstage ${meta.label} — ${meta.description}`}
+      title={`Upstage ${meta.label} — ${desc}`}
     >
       <img
         alt="Upstage"
@@ -95,7 +107,7 @@ export function featureFromStepTitle(title: string): UpstageFeature | null {
   if (/instruct|solar/i.test(title)) {
     return "solar";
   }
-  if (/classify|에이전트 실행|studio/i.test(title)) {
+  if (/classify|에이전트 실행|agent run|studio/i.test(title)) {
     return "agents";
   }
   return null;

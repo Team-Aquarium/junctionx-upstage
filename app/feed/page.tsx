@@ -12,28 +12,21 @@ import { UpstageBadge } from "@/components/upstage";
 import { useWorkflowStream, WorkflowLog } from "@/components/workflow";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { useI18n } from "@/lib/i18n/client";
+import { CATEGORY_FILTERS, type CategoryFilterKey } from "@/lib/i18n/format";
 import type { UserProfile } from "@/lib/store";
 import type { RecommendationItem } from "@/lib/upstage";
 import { cn } from "@/lib/utils";
 
 const RECOMMEND_THRESHOLD = 60;
 
-const CATEGORIES = [
-  "전체",
-  "공모전/해커톤",
-  "대회/챌린지",
-  "장학금",
-  "대외활동/서포터즈",
-  "채용/인턴",
-  "others",
-] as const;
-
 export default function FeedPage() {
+  const { t, locale } = useI18n();
   const [announcements, setAnnouncements] = useState<AnnouncementWithMatch[]>([]);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [hasProfile, setHasProfile] = useState(true);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState<string>("전체");
+  const [selectedCategory, setSelectedCategory] = useState<CategoryFilterKey>("all");
   const [recommendations, setRecommendations] = useState<RecommendationItem[]>([]);
   const [showRecLog, setShowRecLog] = useState(false);
   const [searchFilters, setSearchFilters] = useState<SearchFilterState>({
@@ -69,7 +62,7 @@ export default function FeedPage() {
 
   useEffect(() => {
     load();
-  }, [load]);
+  }, [load, locale]);
 
   // Solar 추천 id → score/reason 맵 (전체 공고 카드에도 적합도 표시)
   const recById = useMemo(
@@ -96,28 +89,9 @@ export default function FeedPage() {
   const visible = useMemo(() => {
     let list = announcements;
 
-    if (selectedCategory !== "전체") {
-      list = list.filter((a) => {
-        if (selectedCategory === "공모전/해커톤") {
-          return a.category.includes("공모전") || a.category.includes("해커톤");
-        }
-        if (selectedCategory === "대회/챌린지") {
-          return a.category.includes("대회") || a.category.includes("챌린지");
-        }
-        if (selectedCategory === "대외활동/서포터즈") {
-          return a.category.includes("대외활동") || a.category.includes("서포터즈");
-        }
-        if (selectedCategory === "채용/인턴") {
-          return a.category.includes("채용") || a.category.includes("인턴");
-        }
-        if (selectedCategory === "장학금") {
-          return a.category.includes("장학금");
-        }
-        if (selectedCategory === "others") {
-          return a.category === "others" || a.category === "기타";
-        }
-        return a.category === selectedCategory;
-      });
+    const categoryFilter = CATEGORY_FILTERS.find((f) => f.key === selectedCategory);
+    if (categoryFilter && selectedCategory !== "all") {
+      list = list.filter((a) => categoryFilter.match(a.category));
     }
 
     if (searchFilters.keyword.trim()) {
@@ -186,19 +160,19 @@ export default function FeedPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
               <h1 className="font-bold text-2xl sm:text-3xl tracking-tight text-foreground">
-                공고 피드
+                {t("feed.title")}
               </h1>
               <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
-                Upstage 에이전트가 분석한 공고와 내 프로필 기반 지원 자격 판정 결과입니다.
+                {t("feed.subtitle")}
               </p>
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
               <Button asChild size="sm" variant="outline">
-                <Link href="/me">내 프로필</Link>
+                <Link href="/me">{t("feed.myProfile")}</Link>
               </Button>
               <Button asChild size="sm">
-                <Link href="/ingest">공고 등록</Link>
+                <Link href="/ingest">{t("feed.addNotice")}</Link>
               </Button>
             </div>
           </div>
@@ -209,22 +183,22 @@ export default function FeedPage() {
           {!loading && announcements.length > 0 && (
             <div className="mt-6 flex flex-wrap items-center gap-6 text-xs text-muted-foreground pt-6 border-t border-border/60">
               <span>
-                전체 공고 <strong className="font-semibold text-foreground">{stats.total}</strong>건
+                {t("feed.statTotal")}{" "}
+                <strong className="font-semibold text-foreground">{stats.total}</strong>
               </span>
               <span>
-                지원 가능{" "}
+                {t("feed.statEligible")}{" "}
                 <strong className="font-semibold text-emerald-600 dark:text-emerald-400">
                   {stats.eligible}
                 </strong>
-                건
               </span>
               <span>
-                마감 임박 (D-7){" "}
-                <strong className="font-semibold text-foreground">{stats.closing}</strong>건
+                {t("feed.statClosing")}{" "}
+                <strong className="font-semibold text-foreground">{stats.closing}</strong>
               </span>
               <span>
-                맞춤 추천{" "}
-                <strong className="font-semibold text-primary">{stats.recommended}</strong>건
+                {t("feed.statRecommended")}{" "}
+                <strong className="font-semibold text-primary">{stats.recommended}</strong>
               </span>
             </div>
           )}
@@ -238,14 +212,14 @@ export default function FeedPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-border bg-secondary/40 p-6">
             <div>
               <h3 className="font-semibold text-sm text-foreground">
-                프로필을 등록하면 지원 가능 여부가 자동으로 판정됩니다
+                {t("feed.onboardTitle")}
               </h3>
               <p className="mt-1 text-xs text-muted-foreground">
-                링크(GitHub, 블로그)나 재학증명서를 올려 나에게 맞는 공고를 확인해보세요.
+                {t("feed.onboardBody")}
               </p>
             </div>
             <Button asChild size="sm">
-              <Link href="/me">프로필 등록하기</Link>
+              <Link href="/me">{t("feed.onboardCta")}</Link>
             </Button>
           </div>
         )}
@@ -256,7 +230,7 @@ export default function FeedPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <h2 className="font-bold text-xl text-foreground">
-                  맞춤 추천 공고
+                  {t("feed.recTitle")}
                 </h2>
                 <UpstageBadge compact feature="solar" />
               </div>
@@ -267,7 +241,7 @@ export default function FeedPage() {
                   onClick={() => setShowRecLog((v) => !v)}
                   type="button"
                 >
-                  {showRecLog ? "과정 접기" : "AI 추천 과정"}
+                  {showRecLog ? t("feed.recHide") : t("feed.recShow")}
                 </button>
               )}
             </div>
@@ -281,7 +255,7 @@ export default function FeedPage() {
             {recLoading ? (
               <div className="flex items-center justify-center gap-2.5 rounded-xl border border-dashed border-border py-12 text-xs text-muted-foreground">
                 <Spinner className="size-4 text-primary" />
-                Solar Pro 4가 프로필과 공고를 분석하는 중입니다…
+                {t("feed.recLoading")}
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -303,19 +277,17 @@ export default function FeedPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <h2 className="font-bold text-xl text-foreground">
-                전체 공고
+                {t("feed.allTitle")}
               </h2>
-              <span className="text-xs text-muted-foreground">({visible.length}건)</span>
+              <span className="text-xs text-muted-foreground">
+                {t("common.countNotices", { n: visible.length })}
+              </span>
             </div>
 
             {/* Category Navigation Tabs */}
             <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0">
-              {CATEGORIES.map((category) => {
-                const label =
-                  category === "others"
-                    ? "기타"
-                    : category.replace(/\//g, " · ");
-                const active = selectedCategory === category;
+              {CATEGORY_FILTERS.map((filter) => {
+                const active = selectedCategory === filter.key;
                 return (
                   <button
                     className={cn(
@@ -324,11 +296,11 @@ export default function FeedPage() {
                         ? "bg-secondary text-foreground font-semibold"
                         : "text-muted-foreground hover:text-foreground hover:bg-muted/40",
                     )}
-                    key={category}
-                    onClick={() => setSelectedCategory(category)}
+                    key={filter.key}
+                    onClick={() => setSelectedCategory(filter.key)}
                     type="button"
                   >
-                    {label}
+                    {t(`category.${filter.key}`)}
                   </button>
                 );
               })}
@@ -339,16 +311,16 @@ export default function FeedPage() {
           {loading ? (
             <div className="flex items-center justify-center gap-2.5 py-24 text-xs text-muted-foreground">
               <Spinner className="size-4 text-primary" />
-              공고 목록을 불러오는 중…
+              {t("feed.loadingList")}
             </div>
           ) : visible.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-20 text-center">
-              <p className="font-semibold text-sm text-foreground">일치하는 공고가 없습니다</p>
+              <p className="font-semibold text-sm text-foreground">{t("feed.emptyTitle")}</p>
               <p className="mt-1 text-xs text-muted-foreground">
-                검색어나 필터를 변경하거나 새로운 공고를 등록해보세요.
+                {t("feed.emptyBody")}
               </p>
               <Button asChild className="mt-4" size="sm" variant="outline">
-                <Link href="/ingest">공고 직접 등록</Link>
+                <Link href="/ingest">{t("feed.emptyCta")}</Link>
               </Button>
             </div>
           ) : (

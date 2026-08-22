@@ -1,7 +1,11 @@
+"use client";
+
 import Link from "next/link";
 import { PoweredByUpstage } from "@/components/upstage";
+import { useT } from "@/lib/i18n/client";
 
 export function SiteFooter() {
+  const t = useT();
   return (
     <footer className="mt-auto border-t border-border/80 bg-background text-foreground">
       <div className="mx-auto w-full max-w-6xl px-6 py-12 sm:px-8">
@@ -9,11 +13,11 @@ export function SiteFooter() {
           <div>
             <div className="flex items-center gap-2">
               <span className="font-bold text-sm tracking-tight text-foreground">
-                모아보라
+                {t("brand.name")}
               </span>
               <span className="text-xs text-muted-foreground">·</span>
               <span className="text-xs text-muted-foreground">
-                Upstage Document Agent
+                {t("brand.tagline")}
               </span>
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
@@ -23,16 +27,16 @@ export function SiteFooter() {
 
           <div className="flex flex-wrap items-center gap-6 text-xs text-muted-foreground">
             <Link className="hover:text-foreground transition-colors" href="/feed">
-              공고 피드
+              {t("nav.feed")}
             </Link>
             <Link className="hover:text-foreground transition-colors" href="/ingest">
-              공고 등록
+              {t("nav.ingest")}
             </Link>
             <Link className="hover:text-foreground transition-colors" href="/me">
-              내 프로필
+              {t("nav.profile")}
             </Link>
             <Link className="hover:text-foreground transition-colors" href="/chat">
-              문서 챗
+              {t("nav.chat")}
             </Link>
             <a
               className="hover:text-foreground transition-colors"

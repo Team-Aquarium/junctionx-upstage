@@ -114,7 +114,7 @@ export async function listAnnouncements(): Promise<Announcement[]> {
     .select("*")
     .order("created_at", { ascending: false });
   if (error) {
-    throw new Error(`공고 목록 조회 실패: ${error.message}`);
+    throw new Error(`Failed to list announcements: ${error.message}`);
   }
   return (data as AnnouncementRow[]).map(rowToAnnouncement);
 }
@@ -126,7 +126,7 @@ export async function getAnnouncement(id: string): Promise<Announcement | null> 
     .eq("id", id)
     .maybeSingle();
   if (error) {
-    throw new Error(`공고 조회 실패: ${error.message}`);
+    throw new Error(`Failed to get announcement: ${error.message}`);
   }
   return data ? rowToAnnouncement(data as AnnouncementRow) : null;
 }
@@ -136,14 +136,14 @@ export async function saveAnnouncement(announcement: Announcement): Promise<void
     .from("announcements")
     .upsert(announcementToRow(announcement));
   if (error) {
-    throw new Error(`공고 저장 실패: ${error.message}`);
+    throw new Error(`Failed to save announcement: ${error.message}`);
   }
 }
 
 export async function deleteAnnouncement(id: string): Promise<void> {
   const { error } = await getSupabase().from("announcements").delete().eq("id", id);
   if (error) {
-    throw new Error(`공고 삭제 실패: ${error.message}`);
+    throw new Error(`Failed to delete announcement: ${error.message}`);
   }
 }
 
@@ -156,7 +156,7 @@ export async function saveUploadFile(
     .storage.from(UPLOADS_BUCKET)
     .upload(id, bytes, { contentType, upsert: true });
   if (error) {
-    throw new Error(`원본 파일 업로드 실패: ${error.message}`);
+    throw new Error(`Failed to upload source file: ${error.message}`);
   }
 }
 
@@ -216,7 +216,7 @@ export async function getProfile(): Promise<UserProfile | null> {
     .eq("id", 1)
     .maybeSingle();
   if (error) {
-    throw new Error(`프로필 조회 실패: ${error.message}`);
+    throw new Error(`Failed to get profile: ${error.message}`);
   }
   return (data?.data as UserProfile | undefined) ?? null;
 }
@@ -226,14 +226,14 @@ export async function saveProfile(profile: UserProfile): Promise<void> {
     .from("profile")
     .upsert({ id: 1, data: profile, updated_at: new Date().toISOString() });
   if (error) {
-    throw new Error(`프로필 저장 실패: ${error.message}`);
+    throw new Error(`Failed to save profile: ${error.message}`);
   }
 }
 
 export async function clearProfile(): Promise<void> {
   const { error } = await getSupabase().from("profile").delete().eq("id", 1);
   if (error) {
-    throw new Error(`프로필 초기화 실패: ${error.message}`);
+    throw new Error(`Failed to clear profile: ${error.message}`);
   }
 }
 
@@ -254,7 +254,7 @@ export async function getRecommendationCache(): Promise<RecommendationCache | nu
     .eq("id", 1)
     .maybeSingle();
   if (error) {
-    throw new Error(`추천 캐시 조회 실패: ${error.message}`);
+    throw new Error(`Failed to get recommendation cache: ${error.message}`);
   }
   if (!data) {
     return null;
@@ -271,7 +271,7 @@ export async function saveRecommendationCache(cache: RecommendationCache): Promi
     .from("recommendation_cache")
     .upsert({ id: 1, hash: cache.hash, items: cache.items, created_at: cache.createdAt });
   if (error) {
-    throw new Error(`추천 캐시 저장 실패: ${error.message}`);
+    throw new Error(`Failed to save recommendation cache: ${error.message}`);
   }
 }
 

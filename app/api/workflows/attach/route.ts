@@ -6,7 +6,7 @@ export async function GET(req: Request) {
   const key = new URL(req.url).searchParams.get("key");
   const session = key ? getSession(key) : null;
   if (!session) {
-    return NextResponse.json({ error: "해당 세션이 없습니다." }, { status: 404 });
+    return NextResponse.json({ error: "Session not found." }, { status: 404 });
   }
   return sessionResponse(session);
 }

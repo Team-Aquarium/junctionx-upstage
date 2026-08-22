@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { createTranslator } from "@/lib/i18n";
+import { localeFromRequest } from "@/lib/i18n/request";
 import { ingestAnnouncementDocument } from "@/lib/ingest";
 import { matchAnnouncement } from "@/lib/matching";
 import { getProfile } from "@/lib/store";
@@ -7,19 +9,19 @@ import { runWorkflowSession } from "@/lib/workflow-session";
 export const maxDuration = 300;
 
 export async function POST(req: Request) {
+  const t = createTranslator(localeFromRequest(req));
   const form = await req.formData();
   const file = form.get("file");
   if (!(file instanceof File)) {
-    return NextResponse.json({ error: "파일이 없습니다." }, { status: 400 });
+    return NextResponse.json({ error: t("api.noFile") }, { status: 400 });
   }
   const bytes = Buffer.from(await file.arrayBuffer());
 
-  // 업로드 실행마다 고유 세션 — 새로고침 시 /api/workflows에서 발견해 이어본다.
   return runWorkflowSession(`ingest:${crypto.randomUUID().slice(0, 8)}`, async (emit) => {
     emit({
       type: "step",
       id: "recv",
-      title: `파일 수신 — ${file.name}`,
+      title: t("api.fileRecv", { name: file.name }),
       status: "done",
       detail: `${(bytes.length / 1024).toFixed(0)}KB · ${file.type || "unknown"}`,
     });
@@ -33,18 +35,13 @@ export async function POST(req: Request) {
       emit,
     );
 
-    const match = matchAnnouncement(announcement, await getProfile());
+    const match = matchAnnouncement(announcement, await getProfile(), t);
     emit({
       type: "step",
       id: "match",
-      title: "프로필 자격 판정",
+      title: t("api.matchTitle"),
       status: "done",
-      detail:
-        match.verdict === "eligible"
-          ? "지원 가능"
-          : match.verdict === "ineligible"
-            ? "자격 미달"
-            : "확인 필요",
+      detail: t(`api.${match.verdict}`),
       payload: match,
     });
     emit({ type: "result", data: { announcement: { ...announcement, match } } });

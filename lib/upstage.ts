@@ -5,7 +5,7 @@ const API_BASE = "https://api.upstage.ai";
 function getApiKey(): string {
   const key = process.env.UPSTAGE_API_KEY;
   if (!key) {
-    throw new Error("UPSTAGE_API_KEY 환경변수가 설정되지 않았습니다. (.env.local 확인)");
+    throw new Error("UPSTAGE_API_KEY is not set. Check .env.local.");
   }
   return key;
 }
@@ -22,13 +22,13 @@ async function getDocumentBytes(doc: StoredDocument): Promise<Buffer> {
   if (doc.url.startsWith("data:")) {
     const base64Index = doc.url.indexOf("base64,");
     if (base64Index === -1) {
-      throw new Error(`문서 ${doc.id}의 data URL 형식이 올바르지 않습니다.`);
+      throw new Error(`Document ${doc.id} has an invalid data URL.`);
     }
     return Buffer.from(doc.url.slice(base64Index + "base64,".length), "base64");
   }
   const res = await fetch(doc.url);
   if (!res.ok) {
-    throw new Error(`문서 ${doc.id} 다운로드 실패 (${res.status})`);
+    throw new Error(`Failed to download document ${doc.id} (${res.status})`);
   }
   return Buffer.from(await res.arrayBuffer());
 }
@@ -72,7 +72,7 @@ export async function parseDocument(
     body: form,
   });
   if (!res.ok) {
-    throw new Error(`Document Parse 실패 (${res.status}): ${await res.text()}`);
+    throw new Error(`Document Parse failed (${res.status}): ${await res.text()}`);
   }
 
   const data = await res.json();
@@ -132,7 +132,7 @@ export async function extractInformation(
     }),
   });
   if (!res.ok) {
-    throw new Error(`Information Extract 실패 (${res.status}): ${await res.text()}`);
+    throw new Error(`Information Extract failed (${res.status}): ${await res.text()}`);
   }
 
   const data = await res.json();
@@ -168,7 +168,7 @@ async function uploadFile(doc: StoredDocument): Promise<string> {
     body: form,
   });
   if (!res.ok) {
-    throw new Error(`파일 업로드 실패 (${res.status}): ${await res.text()}`);
+    throw new Error(`File upload failed (${res.status}): ${await res.text()}`);
   }
   return (await res.json()).id as string;
 }
@@ -203,7 +203,7 @@ export async function runStudioAgent(
     }),
   });
   if (!createRes.ok) {
-    throw new Error(`에이전트 실행 실패 (${createRes.status}): ${await createRes.text()}`);
+    throw new Error(`Agent run failed (${createRes.status}): ${await createRes.text()}`);
   }
 
   let job = await createRes.json();
@@ -214,7 +214,7 @@ export async function runStudioAgent(
       headers: { Authorization: `Bearer ${getApiKey()}` },
     });
     if (!pollRes.ok) {
-      throw new Error(`에이전트 상태 조회 실패 (${pollRes.status}): ${await pollRes.text()}`);
+      throw new Error(`Agent status poll failed (${pollRes.status}): ${await pollRes.text()}`);
     }
     job = await pollRes.json();
   }
@@ -280,7 +280,7 @@ export async function runStudioAgentDetailed(
     }),
   });
   if (!createRes.ok) {
-    throw new Error(`에이전트 실행 실패 (${createRes.status}): ${await createRes.text()}`);
+    throw new Error(`Agent run failed (${createRes.status}): ${await createRes.text()}`);
   }
 
   type OutputContent = { type: string; text?: string };
@@ -323,7 +323,7 @@ export async function runStudioAgentDetailed(
       headers: { Authorization: `Bearer ${getApiKey()}` },
     });
     if (!pollRes.ok) {
-      throw new Error(`에이전트 상태 조회 실패 (${pollRes.status}): ${await pollRes.text()}`);
+      throw new Error(`Agent status poll failed (${pollRes.status}): ${await pollRes.text()}`);
     }
     job = await pollRes.json();
     onProgress?.({
@@ -408,7 +408,7 @@ async function solarChatStream(
     }),
   });
   if (!res.ok || !res.body) {
-    throw new Error(`Solar 호출 실패 (${res.status}): ${await res.text()}`);
+    throw new Error(`Solar request failed (${res.status}): ${await res.text()}`);
   }
 
   let content = "";
@@ -472,13 +472,17 @@ export async function recommendAnnouncements(
     summary: string[];
   }[],
   onReasoning?: (accumulated: string) => void,
+  locale: "en" | "ko" = "en",
 ): Promise<{ items: RecommendationItem[]; reasoning: string | null }> {
+  const systemPrompt =
+    locale === "ko"
+      ? '당신은 대학생에게 공고(공모전·해커톤·장학금·대외활동·채용)를 추천하는 어시스턴트입니다. 사용자 프로필과 공고 목록이 JSON으로 주어집니다. 각 공고의 적합도를 평가해 아래 JSON 객체 하나만 출력하세요. 설명이나 코드블록 없이 순수 JSON만 출력합니다.\n{"recommendations":[{"id":"공고 id","score":0~100 정수,"reason":"프로필의 구체적 요소(관심사·기술·활동)와 공고 내용을 연결한 한국어 한 문장 (60자 이내)"}]}\n규칙: 모든 공고를 score 내림차순으로 포함. 프로필과 실제 접점이 있는 요소만 근거로 쓰고, 접점이 없으면 score를 40 미만으로 주고 reason에 그 사실을 솔직하게 적으세요.'
+      : 'You recommend contests, hackathons, scholarships, activities, and jobs to university students. The user profile and notice list are given as JSON. Score each notice and output only the JSON object below — no explanation or code fences.\n{"recommendations":[{"id":"notice id","score":0-100 integer,"reason":"one English sentence (max 80 chars) linking a concrete profile element (interest, skill, or activity) to the notice"}]}\nRules: include every notice, sorted by score descending. Use only real overlap as evidence. If there is no overlap, score below 40 and say so honestly. Write every reason in English.';
   const { content, reasoning } = await solarChatStream(
     [
       {
         role: "system",
-        content:
-          '당신은 대학생에게 공고(공모전·해커톤·장학금·대외활동·채용)를 추천하는 어시스턴트입니다. 사용자 프로필과 공고 목록이 JSON으로 주어집니다. 각 공고의 적합도를 평가해 아래 JSON 객체 하나만 출력하세요. 설명이나 코드블록 없이 순수 JSON만 출력합니다.\n{"recommendations":[{"id":"공고 id","score":0~100 정수,"reason":"프로필의 구체적 요소(관심사·기술·활동)와 공고 내용을 연결한 한국어 한 문장 (60자 이내)"}]}\n규칙: 모든 공고를 score 내림차순으로 포함. 프로필과 실제 접점이 있는 요소만 근거로 쓰고, 접점이 없으면 score를 40 미만으로 주고 reason에 그 사실을 솔직하게 적으세요.',
+        content: systemPrompt,
       },
       {
         role: "user",

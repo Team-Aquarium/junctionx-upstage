@@ -1,17 +1,20 @@
 import { NextResponse } from "next/server";
+import { createTranslator } from "@/lib/i18n";
+import { localeFromRequest } from "@/lib/i18n/request";
 import { getAnnouncement, readUploadFile } from "@/lib/store";
 
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const t = createTranslator(localeFromRequest(req));
   const { id } = await params;
   const [announcement, bytes] = await Promise.all([
     getAnnouncement(id),
     readUploadFile(id),
   ]);
   if (!announcement?.sourceFile || !bytes) {
-    return NextResponse.json({ error: "원본 파일을 찾을 수 없습니다." }, { status: 404 });
+    return NextResponse.json({ error: t("api.fileMissing") }, { status: 404 });
   }
   return new NextResponse(new Uint8Array(bytes), {
     headers: {

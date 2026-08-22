@@ -2,6 +2,7 @@
 
 import { SearchIcon, XIcon } from "lucide-react";
 import { useState } from "react";
+import { useT } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 
 export interface SearchFilterState {
@@ -16,6 +17,7 @@ interface SearchFilterProps {
 }
 
 export function SearchFilter({ onSearchChange, className }: SearchFilterProps) {
+  const t = useT();
   const [keyword, setKeyword] = useState("");
   const [verdict, setVerdict] = useState<"all" | "eligible" | "check">("all");
   const [timeline, setTimeline] = useState<"all" | "closing" | "open">("all");
@@ -55,19 +57,18 @@ export function SearchFilter({ onSearchChange, className }: SearchFilterProps) {
 
   return (
     <div className={cn("w-full space-y-4", className)}>
-      {/* Search Input Bar */}
       <div className="relative flex items-center w-full rounded-xl border border-border bg-card px-4 py-3 transition-colors focus-within:border-primary">
         <SearchIcon className="size-4.5 text-muted-foreground shrink-0 mr-3" />
         <input
           className="w-full bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
           onChange={(e) => handleKeyword(e.target.value)}
-          placeholder="공고명, 주최사, 기술 분야로 검색..."
+          placeholder={t("search.placeholder")}
           type="text"
           value={keyword}
         />
         {keyword && (
           <button
-            aria-label="검색어 지우기"
+            aria-label={t("search.clearQuery")}
             className="text-muted-foreground hover:text-foreground"
             onClick={() => handleKeyword("")}
             type="button"
@@ -77,10 +78,9 @@ export function SearchFilter({ onSearchChange, className }: SearchFilterProps) {
         )}
       </div>
 
-      {/* Filter Chips Row */}
       <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-muted-foreground font-medium mr-1">자격:</span>
+          <span className="text-muted-foreground font-medium mr-1">{t("search.eligibility")}</span>
           <button
             className={cn(
               "rounded-lg px-2.5 py-1 font-medium transition-colors",
@@ -91,7 +91,7 @@ export function SearchFilter({ onSearchChange, className }: SearchFilterProps) {
             onClick={() => handleVerdict("all")}
             type="button"
           >
-            전체
+            {t("search.all")}
           </button>
           <button
             className={cn(
@@ -103,7 +103,7 @@ export function SearchFilter({ onSearchChange, className }: SearchFilterProps) {
             onClick={() => handleVerdict("eligible")}
             type="button"
           >
-            지원 가능만
+            {t("search.eligibleOnly")}
           </button>
           <button
             className={cn(
@@ -115,10 +115,10 @@ export function SearchFilter({ onSearchChange, className }: SearchFilterProps) {
             onClick={() => handleVerdict("check")}
             type="button"
           >
-            확인 필요 포함
+            {t("search.includeCheck")}
           </button>
 
-          <span className="text-muted-foreground font-medium ml-3 mr-1">일정:</span>
+          <span className="text-muted-foreground font-medium ml-3 mr-1">{t("search.timeline")}</span>
           <button
             className={cn(
               "rounded-lg px-2.5 py-1 font-medium transition-colors",
@@ -129,7 +129,7 @@ export function SearchFilter({ onSearchChange, className }: SearchFilterProps) {
             onClick={() => handleTimeline("all")}
             type="button"
           >
-            전체
+            {t("search.all")}
           </button>
           <button
             className={cn(
@@ -141,7 +141,7 @@ export function SearchFilter({ onSearchChange, className }: SearchFilterProps) {
             onClick={() => handleTimeline("closing")}
             type="button"
           >
-            D-7 이내
+            {t("search.closing7")}
           </button>
           <button
             className={cn(
@@ -153,7 +153,7 @@ export function SearchFilter({ onSearchChange, className }: SearchFilterProps) {
             onClick={() => handleTimeline("open")}
             type="button"
           >
-            진행 중만
+            {t("search.openOnly")}
           </button>
         </div>
 
@@ -163,7 +163,7 @@ export function SearchFilter({ onSearchChange, className }: SearchFilterProps) {
             onClick={handleClear}
             type="button"
           >
-            필터 초기화
+            {t("search.reset")}
           </button>
         )}
       </div>

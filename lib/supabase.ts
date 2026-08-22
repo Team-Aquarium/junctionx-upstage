@@ -12,7 +12,7 @@ export function getSupabase(): SupabaseClient {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) {
     throw new Error(
-      "SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY 환경변수가 없습니다. `supabase start` 후 `supabase status`의 값을 .env.local에 설정하세요.",
+      "SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY is missing. Copy values from `supabase status` into .env.local.",
     );
   }
   client = createClient(url, key, {

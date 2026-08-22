@@ -1,5 +1,7 @@
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
+import { createTranslator } from "@/lib/i18n";
+import { localeFromRequest } from "@/lib/i18n/request";
 import { recommendAnnouncements } from "@/lib/upstage";
 import {
   getProfile,
@@ -12,7 +14,9 @@ import { runWorkflowSession } from "@/lib/workflow-session";
 
 export const maxDuration = 120;
 
-export async function GET() {
+export async function GET(req: Request) {
+  const locale = localeFromRequest(req);
+  const t = createTranslator(locale);
   const [profile, announcements] = await Promise.all([getProfile(), listAnnouncements()]);
   if (!profile || announcements.length === 0) {
     return NextResponse.json({ recommendations: [] });
@@ -27,19 +31,19 @@ export async function GET() {
     activities: profile.activities,
   };
   const hash = createHash("sha256")
-    .update(JSON.stringify({ p: profileKey, a: announcements.map((a) => a.id).sort() }))
+    .update(JSON.stringify({ locale, p: profileKey, a: announcements.map((a) => a.id).sort() }))
     .digest("hex");
 
   // 실행 중이면 새로고침해도 같은 세션에 붙어 이어본다. (중복 Solar 호출 방지)
-  return runWorkflowSession("recommendations", async (emit) => {
+  return runWorkflowSession(`recommendations:${locale}`, async (emit) => {
     const cache = await getRecommendationCache();
     if (cache?.hash === hash) {
       emit({
         type: "step",
         id: "cache",
-        title: "캐시된 추천 사용 (프로필·공고 변경 없음)",
+        title: t("api.cacheHit"),
         status: "done",
-        detail: new Date(cache.createdAt).toLocaleTimeString("ko-KR"),
+        detail: new Date(cache.createdAt).toLocaleTimeString("en-US"),
         payload: cache.items,
       });
       emit({ type: "result", data: { recommendations: cache.items, cached: true } });
@@ -49,16 +53,16 @@ export async function GET() {
     emit({
       type: "step",
       id: "prep",
-      title: "프로필 × 공고 목록 준비",
+      title: t("api.prep"),
       status: "done",
-      detail: `공고 ${announcements.length}건`,
+      detail: `${announcements.length} notices`,
       payload: profileKey,
     });
 
     emit({
       type: "step",
       id: "solar",
-      title: "Solar 적합도 평가 (solar-pro4)",
+      title: t("api.solarScore"),
       status: "start",
     });
     try {
@@ -82,20 +86,21 @@ export async function GET() {
           emit({
             type: "step",
             id: "reasoning",
-            title: "Solar 추론 과정",
+            title: t("api.solarReasoning"),
             status: "start",
-            detail: `${accumulated.length.toLocaleString()}자`,
+            detail: `${accumulated.length.toLocaleString()} chars`,
             payload: clipTail(accumulated),
           });
         },
+        locale,
       );
       if (reasoning) {
         emit({
           type: "step",
           id: "reasoning",
-          title: "Solar 추론 과정",
+          title: t("api.solarReasoning"),
           status: "done",
-          detail: `${reasoning.length.toLocaleString()}자`,
+          detail: `${reasoning.length.toLocaleString()} chars`,
           payload: clipTail(reasoning),
         });
       }
@@ -104,9 +109,9 @@ export async function GET() {
       emit({
         type: "step",
         id: "solar",
-        title: "Solar 적합도 평가 (solar-pro4)",
+        title: t("api.solarScore"),
         status: "done",
-        detail: `${valid.length}건 평가`,
+        detail: `${valid.length} scored`,
         payload: valid,
       });
       await saveRecommendationCache({ hash, createdAt: new Date().toISOString(), items: valid });
@@ -116,7 +121,7 @@ export async function GET() {
       emit({
         type: "step",
         id: "solar",
-        title: "Solar 적합도 평가 (solar-pro4)",
+        title: t("api.solarScore"),
         status: "error",
       });
       emit({ type: "result", data: { recommendations: [] } });

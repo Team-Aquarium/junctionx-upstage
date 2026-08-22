@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { localizeCategory } from "@/lib/i18n/format";
+import { useT } from "@/lib/i18n/client";
 import type { MatchResult } from "@/lib/matching";
 import type { Announcement } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -13,15 +15,15 @@ export function ddayInfo(applyEnd: string | null): {
   days: number | null;
 } {
   if (!applyEnd) {
-    return { label: "상시", closed: false, days: null };
+    return { label: "Open", closed: false, days: null };
   }
   const end = new Date(`${applyEnd}T23:59:59`);
   if (Number.isNaN(end.getTime())) {
-    return { label: "상시", closed: false, days: null };
+    return { label: "Open", closed: false, days: null };
   }
   const days = Math.ceil((end.getTime() - Date.now()) / 86_400_000);
   if (days < 0) {
-    return { label: "마감", closed: true, days };
+    return { label: "Closed", closed: true, days };
   }
   if (days === 0) {
     return { label: "D-DAY", closed: false, days };
@@ -30,13 +32,10 @@ export function ddayInfo(applyEnd: string | null): {
 }
 
 export function CategoryBadge({ category }: { category: string }) {
-  const label =
-    category === "others"
-      ? "기타"
-      : category.replace(/\//g, " · ");
+  const t = useT();
   return (
     <span className="inline-flex items-center rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground">
-      {label}
+      {localizeCategory(category, t)}
     </span>
   );
 }
@@ -48,6 +47,7 @@ export function VerdictBadge({
   verdict: MatchResult["verdict"];
   className?: string;
 }) {
+  const t = useT();
   if (verdict === "eligible") {
     return (
       <span
@@ -56,7 +56,7 @@ export function VerdictBadge({
           className,
         )}
       >
-        지원 가능
+        {t("verdict.eligible")}
       </span>
     );
   }
@@ -68,7 +68,7 @@ export function VerdictBadge({
           className,
         )}
       >
-        확인 필요
+        {t("verdict.check")}
       </span>
     );
   }
@@ -79,13 +79,22 @@ export function VerdictBadge({
         className,
       )}
     >
-      자격 미달
+      {t("verdict.ineligible")}
     </span>
   );
 }
 
 export function DdayBadge({ applyEnd }: { applyEnd: string | null }) {
+  const t = useT();
   const info = ddayInfo(applyEnd);
+  const label =
+    info.days === null
+      ? t("common.openEnded")
+      : info.closed
+        ? t("common.closed")
+        : info.days === 0
+          ? t("common.dday")
+          : info.label;
   return (
     <span
       className={cn(
@@ -97,12 +106,11 @@ export function DdayBadge({ applyEnd }: { applyEnd: string | null }) {
             : "text-muted-foreground",
       )}
     >
-      {info.label}
+      {label}
     </span>
   );
 }
 
-/** 미니멀하고 넓은 여백을 가진 공고 카드 */
 export function AnnouncementCard({
   item,
   recommendReason,
@@ -112,6 +120,7 @@ export function AnnouncementCard({
   recommendReason?: string;
   recommendScore?: number;
 }) {
+  const t = useT();
   const dday = ddayInfo(item.apply_end);
 
   return (
@@ -123,7 +132,6 @@ export function AnnouncementCard({
       href={`/notice/${item.id}`}
     >
       <div>
-        {/* Top Header: Category, Verdict, D-day */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5">
             <CategoryBadge category={item.category} />
@@ -132,32 +140,34 @@ export function AnnouncementCard({
           <DdayBadge applyEnd={item.apply_end} />
         </div>
 
-        {/* Title */}
         <h3 className="mt-4 font-semibold text-base leading-snug text-foreground group-hover:text-primary transition-colors line-clamp-2">
           {item.title}
         </h3>
 
-        {/* Organizer */}
         {item.organizer && (
           <p className="mt-2 text-xs text-muted-foreground truncate">
             {item.organizer}
           </p>
         )}
 
-        {/* Benefits or field */}
         {item.benefits && (
           <p className="mt-1 text-xs text-muted-foreground line-clamp-1">
-            혜택: {item.benefits}
+            {t("common.benefits")}: {item.benefits}
           </p>
         )}
       </div>
 
-      {/* Footer Info & Recommendation */}
       <div className="mt-6 pt-4 border-t border-border/60 flex flex-col gap-2">
         <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>{item.apply_end ? `${item.apply_end} 마감` : "상시 모집"}</span>
+          <span>
+            {item.apply_end
+              ? t("common.deadlineOn", { date: item.apply_end })
+              : t("common.alwaysOpen")}
+          </span>
           {recommendScore !== undefined && (
-            <span className="font-semibold text-primary">적합도 {recommendScore}점</span>
+            <span className="font-semibold text-primary">
+              {t("common.fit", { score: recommendScore })}
+            </span>
           )}
         </div>
 

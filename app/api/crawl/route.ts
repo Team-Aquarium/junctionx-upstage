@@ -5,6 +5,8 @@ import {
   politeDelay,
   type CrawlSourceKey,
 } from "@/lib/crawler";
+import { createTranslator } from "@/lib/i18n";
+import { localeFromRequest } from "@/lib/i18n/request";
 import { ingestAnnouncementDocument } from "@/lib/ingest";
 import { matchAnnouncement } from "@/lib/matching";
 import { getProfile, listAnnouncements } from "@/lib/store";
@@ -18,12 +20,13 @@ const MAX_PER_RUN = 10;
 interface CrawlResultItem {
   title: string;
   sourceUrl: string;
-  status: "완료" | "실패" | "건너뜀";
+  status: "done" | "failed" | "skipped";
   error?: string;
   announcement?: unknown;
 }
 
 export async function POST(req: Request) {
+  const t = createTranslator(localeFromRequest(req));
   const body = (await req.json().catch(() => ({}))) as {
     source?: string;
     limit?: number;
@@ -31,22 +34,29 @@ export async function POST(req: Request) {
   const source: CrawlSourceKey =
     body.source && body.source in CRAWL_SOURCES ? (body.source as CrawlSourceKey) : "ck-it";
   const limit = Math.min(Math.max(1, body.limit ?? 2), MAX_PER_RUN);
-  const sourceLabel = CRAWL_SOURCES[source].label;
+  const sourceLabelKeys = {
+    "ck-it": "ingest.sourceCkIt",
+    "ck-all": "ingest.sourceCkAll",
+    it: "ingest.sourceWevityIt",
+    idea: "ingest.sourceWevityIdea",
+    all: "ingest.sourceWevityAll",
+  } as const;
+  const sourceLabel = t(sourceLabelKeys[source]);
 
   // 실행 중이면 새로고침해도 "crawl" 세션에 붙어 이어본다.
   return runWorkflowSession("crawl", async (emit) => {
     emit({
       type: "step",
       id: "list",
-      title: `목록 크롤링 — ${sourceLabel}`,
+      title: t("api.listCrawl", { source: sourceLabel }),
       status: "start",
     });
     const candidates = await fetchCrawlList(source, Math.max(12, limit * 4));
     if (candidates.length === 0) {
-      emit({ type: "step", id: "list", title: `목록 크롤링 — ${sourceLabel}`, status: "error" });
+      emit({ type: "step", id: "list", title: t("api.listCrawl", { source: sourceLabel }), status: "error" });
       emit({
         type: "error",
-        message: "목록에서 공모전을 찾지 못했습니다. 사이트 구조가 바뀌었을 수 있어요.",
+        message: t("api.listEmpty"),
       });
       return;
     }
@@ -60,16 +70,16 @@ export async function POST(req: Request) {
     emit({
       type: "step",
       id: "list",
-      title: `목록 크롤링 — ${sourceLabel}`,
+      title: t("api.listCrawl", { source: sourceLabel }),
       status: "done",
-      detail: `후보 ${candidates.length}건 · 신규 ${fresh.length}건`,
+      detail: `${candidates.length} candidates · ${fresh.length} new`,
       payload: fresh.map((c) => c.title),
     });
 
     if (fresh.length === 0) {
       emit({
         type: "result",
-        data: { results: [], message: "새로 수집할 공모전이 없습니다. (최근 목록이 모두 이미 등록됨)" },
+        data: { results: [], message: t("api.noFresh") },
       });
       return;
     }
@@ -84,7 +94,7 @@ export async function POST(req: Request) {
         emit({
           type: "step",
           id: stepId,
-          title: `공고 문서 수집 (${index + 1}/${fresh.length}) — ${shortTitle}`,
+          title: t("api.fetchDoc", { i: index + 1, n: fresh.length, title: shortTitle }),
           status: "start",
         });
         await politeDelay();
@@ -93,22 +103,22 @@ export async function POST(req: Request) {
           emit({
             type: "step",
             id: stepId,
-            title: `공고 문서 수집 (${index + 1}/${fresh.length}) — ${shortTitle}`,
+            title: t("api.fetchDoc", { i: index + 1, n: fresh.length, title: shortTitle }),
             status: "error",
-            detail: "문서 없음",
+            detail: "No document",
           });
           results.push({
             title: candidate.title,
             sourceUrl: candidate.detailUrl,
-            status: "건너뜀",
-            error: "공고 문서(첨부·본문·포스터)를 찾지 못했습니다.",
+            status: "skipped",
+            error: t("api.noDocSkip"),
           });
           continue;
         }
         emit({
           type: "step",
           id: stepId,
-          title: `공고 문서 수집 (${index + 1}/${fresh.length}) — ${shortTitle}`,
+          title: t("api.fetchDoc", { i: index + 1, n: fresh.length, title: shortTitle }),
           status: "done",
           detail: `${document.via} · ${(document.bytes.length / 1024).toFixed(0)}KB`,
           payload: {
@@ -126,8 +136,8 @@ export async function POST(req: Request) {
           results.push({
             title: candidate.title,
             sourceUrl: candidate.detailUrl,
-            status: "건너뜀",
-            error: "이미 등록된 공고입니다. (동시 실행 감지)",
+            status: "skipped",
+            error: t("api.concurrentSkip"),
           });
           continue;
         }
@@ -145,14 +155,14 @@ export async function POST(req: Request) {
         results.push({
           title: announcement.title,
           sourceUrl: candidate.detailUrl,
-          status: "완료",
-          announcement: { ...announcement, match: matchAnnouncement(announcement, profile) },
+          status: "done",
+          announcement: { ...announcement, match: matchAnnouncement(announcement, profile, t) },
         });
       } catch (error) {
         results.push({
           title: candidate.title,
           sourceUrl: candidate.detailUrl,
-          status: "실패",
+          status: "failed",
           error: error instanceof Error ? error.message : String(error),
         });
       }

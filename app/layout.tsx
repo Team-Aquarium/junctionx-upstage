@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import { I18nProvider } from "@/lib/i18n/client";
+import { localeFromCookies } from "@/lib/i18n/server";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,9 +19,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "모아보라 — Upstage 문서 에이전트",
+  title: "Moabora — Upstage Document Agent",
   description:
-    "Upstage Studio 에이전트가 공고문을 읽고, 개인 프로필과 대조해 지원 가능 여부와 맞춤 추천을 제공합니다.",
+    "An Upstage Studio agent reads notices and matches them against your profile to judge eligibility and recommend the best fit.",
   icons: {
     icon: "/upstage/symbol.svg",
     shortcut: "/upstage/symbol.svg",
@@ -27,11 +29,12 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = await localeFromCookies();
   return (
     <html
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-      lang="ko"
+      lang={locale}
       suppressHydrationWarning
     >
       <body className="flex min-h-full flex-col bg-background text-foreground antialiased selection:bg-primary/10 selection:text-primary">
@@ -41,11 +44,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           disableTransitionOnChange
           enableSystem
         >
-          <TooltipProvider>
-            <SiteHeader />
-            <main className="flex flex-1 flex-col">{children}</main>
-            <SiteFooter />
-          </TooltipProvider>
+          <I18nProvider initialLocale={locale}>
+            <TooltipProvider>
+              <SiteHeader />
+              <main className="flex flex-1 flex-col">{children}</main>
+              <SiteFooter />
+            </TooltipProvider>
+          </I18nProvider>
         </ThemeProvider>
       </body>
     </html>

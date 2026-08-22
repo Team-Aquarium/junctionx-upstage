@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { createTranslator } from "@/lib/i18n";
+import { localeFromRequest } from "@/lib/i18n/request";
 import { extractProfileFromText } from "@/lib/upstage";
 import { getProfile, mergeProfile, saveProfile } from "@/lib/store";
 import { clip, clipTail } from "@/lib/workflow";
@@ -23,14 +25,15 @@ function htmlToText(html: string): string {
 }
 
 export async function POST(req: Request) {
+  const t = createTranslator(localeFromRequest(req));
   const { url } = (await req.json()) as { url?: string };
   if (!url || !/^https?:\/\//i.test(url)) {
-    return NextResponse.json({ error: "http(s) 링크를 입력해 주세요." }, { status: 400 });
+    return NextResponse.json({ error: t("api.noLink") }, { status: 400 });
   }
 
   // 새로고침 시 /api/workflows에서 발견해 이어본다.
   return runWorkflowSession("profile-link", async (emit) => {
-    emit({ type: "step", id: "fetch", title: `페이지 요청 — ${url}`, status: "start" });
+    emit({ type: "step", id: "fetch", title: `Fetch page — ${url}`, status: "start" });
     const res = await fetch(url, {
       headers: {
         "User-Agent":
@@ -44,13 +47,13 @@ export async function POST(req: Request) {
       emit({
         type: "step",
         id: "fetch",
-        title: `페이지 요청 — ${url}`,
+        title: `Fetch page — ${url}`,
         status: "error",
         detail: `HTTP ${res.status}`,
       });
       emit({
         type: "error",
-        message: `링크를 불러오지 못했습니다 (HTTP ${res.status}). 공개 페이지인지 확인해 주세요.`,
+        message: `Could not load the link (HTTP ${res.status}). Check that the page is public.`,
       });
       return;
     }
@@ -58,7 +61,7 @@ export async function POST(req: Request) {
     emit({
       type: "step",
       id: "fetch",
-      title: `페이지 요청 — ${url}`,
+      title: `Fetch page — ${url}`,
       status: "done",
       detail: `HTTP ${res.status} · ${(html.length / 1024).toFixed(0)}KB`,
     });
@@ -68,30 +71,30 @@ export async function POST(req: Request) {
       emit({
         type: "step",
         id: "text",
-        title: "본문 텍스트 추출",
+        title: "Extract page text",
         status: "error",
-        detail: `${text.length}자`,
+        detail: `${text.length} chars`,
       });
       emit({
         type: "error",
         message:
-          "페이지에서 읽을 수 있는 텍스트가 거의 없어요. 로그인 필요 페이지거나 스크립트로만 그려지는 페이지일 수 있습니다. (GitHub·블로그·링크트리 추천)",
+          "Almost no readable text on that page. It may need a login or be script-rendered. (GitHub, blogs, and Linktree work well.)",
       });
       return;
     }
     emit({
       type: "step",
       id: "text",
-      title: "본문 텍스트 추출",
+      title: "Extract page text",
       status: "done",
-      detail: `${text.length.toLocaleString()}자`,
+      detail: `${text.length.toLocaleString()} chars`,
       payload: clip(text, 1200),
     });
 
     emit({
       type: "step",
       id: "solar",
-      title: "Solar 프로필 추출 (solar-pro4)",
+      title: t("api.solarExtract"),
       status: "start",
     });
     let lastReasoningEmit = 0;
@@ -104,9 +107,9 @@ export async function POST(req: Request) {
       emit({
         type: "step",
         id: "reasoning",
-        title: "Solar 추론 과정",
+        title: t("api.solarReasoning"),
         status: "start",
-        detail: `${accumulated.length.toLocaleString()}자`,
+        detail: `${accumulated.length.toLocaleString()} chars`,
         payload: clipTail(accumulated),
       });
     });
@@ -114,16 +117,16 @@ export async function POST(req: Request) {
       emit({
         type: "step",
         id: "reasoning",
-        title: "Solar 추론 과정",
+        title: t("api.solarReasoning"),
         status: "done",
-        detail: `${reasoning.length.toLocaleString()}자`,
+        detail: `${reasoning.length.toLocaleString()} chars`,
         payload: clipTail(reasoning),
       });
     }
     emit({
       type: "step",
       id: "solar",
-      title: "Solar 프로필 추출 (solar-pro4)",
+      title: t("api.solarExtract"),
       status: "done",
       payload: extracted,
     });
@@ -134,7 +137,7 @@ export async function POST(req: Request) {
       addedAt: new Date().toISOString(),
     });
     await saveProfile(profile);
-    emit({ type: "step", id: "merge", title: "프로필 병합·저장", status: "done", payload: profile });
+    emit({ type: "step", id: "merge", title: t("api.mergeSave"), status: "done", payload: profile });
     emit({ type: "result", data: { profile, extracted } });
   });
 }

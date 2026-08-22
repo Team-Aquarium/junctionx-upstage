@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { createTranslator } from "@/lib/i18n";
+import { localeFromRequest } from "@/lib/i18n/request";
 import { extractInformation, type StoredDocument } from "@/lib/upstage";
 import { clearProfile, getProfile, mergeProfile, saveProfile } from "@/lib/store";
 import { runWorkflowSession } from "@/lib/workflow-session";
@@ -7,15 +9,15 @@ export const maxDuration = 120;
 
 /** 재학증명서·성적증명서 등에서 뽑을 프로필 필드 (Universal Information Extraction 스키마) */
 const PROFILE_PROPERTIES = {
-  name: { type: "string", description: "문서에 기재된 사람 이름" },
-  university: { type: "string", description: "대학교 이름" },
-  department: { type: "string", description: "학과 또는 전공 이름" },
-  grade: { type: "number", description: "학년 (1~6 숫자). 문서에 없으면 생략" },
+  name: { type: "string", description: "Person's name as written in the document" },
+  university: { type: "string", description: "University name" },
+  department: { type: "string", description: "Department or major name" },
+  grade: { type: "number", description: "Year/grade (number 1–6). Omit if not in the document" },
   enrollment_status: {
     type: "string",
-    description: "학적 상태. 재학/휴학/졸업 중 하나로 표기",
+    description: "Enrollment status. One of enrolled / on leave / graduated",
   },
-  birth_year: { type: "number", description: "출생연도 4자리 (생년월일에서 연도만)" },
+  birth_year: { type: "number", description: "4-digit birth year (year only from date of birth)" },
 } as const;
 
 export async function GET() {
@@ -23,10 +25,11 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const t = createTranslator(localeFromRequest(req));
   const form = await req.formData();
   const file = form.get("file");
   if (!(file instanceof File)) {
-    return NextResponse.json({ error: "파일이 없습니다." }, { status: 400 });
+    return NextResponse.json({ error: t("api.noFile") }, { status: 400 });
   }
 
   const bytes = Buffer.from(await file.arrayBuffer());
@@ -43,7 +46,7 @@ export async function POST(req: Request) {
     emit({
       type: "step",
       id: "recv",
-      title: `서류 수신 — ${file.name}`,
+      title: t("api.docRecv", { name: file.name }),
       status: "done",
       detail: `${(bytes.length / 1024).toFixed(0)}KB`,
     });
@@ -51,7 +54,7 @@ export async function POST(req: Request) {
     emit({
       type: "step",
       id: "uie",
-      title: "Universal Information Extraction 호출 (student_profile 스키마)",
+      title: t("api.uieStart"),
       status: "start",
       payload: { schema: Object.keys(PROFILE_PROPERTIES) },
     });
@@ -63,7 +66,7 @@ export async function POST(req: Request) {
     emit({
       type: "step",
       id: "uie",
-      title: "Universal Information Extraction 호출 (student_profile 스키마)",
+      title: t("api.uieStart"),
       status: "done",
       detail: result.model,
       payload: extracted,
@@ -78,7 +81,7 @@ export async function POST(req: Request) {
     emit({
       type: "step",
       id: "merge",
-      title: "프로필 병합·저장",
+      title: t("api.mergeSave"),
       status: "done",
       payload: profile,
     });
