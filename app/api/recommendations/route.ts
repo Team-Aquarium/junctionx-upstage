@@ -7,7 +7,7 @@ import {
   listAnnouncements,
   saveRecommendationCache,
 } from "@/lib/store";
-import { clip } from "@/lib/workflow";
+import { clipTail } from "@/lib/workflow";
 import { runWorkflowSession } from "@/lib/workflow-session";
 
 export const maxDuration = 120;
@@ -86,7 +86,7 @@ export async function GET() {
             title: "Solar 추론 과정",
             status: "start",
             detail: `${accumulated.length.toLocaleString()}자`,
-            payload: clip(accumulated),
+            payload: clipTail(accumulated),
           });
         },
       );
@@ -97,7 +97,7 @@ export async function GET() {
           title: "Solar 추론 과정",
           status: "done",
           detail: `${reasoning.length.toLocaleString()}자`,
-          payload: clip(reasoning),
+          payload: clipTail(reasoning),
         });
       }
       const knownIds = new Set(announcements.map((a) => a.id));

@@ -1,7 +1,7 @@
 "use client";
 
 import type { ToolUIPart } from "ai";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Reasoning,
   ReasoningContent,
@@ -171,13 +171,73 @@ function StepTitle({ step }: { step: WorkflowStep }) {
           width={16}
         />
       )}
-      <span className="truncate">{step.title}</span>
+      <span className="min-w-0 truncate">{step.title}</span>
       {step.detail && (
-        <span className="shrink-0 font-normal text-muted-foreground text-xs">
+        <span className="shrink-0 truncate font-normal text-muted-foreground text-xs">
           · {step.detail}
         </span>
       )}
     </span>
+  );
+}
+
+/**
+ * Solar 추론 단계 — 챗의 Reasoning UI.
+ * 스트리밍 중에도 사용자가 접으면 접힌 상태를 유지해야 하므로(컴포넌트 내부의
+ * 자동 열림 이펙트가 사용자 조작을 되돌리는 문제) 열림 상태를 밖에서 제어한다.
+ */
+function ReasoningStep({ step }: { step: WorkflowStep }) {
+  const streaming = step.status === "start";
+  const text = typeof step.payload === "string" ? step.payload : "";
+  const [open, setOpen] = useState(streaming);
+  const userToggledRef = useRef(false);
+  const wasStreamingRef = useRef(streaming);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  // 스트리밍 시작 시 자동 열기 / 종료 시 자동 접기 — 사용자가 손대기 전까지만
+  useEffect(() => {
+    if (streaming && !wasStreamingRef.current && !userToggledRef.current) {
+      setOpen(true);
+    }
+    if (!streaming && wasStreamingRef.current && !userToggledRef.current) {
+      const timer = setTimeout(() => setOpen(false), 1000);
+      wasStreamingRef.current = streaming;
+      return () => clearTimeout(timer);
+    }
+    wasStreamingRef.current = streaming;
+  }, [streaming]);
+
+  // 스트리밍 중에는 스크롤을 바닥에 붙여 새 추론이 계속 보이게 한다.
+  useEffect(() => {
+    if (streaming && open && contentRef.current) {
+      contentRef.current.scrollTop = contentRef.current.scrollHeight;
+    }
+  }, [streaming, open, text]);
+
+  return (
+    <Reasoning
+      className="mb-2 rounded-md border px-3 py-2.5"
+      defaultOpen={false}
+      isStreaming={streaming}
+      onOpenChange={(next) => {
+        userToggledRef.current = true;
+        setOpen(next);
+      }}
+      open={open}
+    >
+      <ReasoningTrigger
+        getThinkingMessage={(isStreaming, duration) =>
+          isStreaming ? (
+            <Shimmer duration={1}>추론 중...</Shimmer>
+          ) : (
+            <p>{duration ? `${duration}초 동안 추론함` : "추론 완료"}</p>
+          )
+        }
+      />
+      <ReasoningContent className="max-h-60 overflow-y-auto" ref={contentRef}>
+        {text}
+      </ReasoningContent>
+    </Reasoning>
   );
 }
 
@@ -196,28 +256,8 @@ export function WorkflowLog({
   return (
     <div className={cn("space-y-0", className)}>
       {steps.map((step) => {
-        // Solar 추론 단계는 챗의 Reasoning UI로 (스트리밍 중 자동 열림, 종료 후 자동 접힘)
         if (step.id === "reasoning") {
-          return (
-            <Reasoning
-              className="mb-2 rounded-md border px-3 py-2.5"
-              isStreaming={step.status === "start"}
-              key={step.id}
-            >
-              <ReasoningTrigger
-                getThinkingMessage={(isStreaming, duration) =>
-                  isStreaming ? (
-                    <Shimmer duration={1}>추론 중...</Shimmer>
-                  ) : (
-                    <p>{duration ? `${duration}초 동안 추론함` : "추론 완료"}</p>
-                  )
-                }
-              />
-              <ReasoningContent>
-                {typeof step.payload === "string" ? step.payload : ""}
-              </ReasoningContent>
-            </Reasoning>
-          );
+          return <ReasoningStep key={step.id} step={step} />;
         }
 
         // 나머지 단계는 챗의 Tool 패널 UI로

@@ -26,7 +26,12 @@ export type WorkflowEvent = WorkflowStepEvent | WorkflowResultEvent | WorkflowEr
 
 export type WorkflowEmit = (event: WorkflowEvent) => void;
 
-/** 긴 텍스트 payload를 자른다 (스트림 비대 방지). */
+/** 긴 텍스트 payload의 앞부분을 남긴다 (스트림 비대 방지). */
 export function clip(text: string, max = 4000): string {
   return text.length > max ? `${text.slice(0, max)}\n… (${text.length - max}자 생략)` : text;
+}
+
+/** 긴 텍스트의 끝부분(최신)을 남긴다 — 스트리밍 추론처럼 새 내용이 중요한 경우. */
+export function clipTail(text: string, max = 4000): string {
+  return text.length > max ? `… (앞 ${text.length - max}자 생략)\n${text.slice(-max)}` : text;
 }

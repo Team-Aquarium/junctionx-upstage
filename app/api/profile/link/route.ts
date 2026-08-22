@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { extractProfileFromText } from "@/lib/upstage";
 import { getProfile, mergeProfile, saveProfile } from "@/lib/store";
-import { clip } from "@/lib/workflow";
+import { clip, clipTail } from "@/lib/workflow";
 import { runWorkflowSession } from "@/lib/workflow-session";
 
 export const maxDuration = 120;
@@ -107,7 +107,7 @@ export async function POST(req: Request) {
         title: "Solar 추론 과정",
         status: "start",
         detail: `${accumulated.length.toLocaleString()}자`,
-        payload: clip(accumulated),
+        payload: clipTail(accumulated),
       });
     });
     if (reasoning) {
@@ -117,7 +117,7 @@ export async function POST(req: Request) {
         title: "Solar 추론 과정",
         status: "done",
         detail: `${reasoning.length.toLocaleString()}자`,
-        payload: clip(reasoning),
+        payload: clipTail(reasoning),
       });
     }
     emit({
