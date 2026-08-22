@@ -19,5 +19,7 @@ jobs:
     steps:
       - name: Stop old container
         run: docker stop moabora-run || true
+      - name: Prune old container
+        run: docker rm moabora-run || true
       - name: Deploy new container
         run: docker run -dp 3000:3000 --name moabora-run moabora
