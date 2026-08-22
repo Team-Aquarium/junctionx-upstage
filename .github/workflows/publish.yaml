@@ -8,22 +8,23 @@ env:
 
 jobs:
   build:
-    name: Builds a Docker image
+    name: Build
     runs-on: self-hosted
     steps:
-    - run: pwd && ls -la
-    - run: docker build -t ${{ env.INAME }} .
+      - uses: actions/checkout@v4
+      - name: Builds a Docker image
+        run: docker build -t ${{ env.INAME }} .
 
   deploy:
-    name: Deploys a Docker container
+    name: Deploy
     needs: build
     runs-on: self-hosted
     steps:
-    - name: Stops old
-      run: docker stop ${{ env.CNAME }} || true
-    - name: Starts new
-      run: |
-        docker run \
-          -dp 3000:3000 \
-          --name ${{ env.CNAME }} \
-          ${{ env.INAME }}
+      - name: Stops old container
+        run: docker stop ${{ env.CNAME }} || true
+      - name: Deploys new container
+        run: |
+          docker run \
+            -dp 3000:3000 \
+            --name ${{ env.CNAME }} \
+            ${{ env.INAME }}
