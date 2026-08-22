@@ -7,23 +7,24 @@
   :root {
     --primary: #6c63ff;
     --primary-soft: rgba(108, 99, 255, 0.16);
-    --primary-soft-fg: #b9b3ff;
-    --primary-border: rgba(108, 99, 255, 0.35);
-    --secondary: #232134;
-    --secondary-fg: #c7c2f4;
-    --muted: #16151f;
-    --muted-fg: #a2a0b3;
-    --border: #2a2839;
-    --fg: #f2f1f7;
-    --bg: #0f0e17;
-    --card: #181724;
-    --card-accent: rgba(108, 99, 255, 0.1);
+    --primary-soft-fg: #c4beff;
+    --primary-border: rgba(108, 99, 255, 0.4);
+    --secondary: #252338;
+    --secondary-fg: #dcd7ff;
+    --muted: #181726;
+    --muted-fg: #c2c0d6;
+    --muted-sub: #9694aa;
+    --border: #2e2c40;
+    --fg: #ffffff;
+    --bg: #0c0b14;
+    --card: #161524;
+    --card-accent: rgba(108, 99, 255, 0.12);
     --emerald: #34d399;
-    --emerald-bg: rgba(52, 211, 153, 0.14);
+    --emerald-bg: rgba(52, 211, 153, 0.16);
     --red: #f87171;
-    --red-bg: rgba(248, 113, 113, 0.14);
+    --red-bg: rgba(248, 113, 113, 0.16);
     --amber: #fbbf24;
-    --amber-bg: rgba(251, 191, 36, 0.14);
+    --amber-bg: rgba(251, 191, 36, 0.16);
   }
   @font-face {
     font-family: "Espeak";
@@ -66,18 +67,18 @@
 
   /* Header */
   .slide-header {
-    margin-bottom: 20px;
+    margin-bottom: 22px;
     flex: 0 0 auto;
   }
   .eyebrow {
-    font-size: 13px; font-weight: 600; letter-spacing: 0.14em;
+    font-size: 13px; font-weight: 700; letter-spacing: 0.16em;
     text-transform: uppercase; color: var(--primary-soft-fg); margin-bottom: 6px;
   }
   h1.title {
-    font-size: 36px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; color: var(--fg);
+    font-size: 38px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.2; color: #ffffff;
   }
   .sub {
-    font-size: 16px; color: var(--muted-fg); line-height: 1.45; margin-top: 6px;
+    font-size: 17px; color: var(--muted-fg); line-height: 1.5; margin-top: 6px;
   }
 
   /* Body Container */
@@ -86,13 +87,13 @@
     display: flex;
     flex-direction: column;
     justify-content: stretch;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
   }
 
   /* Cards */
   .card {
     border: 1px solid var(--border);
-    border-radius: 14px;
+    border-radius: 16px;
     background: var(--card);
     padding: 22px 24px;
     display: flex;
@@ -104,8 +105,8 @@
     border-color: var(--primary-border);
   }
   .card h3 {
-    font-size: 19px; font-weight: 700; margin-bottom: 8px; color: var(--fg);
-    display: flex; align-items: center; gap: 8px;
+    font-size: 20px; font-weight: 700; margin-bottom: 8px; color: #ffffff;
+    display: flex; align-items: center; gap: 8px; letter-spacing: -0.01em;
   }
   .card p {
     font-size: 14.5px; line-height: 1.55; color: var(--muted-fg);
@@ -114,19 +115,22 @@
     list-style: none; padding: 0; margin: 0;
   }
   .card ul li {
-    font-size: 14px; line-height: 1.55; color: var(--muted-fg);
-    position: relative; padding-left: 15px; margin-bottom: 8px;
+    font-size: 14.5px; line-height: 1.55; color: var(--muted-fg);
+    position: relative; padding-left: 16px; margin-bottom: 8px;
   }
   .card ul li:last-child { margin-bottom: 0; }
   .card ul li::before {
     content: "•"; position: absolute; left: 0; color: var(--primary-soft-fg); font-weight: bold;
+  }
+  .card ul li strong {
+    color: #ffffff; font-weight: 600;
   }
 
   .card-footer-pill {
     margin-top: 14px;
     padding-top: 12px;
     border-top: 1px solid var(--border);
-    font-size: 13px;
+    font-size: 13.5px;
     font-weight: 600;
     color: var(--primary-soft-fg);
     display: flex;
@@ -158,17 +162,17 @@
   }
   .flow .card { flex: 1; }
   .chev {
-    align-self: center; color: var(--primary-soft-fg); font-size: 18px; font-weight: 700; flex: 0 0 auto;
+    align-self: center; color: var(--primary-soft-fg); font-size: 20px; font-weight: 700; flex: 0 0 auto;
   }
 
   /* Upstage Icons */
   .icon-node {
-    width: 38px; height: 38px; object-fit: contain; display: block; margin-bottom: 10px;
+    width: 40px; height: 40px; object-fit: contain; display: block; margin-bottom: 12px;
   }
 
   .step-num {
     font-family: "Geist Mono", ui-monospace, monospace;
-    font-size: 11px; font-weight: 600; color: var(--primary-soft-fg); letter-spacing: 0.08em;
+    font-size: 11.5px; font-weight: 700; color: var(--primary-soft-fg); letter-spacing: 0.08em;
     margin-bottom: 6px;
   }
 
@@ -179,27 +183,27 @@
 
   /* Compact Data Row */
   .data-block {
-    padding: 10px 14px; border-radius: 8px; background: rgba(0,0,0,0.3);
+    padding: 10px 14px; border-radius: 10px; background: rgba(0,0,0,0.3);
     border: 1px solid var(--border); margin-bottom: 10px;
   }
   .data-block:last-child { margin-bottom: 0; }
-  .data-label { font-size: 11px; font-weight: 700; color: var(--primary-soft-fg); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
-  .data-val { font-size: 13.5px; color: var(--fg); line-height: 1.45; }
+  .data-label { font-size: 11.5px; font-weight: 700; color: var(--primary-soft-fg); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .data-val { font-size: 14px; color: #ffffff; line-height: 1.5; }
 
   /* Comparison row */
   .comp-row {
-    padding: 12px 16px; border-radius: 8px; background: rgba(0,0,0,0.25);
-    border: 1px solid var(--border); margin-bottom: 12px;
+    padding: 11px 15px; border-radius: 10px; background: rgba(0,0,0,0.28);
+    border: 1px solid var(--border); margin-bottom: 10px;
   }
   .comp-row:last-child { margin-bottom: 0; }
-  .comp-label { font-size: 12px; font-weight: 700; color: var(--primary-soft-fg); margin-bottom: 4px; }
-  .comp-val { font-size: 13.5px; color: var(--fg); line-height: 1.45; }
+  .comp-label { font-size: 11.5px; font-weight: 700; color: var(--primary-soft-fg); margin-bottom: 3px; letter-spacing: 0.04em; }
+  .comp-val { font-size: 13.5px; color: #ffffff; line-height: 1.5; }
 
   /* Footer */
   .footer {
     position: absolute; left: 56px; right: 56px; bottom: 22px;
     display: flex; justify-content: space-between; align-items: center;
-    font-size: 12px; color: var(--muted-fg);
+    font-size: 12.5px; color: var(--muted-sub);
   }
   .logo-row { display: flex; align-items: center; gap: 8px; }
 </style>
@@ -248,81 +252,78 @@
 
 <!-- 2. Problem -->
 <section class="slide">
-  <div class="slide-header" style="margin-bottom:16px;">
+  <div class="slide-header">
     <p class="eyebrow">Problem</p>
     <h1 class="title">Notices are everywhere. Eligibility is not.</h1>
     <p class="sub">Students miss vital opportunities not from lack of listings, but from the exhausting cost of manual reading.</p>
   </div>
 
   <div class="slide-body">
-    <div style="display:grid;grid-template-columns:440px 1fr;gap:18px;height:100%;">
+    <div style="display:grid;grid-template-columns:440px 1fr;gap:20px;height:100%;">
       <!-- User Survey Card (3 Questions matched to 3 Pains) -->
-      <div class="card accent" style="padding:18px 20px;justify-content:space-between;">
+      <div class="card accent" style="padding:22px 24px;justify-content:space-between;">
         <div>
-          <div style="display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border-radius:6px;background:var(--primary-soft);border:1px solid var(--primary-border);margin-bottom:8px;">
-            <span style="font-size:10.5px;font-weight:700;color:var(--primary-soft-fg);letter-spacing:0.06em;text-transform:uppercase;">User Survey · N=20 Students (Age 20–21)</span>
+          <div style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:6px;background:var(--primary-soft);border:1px solid var(--primary-border);margin-bottom:12px;">
+            <span style="font-size:11.5px;font-weight:700;color:var(--primary-soft-fg);letter-spacing:0.06em;text-transform:uppercase;">User Survey · N=20 Students (Age 20–21)</span>
           </div>
-          <h3 style="font-size:15.5px;line-height:1.35;margin-bottom:2px;">“What is most painful when checking notices?”</h3>
-          <p style="font-size:11.5px;color:var(--muted-fg);margin-bottom:10px;">Multiple-choice survey on student notice exploration bottlenecks.</p>
+          <h3 style="font-size:18px;line-height:1.35;margin-bottom:4px;">“What is most painful when checking notices?”</h3>
+          <p style="font-size:13px;color:var(--muted-fg);margin-bottom:14px;">Multiple-choice survey on real notice search bottlenecks.</p>
 
           <!-- Survey Item 1 -> PAIN 01 -->
-          <div class="data-block" style="padding:8px 10px;background:rgba(0,0,0,0.35);margin-bottom:7px;border-color:var(--primary-border);">
-            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:2px;">
-              <span style="font-size:22px;font-weight:800;color:var(--primary-soft-fg);line-height:1;">70%</span>
-              <span style="font-size:11px;color:var(--muted-fg);font-weight:600;">14 / 20 students</span>
+          <div class="data-block" style="padding:10px 14px;background:rgba(0,0,0,0.35);margin-bottom:10px;border-color:var(--primary-border);">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:3px;">
+              <span style="font-size:26px;font-weight:800;color:var(--primary-soft-fg);line-height:1;">70%</span>
+              <span style="font-size:12.5px;color:var(--muted-fg);font-weight:600;">14 / 20 students</span>
             </div>
-            <div style="font-size:12.5px;color:var(--fg);font-weight:600;line-height:1.35;">Opening attachments & scanning long briefs</div>
-            <div style="font-size:10.5px;color:var(--muted-fg);margin-top:1px;">첨부파일(HWP/PDF/포스터) 열람 및 긴 공고 정독</div>
+            <div style="font-size:14px;color:#ffffff;font-weight:600;line-height:1.4;">Opening attachments & scanning long briefs (HWP/PDF)</div>
           </div>
 
           <!-- Survey Item 2 -> PAIN 02 -->
-          <div class="data-block" style="padding:8px 10px;background:rgba(0,0,0,0.35);margin-bottom:7px;border-color:var(--primary-border);">
-            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:2px;">
-              <span style="font-size:22px;font-weight:800;color:var(--primary-soft-fg);line-height:1;">65%</span>
-              <span style="font-size:11px;color:var(--muted-fg);font-weight:600;">13 / 20 students</span>
+          <div class="data-block" style="padding:10px 14px;background:rgba(0,0,0,0.35);margin-bottom:10px;border-color:var(--primary-border);">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:3px;">
+              <span style="font-size:26px;font-weight:800;color:var(--primary-soft-fg);line-height:1;">65%</span>
+              <span style="font-size:12.5px;color:var(--muted-fg);font-weight:600;">13 / 20 students</span>
             </div>
-            <div style="font-size:12.5px;color:var(--fg);font-weight:600;line-height:1.35;">Verifying buried qualification clauses</div>
-            <div style="font-size:10.5px;color:var(--muted-fg);margin-top:1px;">본문 속 흩어진 지원 자격(학년·전공·나이) 확인</div>
+            <div style="font-size:14px;color:#ffffff;font-weight:600;line-height:1.4;">Verifying buried qualification clauses in dense text</div>
           </div>
 
           <!-- Survey Item 3 -> PAIN 03 -->
-          <div class="data-block" style="padding:8px 10px;background:rgba(0,0,0,0.35);margin-bottom:0;border-color:var(--primary-border);">
-            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:2px;">
-              <span style="font-size:22px;font-weight:800;color:var(--primary-soft-fg);line-height:1;">55%</span>
-              <span style="font-size:11px;color:var(--muted-fg);font-weight:600;">11 / 20 students</span>
+          <div class="data-block" style="padding:10px 14px;background:rgba(0,0,0,0.35);margin-bottom:0;border-color:var(--primary-border);">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:3px;">
+              <span style="font-size:26px;font-weight:800;color:var(--primary-soft-fg);line-height:1;">55%</span>
+              <span style="font-size:12.5px;color:var(--muted-fg);font-weight:600;">11 / 20 students</span>
             </div>
-            <div style="font-size:12.5px;color:var(--fg);font-weight:600;line-height:1.35;">Finding opportunities matching personal profile</div>
-            <div style="font-size:10.5px;color:var(--muted-fg);margin-top:1px;">내 스펙·관심사에 맞는 공고 탐색 & 적합도 비교</div>
+            <div style="font-size:14px;color:#ffffff;font-weight:600;line-height:1.4;">Finding opportunities matching personal profile</div>
           </div>
         </div>
-        <div class="card-footer-pill" style="color:var(--primary-soft-fg);font-size:11px;margin-top:6px;padding-top:6px;">
+        <div class="card-footer-pill" style="color:var(--primary-soft-fg);font-size:13px;margin-top:10px;padding-top:10px;">
           Empirical Validation: Format, Eligibility & Matching Friction
         </div>
       </div>
 
       <!-- 3 Structural Pain Points directly mapped to survey -->
-      <div style="display:grid;grid-template-rows:repeat(3, 1fr);gap:10px;">
-        <div class="card" style="padding:14px 18px;justify-content:center;">
+      <div style="display:grid;grid-template-rows:repeat(3, 1fr);gap:12px;">
+        <div class="card" style="padding:16px 20px;justify-content:center;">
           <div>
-            <div class="step-num" style="margin-bottom:2px;">PAIN 01 · 70% OF STUDENTS</div>
-            <h3 style="font-size:15px;margin-bottom:3px;">Unstructured PDF, HWP, & Poster Formats</h3>
-            <p style="font-size:12.5px;color:var(--muted-fg);line-height:1.4;">Scattered across attachments and image posters that keyword search engines and bulletin boards cannot parse.</p>
+            <div class="step-num" style="margin-bottom:3px;">PAIN 01 · 70% OF STUDENTS</div>
+            <h3 style="font-size:17px;margin-bottom:4px;">Unstructured PDF, HWP, & Poster Formats</h3>
+            <p style="font-size:14px;color:var(--muted-fg);line-height:1.5;">Scattered across attachments and image posters that search engines and bulletin boards cannot parse.</p>
           </div>
         </div>
 
-        <div class="card" style="padding:14px 18px;justify-content:center;">
+        <div class="card" style="padding:16px 20px;justify-content:center;">
           <div>
-            <div class="step-num" style="margin-bottom:2px;">PAIN 02 · 65% OF STUDENTS</div>
-            <h3 style="font-size:15px;margin-bottom:3px;">Buried Qualification Clauses in Dense Briefs</h3>
-            <p style="font-size:12.5px;color:var(--muted-fg);line-height:1.4;">Crucial rules ("under 29", "no 4th years", "IT only") hidden in multi-page guidelines, discovered only after full reading.</p>
+            <div class="step-num" style="margin-bottom:3px;">PAIN 02 · 65% OF STUDENTS</div>
+            <h3 style="font-size:17px;margin-bottom:4px;">Buried Qualification Clauses in Multi-Page Briefs</h3>
+            <p style="font-size:14px;color:var(--muted-fg);line-height:1.5;">Crucial rules ("under 29", "no 4th years", "IT only") hidden in dense guidelines, discovered only after full reading.</p>
           </div>
         </div>
 
-        <div class="card" style="padding:14px 18px;justify-content:center;">
+        <div class="card" style="padding:16px 20px;justify-content:center;">
           <div>
-            <div class="step-num" style="margin-bottom:2px;">PAIN 03 · 55% OF STUDENTS</div>
-            <h3 style="font-size:15px;margin-bottom:3px;">15–30 Min Matching Overhead per Opportunity</h3>
-            <p style="font-size:12.5px;color:var(--muted-fg);line-height:1.4;">Manual cross-checking across dozens of opportunities wastes hours of repetitive work on ineligible competitions.</p>
+            <div class="step-num" style="margin-bottom:3px;">PAIN 03 · 55% OF STUDENTS</div>
+            <h3 style="font-size:17px;margin-bottom:4px;">15–30 Min Matching Overhead per Opportunity</h3>
+            <p style="font-size:14px;color:var(--muted-fg);line-height:1.5;">Manual cross-checking across dozens of opportunities wastes hours of repetitive work on ineligible competitions.</p>
           </div>
         </div>
       </div>
@@ -334,64 +335,64 @@
 
 <!-- 3. Insight -->
 <section class="slide">
-  <div class="slide-header" style="margin-bottom:16px;">
+  <div class="slide-header">
     <p class="eyebrow">Insight</p>
     <h1 class="title">The bottleneck is reading, not listing</h1>
     <p class="sub">Existing aggregators stop at collecting links. The real friction begins after you click.</p>
   </div>
 
   <div class="slide-body">
-    <div class="grid2" style="gap:16px;">
-      <div class="card" style="padding:18px 20px;">
-        <div style="margin-bottom:10px;">
-          <div style="color:var(--red);font-size:11px;font-weight:700;letter-spacing:0.06em;margin-bottom:2px;">EXISTING NOTICE BOARDS</div>
-          <h3 style="font-size:17px;">List Aggregators (Wevity, ContestKorea)</h3>
+    <div class="grid2" style="gap:20px;">
+      <div class="card" style="padding:22px 24px;">
+        <div style="margin-bottom:12px;">
+          <div style="color:var(--red);font-size:11.5px;font-weight:700;letter-spacing:0.06em;margin-bottom:3px;">EXISTING NOTICE BOARDS</div>
+          <h3 style="font-size:19px;">List Aggregators (Wevity, ContestKorea)</h3>
         </div>
         <div>
-          <div class="comp-row" style="padding:9px 12px;margin-bottom:8px;">
-            <div class="comp-label" style="font-size:11px;margin-bottom:2px;">DOCUMENT ACCESS</div>
-            <div class="comp-val" style="font-size:12.5px;">Hands you raw attachments. You must download and read HWP/PDFs yourself.</div>
+          <div class="comp-row">
+            <div class="comp-label">DOCUMENT ACCESS</div>
+            <div class="comp-val">Hands you raw attachments. You must download and read HWP/PDFs yourself.</div>
           </div>
-          <div class="comp-row" style="padding:9px 12px;margin-bottom:8px;">
-            <div class="comp-label" style="font-size:11px;margin-bottom:2px;">ELIGIBILITY CHECK</div>
-            <div class="comp-val" style="font-size:12.5px;">100% manual check. User spends 15–30 minutes deciphering complex clauses.</div>
+          <div class="comp-row">
+            <div class="comp-label">ELIGIBILITY CHECK</div>
+            <div class="comp-val">100% manual check. User spends 15–30 minutes deciphering complex clauses.</div>
           </div>
-          <div class="comp-row" style="padding:9px 12px;margin-bottom:8px;">
-            <div class="comp-label" style="font-size:11px;margin-bottom:2px;">RECOMMENDATION</div>
-            <div class="comp-val" style="font-size:12.5px;">Generic category tags with zero awareness of your actual skills or profile.</div>
+          <div class="comp-row">
+            <div class="comp-label">RECOMMENDATION</div>
+            <div class="comp-val">Generic category tags with zero awareness of your actual skills or profile.</div>
           </div>
-          <div class="comp-row" style="padding:9px 12px;margin-bottom:0;background:rgba(248,113,113,0.08);border-color:rgba(248,113,113,0.25);">
-            <div class="comp-label" style="color:var(--red);font-size:11px;margin-bottom:2px;">TIME TO FIND 5 MATCHING NOTICES (5 BETA TESTERS)</div>
-            <div class="comp-val" style="font-size:12.5px;"><strong style="font-size:15px;color:var(--red);">~23 Minutes</strong> · Manual skimming across 15+ tabs and attachments</div>
+          <div class="comp-row" style="background:rgba(248,113,113,0.08);border-color:rgba(248,113,113,0.3);margin-bottom:0;">
+            <div class="comp-label" style="color:var(--red);">TIME TO FIND 5 MATCHING NOTICES (5 BETA TESTERS)</div>
+            <div class="comp-val"><strong style="font-size:17px;color:var(--red);">~23 Minutes</strong> · Manual skimming across 15+ tabs and attachments</div>
           </div>
         </div>
-        <div class="card-footer-pill" style="color:var(--red);margin-top:10px;padding-top:10px;font-size:12px;">Outcome: 23 min wasted on disqualified briefs</div>
+        <div class="card-footer-pill" style="color:var(--red);">Outcome: 23 min wasted on disqualified briefs</div>
       </div>
 
-      <div class="card accent" style="padding:18px 20px;">
-        <div style="margin-bottom:10px;">
-          <div style="color:var(--primary-soft-fg);font-size:11px;font-weight:700;letter-spacing:0.06em;margin-bottom:2px;">MOABORA DOCUMENT AGENT</div>
-          <h3 style="font-size:17px;">Autonomous Document Agent</h3>
+      <div class="card accent" style="padding:22px 24px;">
+        <div style="margin-bottom:12px;">
+          <div style="color:var(--primary-soft-fg);font-size:11.5px;font-weight:700;letter-spacing:0.06em;margin-bottom:3px;">MOABORA DOCUMENT AGENT</div>
+          <h3 style="font-size:19px;">Autonomous Document Agent</h3>
         </div>
         <div>
-          <div class="comp-row" style="padding:9px 12px;margin-bottom:8px;">
-            <div class="comp-label" style="font-size:11px;margin-bottom:2px;">DOCUMENT ACCESS</div>
-            <div class="comp-val" style="font-size:12.5px;">Upstage AI reads & structures HWP, PDF, and poster images automatically.</div>
+          <div class="comp-row">
+            <div class="comp-label">DOCUMENT ACCESS</div>
+            <div class="comp-val">Upstage AI reads & structures HWP, PDF, and poster images automatically.</div>
           </div>
-          <div class="comp-row" style="padding:9px 12px;margin-bottom:8px;">
-            <div class="comp-label" style="font-size:11px;margin-bottom:2px;">ELIGIBILITY CHECK</div>
-            <div class="comp-val" style="font-size:12.5px;">Instant 6-rule matching (<span class="badge green" style="padding:1px 5px;font-size:10px;">Eligible</span> <span class="badge amber" style="padding:1px 5px;font-size:10px;">Review</span> <span class="badge red" style="padding:1px 5px;font-size:10px;">Ineligible</span>) with explicit reasons.</div>
+          <div class="comp-row">
+            <div class="comp-label">ELIGIBILITY CHECK</div>
+            <div class="comp-val">Instant 6-rule matching (<span class="badge green">Eligible</span> <span class="badge amber">Review</span> <span class="badge red">Ineligible</span>) with explicit reasons.</div>
           </div>
-          <div class="comp-row" style="padding:9px 12px;margin-bottom:8px;">
-            <div class="comp-label" style="font-size:11px;margin-bottom:2px;">RECOMMENDATION</div>
-            <div class="comp-val" style="font-size:12.5px;">Solar Pro 4 calculates personalized fit score (0–100) + tailored rationale.</div>
+          <div class="comp-row">
+            <div class="comp-label">RECOMMENDATION</div>
+            <div class="comp-val">Solar Pro 4 calculates personalized fit score (0–100) + tailored rationale.</div>
           </div>
-          <div class="comp-row" style="padding:9px 12px;margin-bottom:0;background:rgba(52,211,153,0.08);border-color:rgba(52,211,153,0.25);">
-            <div class="comp-label" style="color:var(--emerald);font-size:11px;margin-bottom:2px;">TIME TO FIND 5 MATCHING NOTICES (5 BETA TESTERS)</div>
-            <div class="comp-val" style="font-size:12.5px;"><strong style="font-size:15px;color:var(--emerald);">~5 Minutes</strong> · <span style="color:var(--emerald);font-weight:700;">78% time saved (4.6× faster)</span> via auto-verdicts & Solar fit</div>
+          <div class="comp-row" style="background:rgba(52,211,153,0.08);border-color:rgba(52,211,153,0.3);margin-bottom:0;">
+            <div class="comp-label" style="color:var(--emerald);">TIME TO FIND 5 MATCHING NOTICES (5 BETA TESTERS)</div>
+            <div class="comp-val"><strong style="font-size:17px;color:var(--emerald);">~5 Minutes</strong> · <span style="color:var(--emerald);font-weight:700;">78% time saved (4.6× faster)</span> via auto-verdicts & Solar fit</div>
           </div>
         </div>
-        <div class="card-footer-pill" style="color:var(--emerald);margin-top:10px;padding-top:10px;font-size:12px;">Outcome: Instant Verdict & Submission Checklist</div>
+        <div class="card-footer-pill" style="color:var(--emerald);">Outcome: Instant Verdict & Submission Checklist</div>
       </div>
     </div>
   </div>
@@ -412,11 +413,11 @@
 
   <div class="slide-body">
     <div class="flow">
-      <div class="card">
+      <div class="card" style="padding:24px;">
         <div>
           <div class="step-num">TIER 01</div>
-          <h3>Understand</h3>
-          <p style="color:var(--primary-soft-fg);font-size:13px;font-weight:600;margin-bottom:10px;">Document Intelligence</p>
+          <h3 style="font-size:22px;margin-bottom:4px;">Understand</h3>
+          <p style="color:var(--primary-soft-fg);font-size:14px;font-weight:600;margin-bottom:14px;">Document Intelligence</p>
           <div class="data-block">
             <div class="data-label">Supported Ingest</div>
             <div class="data-val">PDF briefs, HWP attachments, image posters, web HTML.</div>
@@ -431,11 +432,11 @@
 
       <div class="chev">→</div>
 
-      <div class="card accent">
+      <div class="card accent" style="padding:24px;">
         <div>
           <div class="step-num">TIER 02</div>
-          <h3>Judge</h3>
-          <p style="color:var(--primary-soft-fg);font-size:13px;font-weight:600;margin-bottom:10px;">Eligibility Engine</p>
+          <h3 style="font-size:22px;margin-bottom:4px;">Judge</h3>
+          <p style="color:var(--primary-soft-fg);font-size:14px;font-weight:600;margin-bottom:14px;">Eligibility Engine</p>
           <div class="data-block">
             <div class="data-label">Rule Extraction</div>
             <div class="data-val">Grade, enrollment, age limit, major, region, team size.</div>
@@ -450,18 +451,18 @@
 
       <div class="chev">→</div>
 
-      <div class="card">
+      <div class="card" style="padding:24px;">
         <div>
           <div class="step-num">TIER 03</div>
-          <h3>Act</h3>
-          <p style="color:var(--primary-soft-fg);font-size:13px;font-weight:600;margin-bottom:10px;">Prioritize & Execute</p>
+          <h3 style="font-size:22px;margin-bottom:4px;">Act</h3>
+          <p style="color:var(--primary-soft-fg);font-size:14px;font-weight:600;margin-bottom:14px;">Prioritize & Execute</p>
           <div class="data-block">
             <div class="data-label">Solar Fit Score</div>
             <div class="data-val">0–100 match rating + personalized 1-sentence rationale.</div>
           </div>
           <div class="data-block">
             <div class="data-label">Preparation</div>
-            <div class="data-val">Checklist, 1-click apply, and Open in Document Chat with the source file attached.</div>
+            <div class="data-val">Checklist, 1-click apply, and Notice → Doc Chat handoff.</div>
           </div>
         </div>
         <div class="card-footer-pill">Output: Fit Score + Submission Checklist</div>
@@ -481,50 +482,50 @@
   </div>
 
   <div class="slide-body">
-    <div class="grid2x2">
-      <div class="card">
+    <div class="grid2x2" style="gap:20px;">
+      <div class="card" style="padding:22px 24px;">
         <div>
           <div class="step-num">STEP 01 · 1-MINUTE ONBOARDING</div>
-          <h3>Profile Creation</h3>
+          <h3 style="font-size:20px;margin-bottom:10px;">Profile Creation</h3>
           <ul>
-            <li>Certificate (UIE), GitHub/blog link, manual fields, or a short bio (Solar).</li>
-            <li>Merges university, year, status, skills, and interests from any path.</li>
+            <li><strong>Multi-Channel Input:</strong> Certificate (UIE), GitHub/blog link, manual fields, or short note (Solar).</li>
+            <li><strong>Unified Storage:</strong> Merges university, year, status, skills, and interests into a single profile.</li>
           </ul>
         </div>
         <div class="card-footer-pill">Deliverable: Verified Student Profile</div>
       </div>
 
-      <div class="card">
+      <div class="card" style="padding:22px 24px;">
         <div>
           <div class="step-num">STEP 02 · MULTI-CHANNEL INGEST</div>
-          <h3>Notice Collection</h3>
+          <h3 style="font-size:20px;margin-bottom:10px;">Notice Collection</h3>
           <ul>
-            <li>Drag & drop PDF / HWP files, paste announcement URLs, or 1-click crawler.</li>
-            <li>Automated collection from Wevity and ContestKorea with HWP attachment download.</li>
+            <li><strong>Flexible Ingest:</strong> Drag & drop PDF / HWP files, paste announcement URLs, or 1-click crawler.</li>
+            <li><strong>Automated Crawling:</strong> Direct collection from Wevity and ContestKorea with HWP extraction.</li>
           </ul>
         </div>
         <div class="card-footer-pill">Deliverable: Multi-Modal Ingestion Pipeline</div>
       </div>
 
-      <div class="card">
+      <div class="card" style="padding:22px 24px;">
         <div>
           <div class="step-num">STEP 03 · PERSONALIZED RANKING</div>
-          <h3>Feed & Fit Scoring</h3>
+          <h3 style="font-size:20px;margin-bottom:10px;">Feed & Fit Scoring</h3>
           <ul>
-            <li>Feed displays instant eligibility status badges (<span class="badge green">Eligible</span> <span class="badge amber">Review</span> <span class="badge red">Ineligible</span>).</li>
-            <li>Solar Pro 4 calculates tailored fit score (0–100) with personalized match reasons.</li>
+            <li><strong>Instant Verdicts:</strong> Live eligibility badges (<span class="badge green">Eligible</span> <span class="badge amber">Review</span> <span class="badge red">Ineligible</span>) on every card.</li>
+            <li><strong>Solar Pro 4 Fit:</strong> Tailored fit score (0–100) with personalized match rationale.</li>
           </ul>
         </div>
         <div class="card-footer-pill">Deliverable: Intelligent Ranked Opportunity Feed</div>
       </div>
 
-      <div class="card">
+      <div class="card" style="padding:22px 24px;">
         <div>
           <div class="step-num">STEP 04 · PREPARATION & ACTION</div>
-          <h3>Execution & Doc Chat</h3>
+          <h3 style="font-size:20px;margin-bottom:10px;">Execution & Doc Chat</h3>
           <ul>
-            <li>Review items become a confirm-checklist when the verdict is Needs review.</li>
-            <li>Open in Document Chat from the notice — source file attached, prompt pre-filled.</li>
+            <li><strong>Review Checklist:</strong> Ambiguous clauses flagged for human verification before apply.</li>
+            <li><strong>Context Handoff:</strong> 1-click transition to Document Chat with source file attached and prompts filled.</li>
           </ul>
         </div>
         <div class="card-footer-pill">Deliverable: Verified Application Submission</div>
@@ -545,11 +546,11 @@
 
   <div class="slide-body">
     <div class="flow">
-      <div class="card">
+      <div class="card" style="padding:22px 20px;">
         <div>
           <img alt="Document Parse" class="icon-node" src="assets/document-parse.svg" />
           <div class="step-num">NODE 01</div>
-          <h3>Parse</h3>
+          <h3 style="font-size:22px;margin-bottom:12px;">Parse</h3>
           <div class="data-block">
             <div class="data-label">Engine</div>
             <div class="data-val">Upstage Document AI with OCR.</div>
@@ -564,11 +565,11 @@
 
       <div class="chev">→</div>
 
-      <div class="card">
+      <div class="card" style="padding:22px 20px;">
         <div>
           <img alt="Studio Agents" class="icon-node" src="assets/studio-agents.svg" />
           <div class="step-num">NODE 02</div>
-          <h3>Classify</h3>
+          <h3 style="font-size:22px;margin-bottom:12px;">Classify</h3>
           <div class="data-block">
             <div class="data-label">Engine</div>
             <div class="data-val">Custom 6-Class Prompt Classifier.</div>
@@ -583,11 +584,11 @@
 
       <div class="chev">→</div>
 
-      <div class="card">
+      <div class="card" style="padding:22px 20px;">
         <div>
           <img alt="Information Extract" class="icon-node" src="assets/information-extract.svg" />
           <div class="step-num">NODE 03</div>
-          <h3>Extract</h3>
+          <h3 style="font-size:22px;margin-bottom:12px;">Extract</h3>
           <div class="data-block">
             <div class="data-label">Engine</div>
             <div class="data-val">10-Field Information Extraction.</div>
@@ -602,11 +603,11 @@
 
       <div class="chev">→</div>
 
-      <div class="card">
+      <div class="card" style="padding:22px 20px;">
         <div>
           <img alt="Solar" class="icon-node" src="assets/solar-llm.svg" />
           <div class="step-num">NODE 04</div>
-          <h3>Instruct</h3>
+          <h3 style="font-size:22px;margin-bottom:12px;">Instruct</h3>
           <div class="data-block">
             <div class="data-label">Engine</div>
             <div class="data-val">Solar Decision Logic & Synthesis.</div>
@@ -622,7 +623,7 @@
   </div>
 
   <div class="footer">
-    <span style="font-family:'Geist Mono', monospace;font-size:11px;color:var(--muted-fg);">REST API: POST /v2/files → POST /v2/responses → Polling snapshot accumulator</span>
+    <span style="font-family:'Geist Mono', monospace;font-size:12px;color:var(--muted-fg);">REST API: POST /v2/files → POST /v2/responses → Polling snapshot accumulator</span>
     <span>6</span>
   </div>
 </section>
@@ -636,11 +637,11 @@
   </div>
 
   <div class="slide-body">
-    <div class="grid4">
-      <div class="card accent">
+    <div class="grid4" style="gap:18px;">
+      <div class="card accent" style="padding:22px 20px;">
         <div>
           <img alt="Studio Agents" class="icon-node" src="assets/studio-agents.svg" />
-          <h3>Studio Agents</h3>
+          <h3 style="font-size:21px;margin-bottom:12px;">Studio Agents</h3>
           <div class="data-block">
             <div class="data-label">Primary Role</div>
             <div class="data-val">Core 4-Node Notice Processing Pipeline (`agt_...`).</div>
@@ -653,10 +654,10 @@
         <div class="card-footer-pill">REST /v2/responses</div>
       </div>
 
-      <div class="card">
+      <div class="card" style="padding:22px 20px;">
         <div>
           <img alt="Document Parse" class="icon-node" src="assets/document-parse.svg" />
-          <h3>Document Parse</h3>
+          <h3 style="font-size:21px;margin-bottom:12px;">Document Parse</h3>
           <div class="data-block">
             <div class="data-label">Primary Role</div>
             <div class="data-val">High-Precision OCR & Layout Analysis.</div>
@@ -669,10 +670,10 @@
         <div class="card-footer-pill">/v1/document-digitization</div>
       </div>
 
-      <div class="card">
+      <div class="card" style="padding:22px 20px;">
         <div>
           <img alt="Information Extract" class="icon-node" src="assets/information-extract.svg" />
-          <h3>Information Extract</h3>
+          <h3 style="font-size:21px;margin-bottom:12px;">Information Extract</h3>
           <div class="data-block">
             <div class="data-label">Primary Role</div>
             <div class="data-val">Zero-Shot Schema-Driven Document Extraction.</div>
@@ -685,10 +686,10 @@
         <div class="card-footer-pill">/v1/information-extraction</div>
       </div>
 
-      <div class="card">
+      <div class="card" style="padding:22px 20px;">
         <div>
           <img alt="Solar Pro 4" class="icon-node" src="assets/solar-llm.svg" />
-          <h3>Solar Pro 4</h3>
+          <h3 style="font-size:21px;margin-bottom:12px;">Solar Pro 4</h3>
           <div class="data-block">
             <div class="data-label">Primary Role</div>
             <div class="data-val">Decision Intelligence & Multi-Tool Orchestration.</div>
@@ -715,57 +716,57 @@
   </div>
 
   <div class="slide-body">
-    <div class="grid2x3">
-      <div class="card">
+    <div class="grid2x3" style="gap:18px;">
+      <div class="card" style="padding:20px 22px;">
         <div>
           <div class="step-num">ROBUSTNESS</div>
-          <h3>JSON Sanitization</h3>
-          <p>Pre-processes double-encoded Studio Instruct outputs and strips citation markers (【†1】) seamlessly.</p>
+          <h3 style="font-size:18.5px;margin-bottom:6px;">JSON Sanitization</h3>
+          <p style="font-size:14px;line-height:1.55;">Pre-processes double-encoded Studio Instruct outputs and strips citation markers (【†1】) seamlessly.</p>
         </div>
         <div class="card-footer-pill">Parser Resilience</div>
       </div>
 
-      <div class="card">
+      <div class="card" style="padding:20px 22px;">
         <div>
           <div class="step-num">STATE MANAGEMENT</div>
-          <h3>Snapshot Accumulation</h3>
-          <p>Maintains an accumulating map across Studio polling snapshots so intermediate node outputs are preserved.</p>
+          <h3 style="font-size:18.5px;margin-bottom:6px;">Snapshot Accumulation</h3>
+          <p style="font-size:14px;line-height:1.55;">Maintains an accumulating map across Studio polling snapshots so intermediate node outputs are preserved.</p>
         </div>
         <div class="card-footer-pill">Full Node Visibility</div>
       </div>
 
-      <div class="card">
+      <div class="card" style="padding:20px 22px;">
         <div>
           <div class="step-num">TRANSPARENCY</div>
-          <h3>Live NDJSON Streams</h3>
-          <p>Streams pipeline stages, intermediate artifacts, and Solar reasoning tokens in real time to the client.</p>
+          <h3 style="font-size:18.5px;margin-bottom:6px;">Live NDJSON Streams</h3>
+          <p style="font-size:14px;line-height:1.55;">Streams pipeline stages, intermediate artifacts, and Solar reasoning tokens in real time to the client.</p>
         </div>
         <div class="card-footer-pill">Streamed Reasoning</div>
       </div>
 
-      <div class="card">
+      <div class="card" style="padding:20px 22px;">
         <div>
           <div class="step-num">RELIABILITY</div>
-          <h3>Resumable Sessions</h3>
-          <p>Server-side workflow sessions survive browser refreshes, preventing duplicate execution and billing.</p>
+          <h3 style="font-size:18.5px;margin-bottom:6px;">Resumable Sessions</h3>
+          <p style="font-size:14px;line-height:1.55;">Server-side workflow sessions survive browser refreshes, preventing duplicate execution and billing.</p>
         </div>
         <div class="card-footer-pill">Refresh-Safe Architecture</div>
       </div>
 
-      <div class="card">
+      <div class="card" style="padding:20px 22px;">
         <div>
           <div class="step-num">OPTIMIZATION</div>
-          <h3>Dual-Layer Caching</h3>
-          <p>SHA-256 document parse cache + profile/notice hash-keyed Solar recommendation cache avoids redundant calls.</p>
+          <h3 style="font-size:18.5px;margin-bottom:6px;">Dual-Layer Caching</h3>
+          <p style="font-size:14px;line-height:1.55;">SHA-256 document parse cache + profile/notice hash-keyed Solar recommendation cache avoids redundant calls.</p>
         </div>
         <div class="card-footer-pill">Cost & Latency Control</div>
       </div>
 
-      <div class="card">
+      <div class="card" style="padding:20px 22px;">
         <div>
           <div class="step-num">ACCURACY</div>
-          <h3>Deterministic Matcher</h3>
-          <p>Evaluates 6 criteria (grade, status, age, major, region, team) with clear per-rule reason breakdown.</p>
+          <h3 style="font-size:18.5px;margin-bottom:6px;">Deterministic Matcher</h3>
+          <p style="font-size:14px;line-height:1.55;">Evaluates 6 criteria (grade, status, age, major, region, team) with clear per-rule reason breakdown.</p>
         </div>
         <div class="card-footer-pill">Explainable AI Verdict</div>
       </div>
@@ -784,45 +785,45 @@
   </div>
 
   <div class="slide-body">
-    <div class="grid3">
-      <div class="card">
+    <div class="grid3" style="gap:20px;">
+      <div class="card" style="padding:24px;">
         <div>
           <div style="color:var(--emerald);font-size:12px;font-weight:700;letter-spacing:0.06em;margin-bottom:4px;">SHIPPED MVP</div>
-          <h3>Delivered in 3 Days</h3>
+          <h3 style="font-size:21px;margin-bottom:12px;">Delivered in 3 Days</h3>
           <ul style="margin-top:10px;">
-            <li>3 Ingest paths (Files, URLs, 2-site Crawlers).</li>
-            <li>4-node Studio Agent with full error handling.</li>
-            <li>3 profile paths (link, certificate, manual) + Solar note fill.</li>
-            <li>Eligibility engine + Review checklist for ambiguous clauses.</li>
-            <li>Live NDJSON streams & Doc Chat (notice handoff + 3 tools).</li>
-            <li>Supabase Cloud storage + Docker deployment.</li>
+            <li><strong>3 Ingest paths:</strong> Files, URLs, 2-site Crawlers.</li>
+            <li><strong>4-node Studio Agent:</strong> Full error handling.</li>
+            <li><strong>3 profile paths:</strong> Link, certificate, manual + Solar.</li>
+            <li><strong>Eligibility engine:</strong> 6 rules + Review checklist.</li>
+            <li><strong>NDJSON streams & Chat:</strong> Notice handoff + 3 tools.</li>
+            <li><strong>Supabase Cloud:</strong> Full Docker deployment.</li>
           </ul>
         </div>
         <div class="card-footer-pill" style="color:var(--emerald);">100% Production Ready</div>
       </div>
 
-      <div class="card">
+      <div class="card" style="padding:24px;">
         <div>
           <div style="color:var(--muted-fg);font-size:12px;font-weight:700;letter-spacing:0.06em;margin-bottom:4px;">CONSCIOUSLY SCOPED OUT</div>
-          <h3>Deferred Complexity</h3>
+          <h3 style="font-size:21px;margin-bottom:12px;">Deferred Complexity</h3>
           <ul style="margin-top:10px;">
-            <li><strong>Multi-Tenant Auth:</strong> Single-profile demonstration model.</li>
-            <li><strong>Push Notifications:</strong> Excluded background email/push daemons.</li>
-            <li><strong>Scheduled Crawlers:</strong> Manual trigger-based crawling only.</li>
+            <li><strong>Multi-Tenant Auth:</strong> Single-profile demo model.</li>
+            <li><strong>Push Notifications:</strong> Excluded email/push daemons.</li>
+            <li><strong>Scheduled Crawlers:</strong> Manual trigger crawling only.</li>
           </ul>
         </div>
         <div class="card-footer-pill" style="color:var(--muted-fg);">Avoided Low-Demo Bloat</div>
       </div>
 
-      <div class="card accent">
+      <div class="card accent" style="padding:24px;">
         <div>
           <div style="color:var(--primary-soft-fg);font-size:12px;font-weight:700;letter-spacing:0.06em;margin-bottom:4px;">NEXT MILESTONES</div>
-          <h3>Production Roadmap</h3>
+          <h3 style="font-size:21px;margin-bottom:12px;">Production Roadmap</h3>
           <ul style="margin-top:10px;">
-            <li><strong>Multi-User Auth:</strong> Supabase Auth + RLS (schema is RLS-ready).</li>
-            <li><strong>Proactive Alerts:</strong> D-3 deadline notifications via Telegram/Discord.</li>
-            <li><strong>Application Drafts:</strong> Solar-assisted personal statement generator.</li>
-            <li><strong>Team Matching:</strong> Connect students applying to the same contest.</li>
+            <li><strong>Multi-User Auth:</strong> Supabase Auth + RLS ready.</li>
+            <li><strong>Proactive Alerts:</strong> D-3 deadline telegram alerts.</li>
+            <li><strong>Application Drafts:</strong> Solar statement writer.</li>
+            <li><strong>Team Matching:</strong> Connect fellow applicants.</li>
           </ul>
         </div>
         <div class="card-footer-pill" style="color:var(--primary-soft-fg);">Clear Scaling Path</div>
@@ -842,10 +843,10 @@
   </div>
 
   <div class="slide-body">
-    <div class="grid2x2">
-      <div class="card">
+    <div class="grid2x2" style="gap:20px;">
+      <div class="card" style="padding:22px 24px;">
         <div>
-          <h3 style="margin-bottom:8px;">Upstage Technology</h3>
+          <h3 style="font-size:20px;margin-bottom:10px;">Upstage Technology</h3>
           <ul>
             <li>Custom 4-node Studio Agent (`agt_...`) via REST v2 APIs without bypass.</li>
             <li>Production deployment of all 4 Upstage product lines.</li>
@@ -855,9 +856,9 @@
         <div class="card-footer-pill">Max Technical Complexity</div>
       </div>
 
-      <div class="card">
+      <div class="card" style="padding:22px 24px;">
         <div>
-          <h3 style="margin-bottom:8px;">Service Completeness</h3>
+          <h3 style="font-size:20px;margin-bottom:10px;">Service Completeness</h3>
           <ul>
             <li>End-to-end loop: Landing → Profile → Crawl/Ingest → Feed → Detail → Chat.</li>
             <li>Live data from Wevity & ContestKorea with real HWP attachments.</li>
@@ -867,9 +868,9 @@
         <div class="card-footer-pill">Full Production Loop</div>
       </div>
 
-      <div class="card">
+      <div class="card" style="padding:22px 24px;">
         <div>
-          <h3 style="margin-bottom:8px;">Idea Creativity</h3>
+          <h3 style="font-size:20px;margin-bottom:10px;">Idea Creativity</h3>
           <ul>
             <li>Shifting paradigm from "Listing links" to "Delivering application verdicts".</li>
             <li>Reads HWP attachments and posters that traditional aggregators skip.</li>
@@ -879,9 +880,9 @@
         <div class="card-footer-pill">Novel Problem Framing</div>
       </div>
 
-      <div class="card">
+      <div class="card" style="padding:22px 24px;">
         <div>
-          <h3 style="margin-bottom:8px;">Product Planning</h3>
+          <h3 style="font-size:20px;margin-bottom:10px;">Product Planning</h3>
           <ul>
             <li>Clear problem focus: Relieving student document fatigue.</li>
             <li>Thoughtful MVP scoping with explicit trade-offs and roadmap.</li>
@@ -905,9 +906,16 @@
   </div>
 
   <div class="slide-body" style="justify-content:center;align-items:center;">
-    <a href="https://moabora.sharp0802.com" target="_blank" style="font-family:Espeak, Geist, sans-serif;font-size:52px;font-weight:700;letter-spacing:-0.02em;color:#fff;text-decoration:none;display:inline-flex;align-items:center;gap:12px;">
-      <span style="color:var(--primary-soft-fg);">https://</span>moabora.sharp0802.com
-    </a>
+    <div style="display:inline-flex;flex-direction:column;align-items:center;gap:18px;padding:48px 64px;border-radius:24px;background:rgba(255,255,255,0.02);border:1px solid var(--primary-border);">
+      <div style="display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:20px;background:var(--emerald-bg);border:1px solid rgba(52,211,153,0.3);">
+        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--emerald);"></span>
+        <span style="font-size:13px;font-weight:700;color:var(--emerald);letter-spacing:0.06em;text-transform:uppercase;">Live Production Service</span>
+      </div>
+      <a href="https://moabora.sharp0802.com" target="_blank" style="font-family:Espeak, Geist, sans-serif;font-size:48px;font-weight:700;letter-spacing:-0.02em;color:#ffffff;text-decoration:none;display:inline-flex;align-items:center;gap:12px;">
+        <span style="color:var(--primary-soft-fg);">https://</span>moabora.sharp0802.com
+      </a>
+      <p style="font-size:15px;color:var(--muted-fg);margin-top:4px;">Experience the full document intelligence workflow live on web</p>
+    </div>
   </div>
 
   <div class="footer">
