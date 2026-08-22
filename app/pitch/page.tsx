@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
@@ -25,9 +25,11 @@ function loc<T>(value: Localized<T>, locale: Locale): T {
 function DeckPlayer({
   active,
   onSelect,
+  deckRef,
 }: {
   active: number;
   onSelect: (n: number) => void;
+  deckRef?: RefObject<HTMLDivElement | null>;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -61,7 +63,7 @@ function DeckPlayer({
   }, [active]);
 
   return (
-    <div className="flex flex-col space-y-3">
+    <div className="flex flex-col space-y-3" ref={deckRef}>
       {/* 16:9 Slide Display */}
       <div
         className="relative aspect-video w-full overflow-hidden rounded-2xl border border-border/80 bg-[#0c0b14] shadow-2xl ring-1 ring-white/5"
@@ -156,6 +158,8 @@ function NarrationCard({
 export default function PitchPage() {
   const { locale, t } = useI18n();
   const [active, setActive] = useState(1);
+  const deckRef = useRef<HTMLDivElement>(null);
+  const [narrationMaxH, setNarrationMaxH] = useState<number | undefined>();
   const activeSlide = PITCH_SLIDES.find((slide) => slide.n === active) ?? PITCH_SLIDES[0];
 
   useEffect(() => {
@@ -189,6 +193,25 @@ export default function PitchPage() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [active, selectSlide]);
+
+  useEffect(() => {
+    const el = deckRef.current;
+    if (!el) return;
+
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const update = () => {
+      setNarrationMaxH(mq.matches ? el.offsetHeight : undefined);
+    };
+
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    mq.addEventListener("change", update);
+    return () => {
+      ro.disconnect();
+      mq.removeEventListener("change", update);
+    };
+  }, []);
 
   return (
     <div className="w-full">
@@ -227,17 +250,20 @@ export default function PitchPage() {
       </section>
 
       {/* 2. Main Presenter Stage (Slide Player + Pure Markdown Script Card) */}
-      <section className="bg-background py-10 sm:py-14 lg:h-[calc(100dvh-24rem)] lg:min-h-[22rem] lg:max-h-[44rem] lg:py-6">
-        <div className="mx-auto h-full w-full max-w-7xl px-6 sm:px-8">
-          <div className="grid h-full grid-cols-1 gap-8 lg:grid-cols-12 lg:items-stretch lg:gap-10">
+      <section className="bg-background py-10 sm:py-14 lg:py-8">
+        <div className="mx-auto w-full max-w-7xl px-6 sm:px-8">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-start lg:gap-10">
             {/* Left Column: 16:9 Slide Player (7 cols on lg) */}
-            <div className="lg:col-span-7 lg:flex lg:flex-col lg:justify-center">
-              <DeckPlayer active={active} onSelect={selectSlide} />
+            <div className="lg:col-span-7">
+              <DeckPlayer active={active} deckRef={deckRef} onSelect={selectSlide} />
             </div>
 
             {/* Right Column: Narration Cue Card (5 cols on lg) */}
-            <div className="lg:col-span-5 lg:flex lg:min-h-0 lg:flex-col">
-              <div className="lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain lg:pr-1">
+            <div
+              className="lg:col-span-5 lg:min-h-0"
+              style={narrationMaxH ? { height: narrationMaxH } : undefined}
+            >
+              <div className="h-full overflow-y-auto overscroll-y-contain pr-1">
                 <NarrationCard locale={locale} slide={activeSlide} />
               </div>
             </div>
