@@ -1,6 +1,6 @@
 "use client";
 
-import { FilePlusIcon, UserRoundIcon } from "lucide-react";
+import { FilePlusIcon, SparklesIcon, UserRoundIcon } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -10,13 +10,18 @@ import {
 } from "@/components/announcement";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import type { RecommendationItem } from "@/lib/upstage";
 import { cn } from "@/lib/utils";
+
+const RECOMMEND_THRESHOLD = 60;
 
 export default function FeedPage() {
   const [announcements, setAnnouncements] = useState<AnnouncementWithMatch[]>([]);
   const [hasProfile, setHasProfile] = useState(true);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("전체");
+  const [recommendations, setRecommendations] = useState<RecommendationItem[]>([]);
+  const [recLoading, setRecLoading] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -24,6 +29,14 @@ export default function FeedPage() {
       const data = await res.json();
       setAnnouncements(data.announcements ?? []);
       setHasProfile(Boolean(data.hasProfile));
+      if (data.hasProfile && (data.announcements ?? []).length > 0) {
+        setRecLoading(true);
+        fetch("/api/recommendations")
+          .then((r) => r.json())
+          .then((rec) => setRecommendations(rec.recommendations ?? []))
+          .catch(() => setRecommendations([]))
+          .finally(() => setRecLoading(false));
+      }
     } finally {
       setLoading(false);
     }
@@ -32,6 +45,20 @@ export default function FeedPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  const recommended = useMemo(() => {
+    const byId = new Map(announcements.map((a) => [a.id, a]));
+    return recommendations
+      .filter((rec) => rec.score >= RECOMMEND_THRESHOLD)
+      .map((rec) => ({ rec, item: byId.get(rec.id) }))
+      .filter(
+        (entry): entry is { rec: RecommendationItem; item: AnnouncementWithMatch } =>
+          !!entry.item &&
+          entry.item.match.verdict !== "ineligible" &&
+          !ddayInfo(entry.item.apply_end).closed,
+      )
+      .slice(0, 3);
+  }, [announcements, recommendations]);
 
   const categories = useMemo(
     () => ["전체", ...new Set(announcements.map((a) => a.category))],
@@ -93,8 +120,42 @@ export default function FeedPage() {
         </div>
       )}
 
+      {!loading && hasProfile && (recLoading || recommended.length > 0) && (
+        <section className="mt-8">
+          <h2 className="flex items-center gap-2 font-semibold text-lg">
+            <SparklesIcon className="size-4.5 text-primary" />나에게 맞는 공고
+          </h2>
+          {recLoading ? (
+            <div className="mt-3 flex items-center gap-2 rounded-xl border border-dashed px-4 py-6 text-muted-foreground text-sm">
+              <Spinner className="size-4" />
+              에이전트가 프로필과 공고를 대조해 추천을 고르는 중…
+            </div>
+          ) : (
+            <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {recommended.map(({ rec, item }) => (
+                <div className="flex flex-col gap-2" key={rec.id}>
+                  <AnnouncementCard item={item} />
+                  <p className="flex items-start gap-1.5 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-xs leading-relaxed">
+                    <SparklesIcon className="mt-0.5 size-3.5 shrink-0 text-primary" />
+                    <span>
+                      <span className="font-semibold text-primary">적합도 {rec.score}</span>
+                      {" · "}
+                      {rec.reason}
+                    </span>
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {!loading && announcements.length > 0 && (
+        <h2 className="mt-8 font-semibold text-lg">전체 공고</h2>
+      )}
+
       {categories.length > 1 && (
-        <div className="mt-6 flex flex-wrap gap-1.5">
+        <div className="mt-3 flex flex-wrap gap-1.5">
           {categories.map((category) => (
             <button
               className={cn(

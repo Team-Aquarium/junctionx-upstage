@@ -145,6 +145,26 @@ export function clearProfile() {
   writeJson(PROFILE_FILE, null);
 }
 
+// ---------------------------------------------------------------------------
+// 추천 캐시 (프로필 + 공고 목록이 바뀔 때만 재계산)
+// ---------------------------------------------------------------------------
+
+const RECOMMENDATIONS_FILE = join(DATA_DIR, "recommendations.json");
+
+export interface RecommendationCache {
+  hash: string;
+  createdAt: string;
+  items: { id: string; score: number; reason: string }[];
+}
+
+export function getRecommendationCache(): RecommendationCache | null {
+  return readJson<RecommendationCache | null>(RECOMMENDATIONS_FILE, null);
+}
+
+export function saveRecommendationCache(cache: RecommendationCache) {
+  writeJson(RECOMMENDATIONS_FILE, cache);
+}
+
 function uniqueStrings(values: unknown): string[] {
   if (!Array.isArray(values)) {
     return [];

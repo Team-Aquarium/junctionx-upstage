@@ -8,6 +8,7 @@ import {
   FileTextIcon,
   LinkIcon,
   PhoneIcon,
+  SparklesIcon,
   TrophyIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -48,6 +49,7 @@ export default function NoticeDetailPage() {
   const [item, setItem] = useState<AnnouncementWithMatch | null>(null);
   const [loading, setLoading] = useState(true);
   const [checked, setChecked] = useState<Set<number>>(new Set());
+  const [rec, setRec] = useState<{ score: number; reason: string } | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -61,6 +63,15 @@ export default function NoticeDetailPage() {
         setLoading(false);
       }
     })();
+    fetch("/api/recommendations")
+      .then((r) => r.json())
+      .then((data) => {
+        const found = (data.recommendations ?? []).find(
+          (r: { id: string }) => r.id === id,
+        );
+        setRec(found ?? null);
+      })
+      .catch(() => setRec(null));
   }, [id]);
 
   if (loading) {
@@ -187,6 +198,15 @@ export default function NoticeDetailPage() {
           </Button>
         )}
       </div>
+
+      {rec && (
+        <div className="mt-4 rounded-xl border border-primary/20 bg-primary/5 p-4">
+          <h2 className="flex items-center gap-2 font-semibold text-sm">
+            <SparklesIcon className="size-4 text-primary" />AI 추천 — 적합도 {rec.score}
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed">{rec.reason}</p>
+        </div>
+      )}
 
       {item.todo_checklist.length > 0 && (
         <div className="mt-4 rounded-xl border bg-card p-4">

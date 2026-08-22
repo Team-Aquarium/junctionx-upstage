@@ -349,6 +349,70 @@ export function parseAgentJson(text: string): Record<string, unknown> | null {
 }
 
 // ---------------------------------------------------------------------------
+// Solar 기반 공고 추천 (프로필 × 공고 목록 → 적합도 점수 + 추천 이유)
+// ---------------------------------------------------------------------------
+
+export interface RecommendationItem {
+  id: string;
+  score: number;
+  reason: string;
+}
+
+export async function recommendAnnouncements(
+  profile: Record<string, unknown>,
+  announcements: {
+    id: string;
+    category: string;
+    title: string;
+    field: string | null;
+    benefits: string | null;
+    summary: string[];
+  }[],
+): Promise<RecommendationItem[]> {
+  const res = await fetch(`${API_BASE}/v1/chat/completions`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${getApiKey()}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: process.env.UPSTAGE_CHAT_MODEL ?? "solar-pro4",
+      messages: [
+        {
+          role: "system",
+          content:
+            '당신은 대학생에게 공고(공모전·해커톤·장학금·대외활동·채용)를 추천하는 어시스턴트입니다. 사용자 프로필과 공고 목록이 JSON으로 주어집니다. 각 공고의 적합도를 평가해 아래 JSON 객체 하나만 출력하세요. 설명이나 코드블록 없이 순수 JSON만 출력합니다.\n{"recommendations":[{"id":"공고 id","score":0~100 정수,"reason":"프로필의 구체적 요소(관심사·기술·활동)와 공고 내용을 연결한 한국어 한 문장 (60자 이내)"}]}\n규칙: 모든 공고를 score 내림차순으로 포함. 프로필과 실제 접점이 있는 요소만 근거로 쓰고, 접점이 없으면 score를 40 미만으로 주고 reason에 그 사실을 솔직하게 적으세요.',
+        },
+        {
+          role: "user",
+          content: JSON.stringify({ profile, announcements }),
+        },
+      ],
+    }),
+  });
+  if (!res.ok) {
+    throw new Error(`추천 생성 실패 (${res.status}): ${await res.text()}`);
+  }
+  const data = await res.json();
+  const content: string = data.choices?.[0]?.message?.content ?? "";
+  const parsed = parseAgentJson(content);
+  const list = Array.isArray(parsed?.recommendations) ? parsed.recommendations : [];
+  return list
+    .filter(
+      (item): item is { id: string; score: number; reason: string } =>
+        !!item &&
+        typeof item === "object" &&
+        typeof (item as Record<string, unknown>).id === "string" &&
+        typeof (item as Record<string, unknown>).reason === "string",
+    )
+    .map((item) => ({
+      id: item.id,
+      score: Math.max(0, Math.min(100, Math.round(Number(item.score) || 0))),
+      reason: item.reason.trim(),
+    }));
+}
+
+// ---------------------------------------------------------------------------
 // Solar 텍스트 기반 프로필 추출 (개인 링크 → HTML 텍스트 → JSON)
 // ---------------------------------------------------------------------------
 
