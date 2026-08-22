@@ -262,7 +262,7 @@ export default function NoticeDetailPage() {
                   </p>
                 </div>
                 {item.result_date && (
-                  <div className="rounded-xl border border-border bg-card p-4">
+                  <div className="rounded-xl border border-border bg-card p-4 sm:col-span-2">
                     <span className="text-xs text-muted-foreground block mb-1">{t("notice.resultDate")}</span>
                     <p className="font-medium text-foreground">{item.result_date}</p>
                   </div>
