@@ -29,7 +29,7 @@ export function Hero({ stats: _stats }: HeroProps) {
               {t("hero.eyebrow")}
             </p>
 
-            <h1 className="font-bold text-3xl sm:text-5xl tracking-tight text-foreground leading-[1.18] break-keep">
+            <h1 className="font-display font-semibold text-3xl sm:text-5xl tracking-tight text-foreground leading-[1.18] break-keep">
               {t("hero.titleBefore")}{" "}
               <br className="hidden sm:inline" />
               <span className="text-primary">{t("hero.titleBrand")}</span>

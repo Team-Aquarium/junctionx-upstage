@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Noto_Sans_KR } from "next/font/google";
+import localFont from "next/font/local";
 import { ThemeProvider } from "next-themes";
 import { I18nProvider } from "@/lib/i18n/client";
 import { localeFromCookies } from "@/lib/i18n/server";
@@ -9,13 +10,28 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
 const geistSans = Geist({
-  variable: "--font-sans",
+  variable: "--font-en",
   subsets: ["latin"],
+});
+
+const notoSansKr = Noto_Sans_KR({
+  variable: "--font-ko",
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const espeak = localFont({
+  src: [
+    { path: "../public/fonts/ESPeak-Medium.woff2", weight: "500", style: "normal" },
+    { path: "../public/fonts/ESPeak-Semibold.woff2", weight: "600", style: "normal" },
+  ],
+  variable: "--font-espeak",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -33,7 +49,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const locale = await localeFromCookies();
   return (
     <html
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${notoSansKr.variable} ${geistMono.variable} ${espeak.variable} h-full antialiased`}
       lang={locale}
       suppressHydrationWarning
     >
