@@ -1,0 +1,1018 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Moabora — JunctionX Korea 2026 Upstage Track</title>
+<style>
+  :root {
+    --primary: #6c63ff;
+    --primary-soft: rgba(108, 99, 255, 0.16);
+    --primary-soft-fg: #b9b3ff;
+    --primary-border: rgba(108, 99, 255, 0.35);
+    --secondary: #232134;
+    --secondary-fg: #c7c2f4;
+    --muted: #16151f;
+    --muted-fg: #a2a0b3;
+    --border: #2a2839;
+    --fg: #f2f1f7;
+    --bg: #0f0e17;
+    --card: #181724;
+    --card-accent: rgba(108, 99, 255, 0.1);
+    --emerald: #34d399;
+    --emerald-bg: rgba(52, 211, 153, 0.14);
+    --red: #f87171;
+    --red-bg: rgba(248, 113, 113, 0.14);
+    --amber: #fbbf24;
+    --amber-bg: rgba(251, 191, 36, 0.14);
+  }
+  @font-face {
+    font-family: "Espeak";
+    src: url("../public/fonts/ESPeak-Medium.woff2") format("woff2");
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "Espeak";
+    src: url("../public/fonts/ESPeak-Semibold.woff2") format("woff2");
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #060609; }
+  body {
+    font-family: Geist, "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+    color: var(--fg);
+    -webkit-font-smoothing: antialiased;
+  }
+  section.slide {
+    position: relative;
+    width: 1280px;
+    height: 720px;
+    background: var(--bg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: 44px 56px 48px;
+    page-break-after: always;
+    margin: 24px auto;
+  }
+  @media print {
+    html, body { background: var(--bg); }
+    section.slide { margin: 0; }
+  }
+  @page { size: 1280px 720px; margin: 0; }
+
+  /* Header */
+  .slide-header {
+    margin-bottom: 20px;
+    flex: 0 0 auto;
+  }
+  .eyebrow {
+    font-size: 13px; font-weight: 600; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--primary-soft-fg); margin-bottom: 6px;
+  }
+  h1.title {
+    font-size: 36px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; color: var(--fg);
+  }
+  .sub {
+    font-size: 16px; color: var(--muted-fg); line-height: 1.45; margin-top: 6px;
+  }
+
+  /* Body Container */
+  .slide-body {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: stretch;
+    margin-bottom: 20px;
+  }
+
+  /* Cards */
+  .card {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--card);
+    padding: 22px 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .card.accent {
+    background: var(--card-accent);
+    border-color: var(--primary-border);
+  }
+  .card h3 {
+    font-size: 19px; font-weight: 700; margin-bottom: 8px; color: var(--fg);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card p {
+    font-size: 14.5px; line-height: 1.55; color: var(--muted-fg);
+  }
+  .card ul {
+    list-style: none; padding: 0; margin: 0;
+  }
+  .card ul li {
+    font-size: 14px; line-height: 1.55; color: var(--muted-fg);
+    position: relative; padding-left: 15px; margin-bottom: 8px;
+  }
+  .card ul li:last-child { margin-bottom: 0; }
+  .card ul li::before {
+    content: "•"; position: absolute; left: 0; color: var(--primary-soft-fg); font-weight: bold;
+  }
+
+  .card-footer-pill {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--primary-soft-fg);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* Badges */
+  .badge {
+    display: inline-flex; align-items: center; border-radius: 6px;
+    padding: 3px 8px; font-size: 12px; font-weight: 600;
+    background: var(--secondary); color: var(--secondary-fg);
+  }
+  .badge.green { background: var(--emerald-bg); color: var(--emerald); }
+  .badge.red { background: var(--red-bg); color: var(--red); }
+  .badge.amber { background: var(--amber-bg); color: var(--amber); }
+  .badge.purple { background: var(--primary-soft); color: var(--primary-soft-fg); }
+
+  /* Grids */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .grid2x3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .grid2x2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+
+  /* Pipeline Flow */
+  .flow {
+    display: flex; align-items: stretch; gap: 12px;
+  }
+  .flow .card { flex: 1; }
+  .chev {
+    align-self: center; color: var(--primary-soft-fg); font-size: 18px; font-weight: 700; flex: 0 0 auto;
+  }
+
+  /* Upstage Icons */
+  .icon-node {
+    width: 38px; height: 38px; object-fit: contain; display: block; margin-bottom: 10px;
+  }
+
+  .step-num {
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 11px; font-weight: 600; color: var(--primary-soft-fg); letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+
+  .score {
+    font-size: 34px; font-weight: 800; color: var(--primary-soft-fg);
+    letter-spacing: -0.03em;
+  }
+
+  /* Compact Data Row */
+  .data-block {
+    padding: 10px 14px; border-radius: 8px; background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border); margin-bottom: 10px;
+  }
+  .data-block:last-child { margin-bottom: 0; }
+  .data-label { font-size: 11px; font-weight: 700; color: var(--primary-soft-fg); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .data-val { font-size: 13.5px; color: var(--fg); line-height: 1.45; }
+
+  /* Comparison row */
+  .comp-row {
+    padding: 12px 16px; border-radius: 8px; background: rgba(0,0,0,0.25);
+    border: 1px solid var(--border); margin-bottom: 12px;
+  }
+  .comp-row:last-child { margin-bottom: 0; }
+  .comp-label { font-size: 12px; font-weight: 700; color: var(--primary-soft-fg); margin-bottom: 4px; }
+  .comp-val { font-size: 13.5px; color: var(--fg); line-height: 1.45; }
+
+  /* Footer */
+  .footer {
+    position: absolute; left: 56px; right: 56px; bottom: 22px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 12px; color: var(--muted-fg);
+  }
+  .logo-row { display: flex; align-items: center; gap: 8px; }
+</style>
+</head>
+<body>
+
+<!-- 1. Cover -->
+<section class="slide" style="justify-content:space-between;">
+  <div class="logo-row">
+    <img alt="Upstage" src="assets/symbol.svg" style="width:28px;height:28px;" />
+    <span style="font-size:19px;font-weight:700;letter-spacing:-0.01em;">Moabora</span>
+  </div>
+
+  <div style="margin: auto 0;">
+    <p class="eyebrow">Upstage Document Agent</p>
+    <h1 style="font-family:Espeak, Geist, sans-serif;font-size:54px;font-weight:600;letter-spacing:-0.02em;line-height:1.15;margin-bottom:18px;">
+      From notice analysis to eligibility —<br />
+      <span style="color:var(--primary-soft-fg);">Moabora</span>
+    </h1>
+    <p style="font-size:19px;color:var(--muted-fg);max-width:740px;line-height:1.5;">
+      Drop any announcement. The agent reads the brief, cross-checks your profile, and answers: <strong style="color:var(--fg);">can you apply?</strong>
+    </p>
+
+    <div style="display:flex;gap:10px;margin-top:32px;">
+      <span class="badge purple" style="padding:6px 12px;font-size:13px;">JunctionX Korea 2026</span>
+      <span class="badge" style="padding:6px 12px;font-size:13px;">Upstage Track</span>
+      <span class="badge" style="padding:6px 12px;font-size:13px;">Team Aquarium</span>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:16px;padding-top:20px;border-top:1px solid var(--border);">
+    <div>
+      <div class="step-num">01 UNDERSTAND</div>
+      <div style="font-size:14px;font-weight:600;">PDF · HWP · Poster Ingest</div>
+    </div>
+    <div>
+      <div class="step-num">02 JUDGE</div>
+      <div style="font-size:14px;font-weight:600;">Automated Eligibility Verdict</div>
+    </div>
+    <div>
+      <div class="step-num">03 ACT</div>
+      <div style="font-size:14px;font-weight:600;">Solar Fit Score & Checklist</div>
+    </div>
+  </div>
+</section>
+
+<!-- 2. Problem -->
+<section class="slide">
+  <div class="slide-header">
+    <p class="eyebrow">Problem</p>
+    <h1 class="title">Notices are everywhere. Eligibility is not.</h1>
+    <p class="sub">Students miss vital opportunities not from lack of listings, but from the exhausting cost of manual reading.</p>
+  </div>
+
+  <div class="slide-body">
+    <div class="grid2x2">
+      <div class="card">
+        <div>
+          <div class="step-num">PAIN 01</div>
+          <h3>Fragmented Document Formats</h3>
+          <ul>
+            <li>Scattered across PDF guidelines, HWP attachments, image posters, and bulletin HTML.</li>
+            <li>Unstructured binary formats that search engines and keyword filters cannot parse.</li>
+          </ul>
+        </div>
+        <div class="card-footer-pill">Bottleneck: Format Incompatibility</div>
+      </div>
+
+      <div class="card">
+        <div>
+          <div class="step-num">PAIN 02</div>
+          <h3>Buried Qualification Clauses</h3>
+          <ul>
+            <li>Crucial constraints ("under 29", "no 4th years", "IT majors only") hidden deep inside multi-page briefs.</li>
+            <li>Students must inspect every page just to discover they are disqualified.</li>
+          </ul>
+        </div>
+        <div class="card-footer-pill">Bottleneck: Information Opacity</div>
+      </div>
+
+      <div class="card">
+        <div>
+          <div class="step-num">PAIN 03</div>
+          <h3>Exhausting Reading Overhead</h3>
+          <ul>
+            <li>Cross-checking academic status, age, and major takes 15–30 minutes per notice.</li>
+            <li>Evaluating 20+ opportunities requires hours of repetitive, manual toil.</li>
+          </ul>
+        </div>
+        <div class="card-footer-pill">Bottleneck: Time & Cognitive Burden</div>
+      </div>
+
+      <div class="card">
+        <div>
+          <div class="step-num">PAIN 04</div>
+          <h3>Fragmented Channels & Missed Deadlines</h3>
+          <ul>
+            <li>Notices spread across campus portals, Wevity, and ContestKorea without sync.</li>
+            <li>Crucial application deadlines pass unnoticed with zero personalized tracking.</li>
+          </ul>
+        </div>
+        <div class="card-footer-pill">Bottleneck: Opportunity Loss</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer"><span>Moabora — Team Aquarium</span><span>2</span></div>
+</section>
+
+<!-- 3. Insight -->
+<section class="slide">
+  <div class="slide-header">
+    <p class="eyebrow">Insight</p>
+    <h1 class="title">The bottleneck is reading, not listing</h1>
+    <p class="sub">Existing aggregators stop at collecting links. The real friction begins after you click.</p>
+  </div>
+
+  <div class="slide-body">
+    <div class="grid2">
+      <div class="card">
+        <div style="margin-bottom:12px;">
+          <div style="color:var(--red);font-size:12px;font-weight:700;letter-spacing:0.06em;margin-bottom:4px;">EXISTING NOTICE BOARDS</div>
+          <h3>List Aggregators (Wevity, ContestKorea)</h3>
+        </div>
+        <div>
+          <div class="comp-row">
+            <div class="comp-label">DOCUMENT ACCESS</div>
+            <div class="comp-val">Hands you raw attachments. You must download and read HWP/PDFs yourself.</div>
+          </div>
+          <div class="comp-row">
+            <div class="comp-label">ELIGIBILITY CHECK</div>
+            <div class="comp-val">100% manual. User spends 15–30 minutes deciphering complex guideline clauses.</div>
+          </div>
+          <div class="comp-row">
+            <div class="comp-label">RECOMMENDATION</div>
+            <div class="comp-val">Generic category tags with zero awareness of your actual skills or profile.</div>
+          </div>
+        </div>
+        <div class="card-footer-pill" style="color:var(--red);">Outcome: Manual Workload Pushed to Student</div>
+      </div>
+
+      <div class="card accent">
+        <div style="margin-bottom:12px;">
+          <div style="color:var(--primary-soft-fg);font-size:12px;font-weight:700;letter-spacing:0.06em;margin-bottom:4px;">MOABORA DOCUMENT AGENT</div>
+          <h3>Autonomous Document Agent</h3>
+        </div>
+        <div>
+          <div class="comp-row">
+            <div class="comp-label">DOCUMENT ACCESS</div>
+            <div class="comp-val">Upstage AI reads & structures HWP, PDF, and poster images automatically.</div>
+          </div>
+          <div class="comp-row">
+            <div class="comp-label">ELIGIBILITY CHECK</div>
+            <div class="comp-val">Instant 6-rule matching (<span class="badge green">Eligible</span> <span class="badge amber">Review</span> <span class="badge red">Ineligible</span>) with explicit reasons.</div>
+          </div>
+          <div class="comp-row">
+            <div class="comp-label">RECOMMENDATION</div>
+            <div class="comp-val">Solar Pro 4 calculates personalized fit score (0–100) + tailored rationale.</div>
+          </div>
+        </div>
+        <div class="card-footer-pill" style="color:var(--emerald);">Outcome: Instant Verdict & Submission Checklist</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span style="color:var(--primary-soft-fg);font-weight:600;">Beyond document understanding — getting the work done.</span>
+    <span>3</span>
+  </div>
+</section>
+
+<!-- 4. Solution -->
+<section class="slide">
+  <div class="slide-header">
+    <p class="eyebrow">Solution</p>
+    <h1 class="title">Understand → Judge → Act</h1>
+    <p class="sub">A three-tier pipeline transforming raw announcement files into verified application actions.</p>
+  </div>
+
+  <div class="slide-body">
+    <div class="flow">
+      <div class="card">
+        <div>
+          <div class="step-num">TIER 01</div>
+          <h3>Understand</h3>
+          <p style="color:var(--primary-soft-fg);font-size:13px;font-weight:600;margin-bottom:10px;">Document Intelligence</p>
+          <div class="data-block">
+            <div class="data-label">Supported Ingest</div>
+            <div class="data-val">PDF briefs, HWP attachments, image posters, web HTML.</div>
+          </div>
+          <div class="data-block">
+            <div class="data-label">Upstage Core</div>
+            <div class="data-val">Document Parse with full layout analysis & table OCR.</div>
+          </div>
+        </div>
+        <div class="card-footer-pill">Output: 10 Structured Fields + OCR</div>
+      </div>
+
+      <div class="chev">→</div>
+
+      <div class="card accent">
+        <div>
+          <div class="step-num">TIER 02</div>
+          <h3>Judge</h3>
+          <p style="color:var(--primary-soft-fg);font-size:13px;font-weight:600;margin-bottom:10px;">Eligibility Engine</p>
+          <div class="data-block">
+            <div class="data-label">Rule Extraction</div>
+            <div class="data-val">Grade, enrollment, age limit, major, region, team size.</div>
+          </div>
+          <div class="data-block">
+            <div class="data-label">Profile Matching</div>
+            <div class="data-val">Cross-checks rules against verified profile in real time.</div>
+          </div>
+        </div>
+        <div class="card-footer-pill">Output: Verdict (<span class="badge green">Eligible</span>/<span class="badge red">No</span>) + Reasons</div>
+      </div>
+
+      <div class="chev">→</div>
+
+      <div class="card">
+        <div>
+          <div class="step-num">TIER 03</div>
+          <h3>Act</h3>
+          <p style="color:var(--primary-soft-fg);font-size:13px;font-weight:600;margin-bottom:10px;">Prioritize & Execute</p>
+          <div class="data-block">
+            <div class="data-label">Solar Fit Score</div>
+            <div class="data-val">0–100 match rating + personalized 1-sentence rationale.</div>
+          </div>
+          <div class="data-block">
+            <div class="data-label">Preparation</div>
+            <div class="data-val">Auto-generated submission checklist & 1-click apply portal.</div>
+          </div>
+        </div>
+        <div class="card-footer-pill">Output: Fit Score + Submission Checklist</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer"><span>Moabora — Team Aquarium</span><span>4</span></div>
+</section>
+
+<!-- 5. Journey -->
+<section class="slide">
+  <div class="slide-header">
+    <p class="eyebrow">User Journey</p>
+    <h1 class="title">From zero to application in 4 steps</h1>
+    <p class="sub">A frictionless 2-minute workflow from profile setup to finalized application decision.</p>
+  </div>
+
+  <div class="slide-body">
+    <div class="grid2x2">
+      <div class="card">
+        <div>
+          <div class="step-num">STEP 01 · 1-MINUTE ONBOARDING</div>
+          <h3>Profile Creation</h3>
+          <ul>
+            <li>Upload certificate (UIE) or paste GitHub / blog URL (Solar Pro 4).</li>
+            <li>Auto-extracts university, major, grade, enrollment status, tech stack, and interests.</li>
+          </ul>
+        </div>
+        <div class="card-footer-pill">Deliverable: Verified Student Profile</div>
+      </div>
+
+      <div class="card">
+        <div>
+          <div class="step-num">STEP 02 · MULTI-CHANNEL INGEST</div>
+          <h3>Notice Collection</h3>
+          <ul>
+            <li>Drag & drop PDF / HWP files, paste announcement URLs, or 1-click crawler.</li>
+            <li>Automated collection from Wevity and ContestKorea with HWP attachment download.</li>
+          </ul>
+        </div>
+        <div class="card-footer-pill">Deliverable: Multi-Modal Ingestion Pipeline</div>
+      </div>
+
+      <div class="card">
+        <div>
+          <div class="step-num">STEP 03 · PERSONALIZED RANKING</div>
+          <h3>Feed & Fit Scoring</h3>
+          <ul>
+            <li>Feed displays instant eligibility status badges (<span class="badge green">Eligible</span> <span class="badge amber">Review</span> <span class="badge red">Ineligible</span>).</li>
+            <li>Solar Pro 4 calculates tailored fit score (0–100) with personalized match reasons.</li>
+          </ul>
+        </div>
+        <div class="card-footer-pill">Deliverable: Intelligent Ranked Opportunity Feed</div>
+      </div>
+
+      <div class="card">
+        <div>
+          <div class="step-num">STEP 04 · PREPARATION & ACTION</div>
+          <h3>Execution & Doc Chat</h3>
+          <ul>
+            <li>Review per-rule pass/fail explanations, checklist items, and original brief.</li>
+            <li>Ask questions and extract custom insights via 3-tool calling Solar Document Chat.</li>
+          </ul>
+        </div>
+        <div class="card-footer-pill">Deliverable: Verified Application Submission</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer"><span>Moabora — Team Aquarium</span><span>5</span></div>
+</section>
+
+<!-- 6. Studio pipeline -->
+<section class="slide">
+  <div class="slide-header">
+    <p class="eyebrow">Upstage Studio</p>
+    <h1 class="title">Every notice flows through one 4-node agent</h1>
+    <p class="sub">All ingest paths (upload, link, crawler) execute the Studio Agent via REST API with zero bypass.</p>
+  </div>
+
+  <div class="slide-body">
+    <div class="flow">
+      <div class="card">
+        <div>
+          <img alt="Document Parse" class="icon-node" src="assets/document-parse.svg" />
+          <div class="step-num">NODE 01</div>
+          <h3>Parse</h3>
+          <div class="data-block">
+            <div class="data-label">Engine</div>
+            <div class="data-val">Upstage Document AI with OCR.</div>
+          </div>
+          <div class="data-block">
+            <div class="data-label">Function</div>
+            <div class="data-val">Converts PDF, HWP & posters to clean Markdown with tables.</div>
+          </div>
+        </div>
+        <div class="card-footer-pill">OCR Digitization</div>
+      </div>
+
+      <div class="chev">→</div>
+
+      <div class="card">
+        <div>
+          <img alt="Studio Agents" class="icon-node" src="assets/studio-agents.svg" />
+          <div class="step-num">NODE 02</div>
+          <h3>Classify</h3>
+          <div class="data-block">
+            <div class="data-label">Engine</div>
+            <div class="data-val">Custom 6-Class Prompt Classifier.</div>
+          </div>
+          <div class="data-block">
+            <div class="data-label">Function</div>
+            <div class="data-val">Categorizes into Contest, Hackathon, Grant, Activity, Job, Others.</div>
+          </div>
+        </div>
+        <div class="card-footer-pill">Domain Categorization</div>
+      </div>
+
+      <div class="chev">→</div>
+
+      <div class="card">
+        <div>
+          <img alt="Information Extract" class="icon-node" src="assets/information-extract.svg" />
+          <div class="step-num">NODE 03</div>
+          <h3>Extract</h3>
+          <div class="data-block">
+            <div class="data-label">Engine</div>
+            <div class="data-val">10-Field Information Extraction.</div>
+          </div>
+          <div class="data-block">
+            <div class="data-label">Function</div>
+            <div class="data-val">Pulls title, organizer, eligibility text, dates, rewards, URL.</div>
+          </div>
+        </div>
+        <div class="card-footer-pill">Metadata Structuring</div>
+      </div>
+
+      <div class="chev">→</div>
+
+      <div class="card">
+        <div>
+          <img alt="Solar" class="icon-node" src="assets/solar-llm.svg" />
+          <div class="step-num">NODE 04</div>
+          <h3>Instruct</h3>
+          <div class="data-block">
+            <div class="data-label">Engine</div>
+            <div class="data-val">Solar Decision Logic & Synthesis.</div>
+          </div>
+          <div class="data-block">
+            <div class="data-label">Function</div>
+            <div class="data-val">Generates 3-bullet summary + machine-readable rules JSON.</div>
+          </div>
+        </div>
+        <div class="card-footer-pill">Rule & Task Synthesis</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span style="font-family:'Geist Mono', monospace;font-size:11px;color:var(--muted-fg);">REST API: POST /v2/files → POST /v2/responses → Polling snapshot accumulator</span>
+    <span>6</span>
+  </div>
+</section>
+
+<!-- 7. Products -->
+<section class="slide">
+  <div class="slide-header">
+    <p class="eyebrow">Upstage Products</p>
+    <h1 class="title">All four product lines in production</h1>
+    <p class="sub">Comprehensive integration across Upstage's Document AI and LLM ecosystem.</p>
+  </div>
+
+  <div class="slide-body">
+    <div class="grid4">
+      <div class="card accent">
+        <div>
+          <img alt="Studio Agents" class="icon-node" src="assets/studio-agents.svg" />
+          <h3>Studio Agents</h3>
+          <div class="data-block">
+            <div class="data-label">Primary Role</div>
+            <div class="data-val">Core 4-Node Notice Processing Pipeline (`agt_...`).</div>
+          </div>
+          <div class="data-block">
+            <div class="data-label">Architecture</div>
+            <div class="data-val">Accumulating snapshot map ensures full node visibility.</div>
+          </div>
+        </div>
+        <div class="card-footer-pill">REST /v2/responses</div>
+      </div>
+
+      <div class="card">
+        <div>
+          <img alt="Document Parse" class="icon-node" src="assets/document-parse.svg" />
+          <h3>Document Parse</h3>
+          <div class="data-block">
+            <div class="data-label">Primary Role</div>
+            <div class="data-val">High-Precision OCR & Layout Analysis.</div>
+          </div>
+          <div class="data-block">
+            <div class="data-label">Integration</div>
+            <div class="data-val">Powers `parse_document` tool in Document Chat.</div>
+          </div>
+        </div>
+        <div class="card-footer-pill">/v1/document-digitization</div>
+      </div>
+
+      <div class="card">
+        <div>
+          <img alt="Information Extract" class="icon-node" src="assets/information-extract.svg" />
+          <h3>Information Extract</h3>
+          <div class="data-block">
+            <div class="data-label">Primary Role</div>
+            <div class="data-val">Zero-Shot Schema-Driven Document Extraction.</div>
+          </div>
+          <div class="data-block">
+            <div class="data-label">Integration</div>
+            <div class="data-val">Certificate parsing & `extract_information` chat tool.</div>
+          </div>
+        </div>
+        <div class="card-footer-pill">/v1/information-extraction</div>
+      </div>
+
+      <div class="card">
+        <div>
+          <img alt="Solar Pro 4" class="icon-node" src="assets/solar-llm.svg" />
+          <h3>Solar Pro 4</h3>
+          <div class="data-block">
+            <div class="data-label">Primary Role</div>
+            <div class="data-val">Decision Intelligence & Multi-Tool Orchestration.</div>
+          </div>
+          <div class="data-block">
+            <div class="data-label">Integration</div>
+            <div class="data-val">Calculates 0–100 fit scores + streamed reasoning tokens.</div>
+          </div>
+        </div>
+        <div class="card-footer-pill">Direct API (OpenAI-Compatible)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer"><span>Moabora — Team Aquarium</span><span>7</span></div>
+</section>
+
+<!-- 8. Engineering -->
+<section class="slide">
+  <div class="slide-header">
+    <p class="eyebrow">Engineering</p>
+    <h1 class="title">Service-grade reliability & transparency</h1>
+    <p class="sub">Engineered to handle real-world document edge cases and provide full visibility into AI execution.</p>
+  </div>
+
+  <div class="slide-body">
+    <div class="grid2x3">
+      <div class="card">
+        <div>
+          <div class="step-num">ROBUSTNESS</div>
+          <h3>JSON Sanitization</h3>
+          <p>Pre-processes double-encoded Studio Instruct outputs and strips citation markers (【†1】) seamlessly.</p>
+        </div>
+        <div class="card-footer-pill">Parser Resilience</div>
+      </div>
+
+      <div class="card">
+        <div>
+          <div class="step-num">STATE MANAGEMENT</div>
+          <h3>Snapshot Accumulation</h3>
+          <p>Maintains an accumulating map across Studio polling snapshots so intermediate node outputs are preserved.</p>
+        </div>
+        <div class="card-footer-pill">Full Node Visibility</div>
+      </div>
+
+      <div class="card">
+        <div>
+          <div class="step-num">TRANSPARENCY</div>
+          <h3>Live NDJSON Streams</h3>
+          <p>Streams pipeline stages, intermediate artifacts, and Solar reasoning tokens in real time to the client.</p>
+        </div>
+        <div class="card-footer-pill">Streamed Reasoning</div>
+      </div>
+
+      <div class="card">
+        <div>
+          <div class="step-num">RELIABILITY</div>
+          <h3>Resumable Sessions</h3>
+          <p>Server-side workflow sessions survive browser refreshes, preventing duplicate execution and billing.</p>
+        </div>
+        <div class="card-footer-pill">Refresh-Safe Architecture</div>
+      </div>
+
+      <div class="card">
+        <div>
+          <div class="step-num">OPTIMIZATION</div>
+          <h3>Dual-Layer Caching</h3>
+          <p>SHA-256 document parse cache + profile/notice hash-keyed Solar recommendation cache avoids redundant calls.</p>
+        </div>
+        <div class="card-footer-pill">Cost & Latency Control</div>
+      </div>
+
+      <div class="card">
+        <div>
+          <div class="step-num">ACCURACY</div>
+          <h3>Deterministic Matcher</h3>
+          <p>Evaluates 6 criteria (grade, status, age, major, region, team) with clear per-rule reason breakdown.</p>
+        </div>
+        <div class="card-footer-pill">Explainable AI Verdict</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer"><span>Moabora — Team Aquarium</span><span>8</span></div>
+</section>
+
+<!-- 9. Differentiation -->
+<section class="slide">
+  <div class="slide-header">
+    <p class="eyebrow">Differentiation</p>
+    <h1 class="title">Not a list. A definitive verdict.</h1>
+    <p class="sub">Transforming manual document reading into automated, transparent intelligence.</p>
+  </div>
+
+  <div class="slide-body">
+    <div class="grid2">
+      <div class="card">
+        <div style="margin-bottom:10px;">
+          <div style="color:var(--muted-fg);font-size:12px;font-weight:700;letter-spacing:0.06em;margin-bottom:4px;">TRADITIONAL NOTICE BOARDS</div>
+          <h3>Wevity · ContestKorea</h3>
+        </div>
+        <div>
+          <div class="comp-row">
+            <div class="comp-label">DOCUMENT PROCESSING</div>
+            <div class="comp-val">Raw HTML and attachments. User must manually download and read HWP files.</div>
+          </div>
+          <div class="comp-row">
+            <div class="comp-label">ELIGIBILITY VERIFICATION</div>
+            <div class="comp-val">100% manual check. Students must inspect dense guidelines themselves.</div>
+          </div>
+          <div class="comp-row">
+            <div class="comp-label">PERSONALIZATION & ACTION</div>
+            <div class="comp-val">Generic category filters with no user context. User tracks deadlines manually.</div>
+          </div>
+        </div>
+        <div class="card-footer-pill" style="color:var(--muted-fg);">Static Link Aggregator</div>
+      </div>
+
+      <div class="card accent">
+        <div style="margin-bottom:10px;">
+          <div style="color:var(--primary-soft-fg);font-size:12px;font-weight:700;letter-spacing:0.06em;margin-bottom:4px;">MOABORA DOCUMENT AGENT</div>
+          <h3>Moabora</h3>
+        </div>
+        <div>
+          <div class="comp-row">
+            <div class="comp-label">DOCUMENT PROCESSING</div>
+            <div class="comp-val">Upstage AI parses HWP, PDF, and posters into structured cards automatically.</div>
+          </div>
+          <div class="comp-row">
+            <div class="comp-label">ELIGIBILITY VERIFICATION</div>
+            <div class="comp-val">Instant 6-rule matching with explicit pass/fail rationale (<span class="badge green">Eligible</span> / <span class="badge red">No</span>).</div>
+          </div>
+          <div class="comp-row">
+            <div class="comp-label">PERSONALIZATION & ACTION</div>
+            <div class="comp-val">Solar Pro 4 fit scoring (0–100) + auto checklist & 3-tool Document Chat.</div>
+          </div>
+        </div>
+        <div class="card-footer-pill" style="color:var(--emerald);">Autonomous Decision Engine</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer"><span>Moabora — Team Aquarium</span><span>9</span></div>
+</section>
+
+<!-- 10. Scope -->
+<section class="slide">
+  <div class="slide-header">
+    <p class="eyebrow">Scope & Roadmap</p>
+    <h1 class="title">3-day hackathon execution & future milestones</h1>
+    <p class="sub">Prioritized a rock-solid end-to-end loop while laying an extensible foundation for production scale.</p>
+  </div>
+
+  <div class="slide-body">
+    <div class="grid3">
+      <div class="card">
+        <div>
+          <div style="color:var(--emerald);font-size:12px;font-weight:700;letter-spacing:0.06em;margin-bottom:4px;">SHIPPED MVP</div>
+          <h3>Delivered in 3 Days</h3>
+          <ul style="margin-top:10px;">
+            <li>3 Ingest paths (Files, URLs, 2-site Crawlers).</li>
+            <li>4-node Studio Agent with full error handling.</li>
+            <li>Dual profile extraction (Link & Certificate UIE).</li>
+            <li>6-rule eligibility engine + Solar fit ranking.</li>
+            <li>Live NDJSON workflow streams & 3-tool Doc Chat.</li>
+            <li>Supabase Cloud storage + Docker deployment.</li>
+          </ul>
+        </div>
+        <div class="card-footer-pill" style="color:var(--emerald);">100% Production Ready</div>
+      </div>
+
+      <div class="card">
+        <div>
+          <div style="color:var(--muted-fg);font-size:12px;font-weight:700;letter-spacing:0.06em;margin-bottom:4px;">CONSCIOUSLY SCOPED OUT</div>
+          <h3>Deferred Complexity</h3>
+          <ul style="margin-top:10px;">
+            <li><strong>Multi-Tenant Auth:</strong> Single-profile demonstration model.</li>
+            <li><strong>Push Notifications:</strong> Excluded background email/push daemons.</li>
+            <li><strong>Scheduled Crawlers:</strong> Manual trigger-based crawling only.</li>
+          </ul>
+        </div>
+        <div class="card-footer-pill" style="color:var(--muted-fg);">Avoided Low-Demo Bloat</div>
+      </div>
+
+      <div class="card accent">
+        <div>
+          <div style="color:var(--primary-soft-fg);font-size:12px;font-weight:700;letter-spacing:0.06em;margin-bottom:4px;">NEXT MILESTONES</div>
+          <h3>Production Roadmap</h3>
+          <ul style="margin-top:10px;">
+            <li><strong>Multi-User Auth:</strong> Supabase Auth + RLS (schema is RLS-ready).</li>
+            <li><strong>Proactive Alerts:</strong> D-3 deadline notifications via Telegram/Discord.</li>
+            <li><strong>Application Drafts:</strong> Solar-assisted personal statement generator.</li>
+            <li><strong>Team Matching:</strong> Connect students applying to the same contest.</li>
+          </ul>
+        </div>
+        <div class="card-footer-pill" style="color:var(--primary-soft-fg);">Clear Scaling Path</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer"><span>Moabora — Team Aquarium</span><span>10</span></div>
+</section>
+
+<!-- 11. Evaluation -->
+<section class="slide">
+  <div class="slide-header">
+    <p class="eyebrow">Why it holds up</p>
+    <h1 class="title">Four bets we actually shipped</h1>
+    <p class="sub">Depth of the stack, a complete loop, a sharper problem, and honest scoping — not a demo shell.</p>
+  </div>
+
+  <div class="slide-body">
+    <div class="grid2x2">
+      <div class="card">
+        <div>
+          <h3 style="margin-bottom:8px;">Upstage Technology</h3>
+          <ul>
+            <li>Custom 4-node Studio Agent (`agt_...`) via REST v2 APIs without bypass.</li>
+            <li>Production deployment of all 4 Upstage product lines.</li>
+            <li>Robust handling of double-encoded JSON and live streaming reasoning.</li>
+          </ul>
+        </div>
+        <div class="card-footer-pill">Max Technical Complexity</div>
+      </div>
+
+      <div class="card">
+        <div>
+          <h3 style="margin-bottom:8px;">Service Completeness</h3>
+          <ul>
+            <li>End-to-end loop: Landing → Profile → Crawl/Ingest → Feed → Detail → Chat.</li>
+            <li>Live data from Wevity & ContestKorea with real HWP attachments.</li>
+            <li>Resumable workflow sessions that survive browser refresh.</li>
+          </ul>
+        </div>
+        <div class="card-footer-pill">Full Production Loop</div>
+      </div>
+
+      <div class="card">
+        <div>
+          <h3 style="margin-bottom:8px;">Idea Creativity</h3>
+          <ul>
+            <li>Shifting paradigm from "Listing links" to "Delivering application verdicts".</li>
+            <li>Reads HWP attachments and posters that traditional aggregators skip.</li>
+            <li>Transparent UX displaying live agent thought process and rule proofs.</li>
+          </ul>
+        </div>
+        <div class="card-footer-pill">Novel Problem Framing</div>
+      </div>
+
+      <div class="card">
+        <div>
+          <h3 style="margin-bottom:8px;">Product Planning</h3>
+          <ul>
+            <li>Clear problem focus: Relieving student document fatigue.</li>
+            <li>Thoughtful MVP scoping with explicit trade-offs and roadmap.</li>
+            <li>Fully documented architecture, data models, and RLS-ready schema.</li>
+          </ul>
+        </div>
+        <div class="card-footer-pill">Execution Rigor</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer"><span>Moabora — Team Aquarium</span><span>11</span></div>
+</section>
+
+<!-- 12. Demo -->
+<section class="slide">
+  <div class="slide-header">
+    <p class="eyebrow">Live Demo</p>
+    <h1 class="title">5:30 Live demonstration flow</h1>
+    <p class="sub">Step-by-step walkthrough showing end-to-end document intelligence in action.</p>
+  </div>
+
+  <div class="slide-body">
+    <div class="grid2x3">
+      <div class="card">
+        <div>
+          <div class="step-num">0:30 — STEP 01</div>
+          <h3>Landing & Concept</h3>
+          <p>Service introduction, student document pain points, and 4-tier pipeline overview.</p>
+        </div>
+        <div class="card-footer-pill">Architecture Showcase</div>
+      </div>
+
+      <div class="card">
+        <div>
+          <div class="step-num">1:00 — STEP 02</div>
+          <h3>Profile Onboarding</h3>
+          <p>Upload enrollment certificate → Information Extraction creates verified student profile live.</p>
+        </div>
+        <div class="card-footer-pill">Zero-Shot UIE Live</div>
+      </div>
+
+      <div class="card">
+        <div>
+          <div class="step-num">1:30 — STEP 03</div>
+          <h3>Studio Agent Ingest</h3>
+          <p>Drop hackathon PDF → watch real-time 4-node execution → structured card & instant verdict.</p>
+        </div>
+        <div class="card-footer-pill">4-Node Agent Stream</div>
+      </div>
+
+      <div class="card">
+        <div>
+          <div class="step-num">0:30 — STEP 04</div>
+          <h3>1-Click Multi-Crawl</h3>
+          <p>Trigger automated collection from Wevity & ContestKorea with HWP attachment extraction.</p>
+        </div>
+        <div class="card-footer-pill">Real-World Data Ingest</div>
+      </div>
+
+      <div class="card">
+        <div>
+          <div class="step-num">1:00 — STEP 05</div>
+          <h3>Feed & Solar Scoring</h3>
+          <p>Review personalized feed, verdict badges, and Solar Pro 4 fit scores with reasoning.</p>
+        </div>
+        <div class="card-footer-pill">Personalized Match Feed</div>
+      </div>
+
+      <div class="card">
+        <div>
+          <div class="step-num">1:00 — STEP 06</div>
+          <h3>Detail & Doc Chat</h3>
+          <p>Inspect submission checklist, view original brief, and interact via 3-tool Document Chat.</p>
+        </div>
+        <div class="card-footer-pill">3-Tool Agent Chat</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span style="font-family:Espeak, Geist, sans-serif;font-size:18px;font-weight:600;">
+      The agent reads the brief. <span style="color:var(--primary-soft-fg);">You just apply.</span>
+    </span>
+    <span class="logo-row">
+      <img alt="Upstage" src="assets/symbol.svg" style="width:16px;height:16px;" />
+      <span>Powered by Upstage</span>
+      <span style="margin-left:16px;">12</span>
+    </span>
+  </div>
+</section>
+
+<script>
+  const n = new URLSearchParams(location.search).get("s");
+  if (n) {
+    document.querySelectorAll("section.slide").forEach((el, i) => {
+      el.style.display = i + 1 === Number(n) ? "flex" : "none";
+      el.style.margin = "0";
+    });
+    document.documentElement.style.background = "#0f0e17";
+    document.body.style.background = "#0f0e17";
+    document.body.style.margin = "0";
+  }
+</script>
+</body>
+</html>
