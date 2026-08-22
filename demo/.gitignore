@@ -1,0 +1,11 @@
+# Playwright raw takes and remux intermediates
+*.webm
+*-1x.mp4
+*-2x.mp4
+narration.wav
+narration.ass
+moabora-demo.srt
+marks.json
+/vo/
+/voice/
+/caps/
