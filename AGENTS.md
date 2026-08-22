@@ -70,7 +70,8 @@ app/
 lib/
   upstage.ts                  # Upstage REST 클라이언트 (Parse/Extract/Files/Jobs/파서/추천)
   ingest.ts                   # 공고 문서 → 에이전트 실행 → Announcement 저장 (공용)
-  crawler.ts                  # 위비티 크롤러 (robots.txt Allow 확인됨, 문서 수집만 담당)
+  crawler.ts                  # 공모전 크롤러: 콘테스트코리아·위비티 (둘 다 robots Allow 확인됨)
+                              #  문서 우선순위: 첨부 HWP/PDF > 본문 HTML > 포스터 이미지
   store.ts                    # 파일 기반 저장소 (공고·프로필·업로드·추천 캐시)
   matching.ts                 # 공고 × 프로필 자격 판정
 components/

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import {
-  fetchWevityList,
-  fetchWevityPoster,
+  CRAWL_SOURCES,
+  fetchCrawlDocument,
+  fetchCrawlList,
   politeDelay,
   type CrawlSourceKey,
 } from "@/lib/crawler";
@@ -24,14 +25,15 @@ interface CrawlResultItem {
 
 export async function POST(req: Request) {
   const body = (await req.json().catch(() => ({}))) as {
-    source?: CrawlSourceKey;
+    source?: string;
     limit?: number;
   };
-  const source: CrawlSourceKey = body.source ?? "it";
+  const source: CrawlSourceKey =
+    body.source && body.source in CRAWL_SOURCES ? (body.source as CrawlSourceKey) : "ck-it";
   const limit = Math.min(Math.max(1, body.limit ?? 2), MAX_PER_RUN);
 
   try {
-    const candidates = await fetchWevityList(source, 12);
+    const candidates = await fetchCrawlList(source, 12);
     if (candidates.length === 0) {
       return NextResponse.json(
         { error: "목록에서 공모전을 찾지 못했습니다. 사이트 구조가 바뀌었을 수 있어요." },
@@ -58,20 +60,20 @@ export async function POST(req: Request) {
     for (const candidate of fresh) {
       try {
         await politeDelay();
-        const poster = await fetchWevityPoster(candidate.detailUrl);
-        if (!poster) {
+        const document = await fetchCrawlDocument(source, candidate.detailUrl);
+        if (!document) {
           results.push({
             title: candidate.title,
             sourceUrl: candidate.detailUrl,
             status: "건너뜀",
-            error: "포스터 이미지를 찾지 못했습니다.",
+            error: "공고 문서(첨부·본문·포스터)를 찾지 못했습니다.",
           });
           continue;
         }
         const announcement = await ingestAnnouncementDocument({
-          filename: poster.filename,
-          mediaType: poster.mediaType,
-          bytes: poster.bytes,
+          filename: document.filename,
+          mediaType: document.mediaType,
+          bytes: document.bytes,
           sourceUrl: candidate.detailUrl,
         });
         results.push({

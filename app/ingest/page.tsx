@@ -32,9 +32,11 @@ interface QueueItem {
 const PIPELINE = ["Parse", "Classify", "Extract", "Instruct"] as const;
 
 const CRAWL_SOURCES = [
-  { value: "it", label: "웹/모바일/IT" },
-  { value: "idea", label: "기획/아이디어" },
-  { value: "all", label: "전체 공모전" },
+  { value: "ck-it", label: "콘테스트코리아 · 학문/과학/IT" },
+  { value: "ck-all", label: "콘테스트코리아 · 전체" },
+  { value: "it", label: "위비티 · 웹/모바일/IT" },
+  { value: "idea", label: "위비티 · 기획/아이디어" },
+  { value: "all", label: "위비티 · 전체" },
 ] as const;
 
 interface CrawlItem {
@@ -50,7 +52,7 @@ export default function IngestPage() {
   const [running, setRunning] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const [crawlSource, setCrawlSource] = useState<string>("it");
+  const [crawlSource, setCrawlSource] = useState<string>("ck-it");
   const [crawlLimit, setCrawlLimit] = useState(2);
   const [crawlBusy, setCrawlBusy] = useState(false);
   const [crawlMessage, setCrawlMessage] = useState<string | null>(null);
@@ -234,11 +236,11 @@ export default function IngestPage() {
 
       <div className="mt-8 rounded-xl border bg-card p-4">
         <h2 className="flex items-center gap-2 font-semibold text-sm">
-          <GlobeIcon className="size-4 text-primary" />위비티에서 자동 수집
+          <GlobeIcon className="size-4 text-primary" />공모전 사이트에서 자동 수집
         </h2>
         <p className="mt-1 text-muted-foreground text-xs">
-          위비티(wevity.com) 최신 공모전의 포스터 이미지를 가져와 같은 에이전트 파이프라인에
-          태웁니다. 이미 수집한 공고는 건너뜁니다.
+          콘테스트코리아·위비티 최신 공모전의 공고 문서(첨부 HWP·PDF → 본문 → 포스터 순)를
+          가져와 같은 에이전트 파이프라인에 태웁니다. 이미 수집한 공고는 건너뜁니다.
         </p>
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <select
