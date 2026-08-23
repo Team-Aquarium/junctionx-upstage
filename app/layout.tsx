@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import { ThemeProvider } from "next-themes";
 import { I18nProvider } from "@/lib/i18n/client";
 import { localeFromCookies } from "@/lib/i18n/server";
+import { PitchDemoTheme } from "@/components/pitch-demo-theme";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -53,6 +54,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       lang={locale}
       suppressHydrationWarning
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var d=/[?&]demo=1(?:&|$)/.test(location.search)||location.pathname.indexOf("demo-hero-notice")!==-1;if(!d)return;document.documentElement.classList.add("dark","pitch-demo");try{localStorage.setItem("theme","dark")}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body className="flex min-h-full flex-col bg-background text-foreground antialiased selection:bg-primary/10 selection:text-primary">
         <ThemeProvider
           attribute="class"
@@ -62,6 +70,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         >
           <I18nProvider initialLocale={locale}>
             <TooltipProvider>
+              <PitchDemoTheme />
               <SiteHeader />
               <main className="flex flex-1 flex-col">{children}</main>
               <SiteFooter />

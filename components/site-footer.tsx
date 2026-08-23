@@ -7,7 +7,10 @@ import { useT } from "@/lib/i18n/client";
 export function SiteFooter() {
   const t = useT();
   return (
-    <footer className="mt-auto border-t border-border/80 bg-background text-foreground">
+    <footer
+      className="mt-auto border-t border-border/80 bg-background text-foreground"
+      data-site-footer
+    >
       <div className="mx-auto w-full max-w-6xl px-6 py-12 sm:px-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div>

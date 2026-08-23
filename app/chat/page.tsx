@@ -72,7 +72,8 @@ import {
 } from "@/components/ai-elements/tool";
 import { UpstageBadge } from "@/components/upstage";
 import { Button } from "@/components/ui/button";
-import { useT } from "@/lib/i18n/client";
+import { useI18n, useT } from "@/lib/i18n/client";
+import { createPitchDemoChat, markPitchDemoReady, pitchDemoBoot } from "@/lib/pitch-demo";
 
 const ACCEPT_FORMATS =
   ".pdf,.png,.jpg,.jpeg,.bmp,.tif,.tiff,.heic,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.hwp,.hwpx,.html,.htm";
@@ -279,13 +280,15 @@ export default function ChatPage() {
 }
 
 function ChatPageInner() {
-  const t = useT();
+  const { t, locale, setLocale } = useI18n();
   const searchParams = useSearchParams();
   const initialInput = searchParams.get("q") ?? "";
   const noticeId = searchParams.get("notice");
+  const boot = pitchDemoBoot(searchParams.get("demo") === "1");
   const { messages, sendMessage, status, stop, regenerate, setMessages, error, clearError } =
     useChat({
       transport: new DefaultChatTransport({ api: "/api/chat" }),
+      messages: boot?.messages,
     });
   const [fileError, setFileError] = useState<string | null>(null);
   const [noticeFile, setNoticeFile] = useState<File | null>(null);
@@ -321,6 +324,18 @@ function ChatPageInner() {
   }, [noticeId]);
   const [reasoningEffort, setReasoningEffort] = useState<string>("high");
   const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!boot) {
+      return;
+    }
+    if (locale !== "en") {
+      setLocale("en");
+      return;
+    }
+    setMessages(createPitchDemoChat(t));
+    markPitchDemoReady();
+  }, [boot, locale, setLocale, setMessages, t]);
 
   const requestBody = { reasoningEffort };
   const isBusy = status === "submitted" || status === "streaming";

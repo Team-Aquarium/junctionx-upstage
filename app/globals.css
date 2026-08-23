@@ -166,3 +166,16 @@
 ::-webkit-scrollbar-thumb:hover {
   background: var(--muted-foreground);
 }
+
+html.pitch-demo,
+html.pitch-demo body,
+body[data-pitch-demo] {
+  overflow: hidden;
+}
+html.pitch-demo [data-site-footer],
+html.pitch-demo nextjs-portal,
+html.pitch-demo [data-nextjs-dev-overlay],
+body[data-pitch-demo] [data-site-footer],
+body[data-pitch-demo] nextjs-portal {
+  display: none !important;
+}

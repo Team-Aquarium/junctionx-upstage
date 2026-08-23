@@ -70,9 +70,10 @@ function DeckPlayer({
         ref={containerRef}
       >
         <iframe
-          className="absolute top-0 left-0 border-0 pointer-events-auto select-none"
+          className="absolute top-0 left-0 border-0 overflow-hidden pointer-events-none select-none"
           key={active}
           ref={iframeRef}
+          scrolling="no"
           src={`/slides/deck?s=${active}`}
           style={{
             width: 1280,

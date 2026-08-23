@@ -33,6 +33,16 @@
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { background: #060609; }
+  html.single-slide,
+  html.single-slide body {
+    background: var(--bg);
+    overflow: hidden;
+    height: 720px;
+    width: 1280px;
+  }
+  html.single-slide section.slide { display: none !important; margin: 0 !important; }
+  html.single-slide section.slide.is-on { display: flex !important; }
+  /* __ACTIVE_SLIDE__ */
   body {
     font-family: Geist, "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
     color: var(--fg);
@@ -117,9 +127,11 @@
     color: var(--fg);
   }
   .stat .hint {
-    font-size: 13px;
+    font-size: 14px;
+    line-height: 1.45;
     color: var(--muted);
-    margin-top: 6px;
+    margin-top: 8px;
+    max-width: 22em;
   }
 
   .flow {
@@ -163,7 +175,7 @@
     font-weight: 600;
     letter-spacing: -0.03em;
   }
-  .node p { margin-top: 10px; font-size: 16px; color: var(--muted); }
+  .node p { margin-top: 12px; font-size: 15px; line-height: 1.45; color: var(--muted); }
 
   .chip-col { display: flex; flex-direction: column; gap: 10px; }
   .chip {
@@ -213,7 +225,7 @@
     border: 1px solid var(--border);
     border-radius: 24px;
     padding: 36px 36px 32px;
-    min-height: 320px;
+    min-height: 280px;
   }
   .vs .side.win { background: var(--lilac-dim); border-color: rgba(196, 190, 255, 0.28); }
   .vs .big {
@@ -227,6 +239,282 @@
   .vs .win .big { color: var(--emerald); }
   .vs h3 { font-size: 22px; margin-bottom: 28px; }
   .vs ul { list-style: none; margin-top: 28px; display: flex; flex-direction: column; gap: 10px; color: var(--muted); font-size: 17px; }
+
+  .demo-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1.05fr;
+    gap: 48px;
+    align-items: center;
+    flex: 1;
+  }
+  .demo-frame {
+    background: #11101c;
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    padding: 16px 16px 18px;
+    box-shadow: none;
+  }
+  .demo-chrome {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 8px 12px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .demo-card {
+    background: var(--card);
+    border: 1px solid rgba(196, 190, 255, 0.22);
+    border-radius: 16px;
+    padding: 22px 22px 20px;
+  }
+  .demo-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .demo-pills { display: flex; gap: 6px; }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    height: 22px;
+    padding: 0 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .pill.cat { background: #252338; color: #dcd7ff; }
+  .pill.ok { background: rgba(52, 211, 153, 0.14); color: var(--emerald); }
+  .demo-card h3 {
+    margin-top: 16px;
+    font-size: 18px;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+    line-height: 1.35;
+  }
+  .demo-meta { margin-top: 8px; font-size: 12px; color: var(--muted); }
+  .demo-foot {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .demo-fit { color: var(--lilac); font-weight: 700; }
+  .demo-reason {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--lilac-dim);
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: #d8d4f5;
+  }
+
+  /* ---- App page mockups (match real components) ---- */
+  .app-frame {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #0e0d18;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    overflow: hidden;
+    min-height: 0;
+  }
+  .app-topbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .app-dots { display: flex; gap: 5px; }
+  .app-dots span { width: 8px; height: 8px; border-radius: 50%; background: #2a2840; }
+  .app-url {
+    padding: 3px 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 6px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .app-brand { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; }
+  .app-brand img { width: 18px; height: 18px; }
+  .app-nav { display: flex; gap: 6px; font-size: 11.5px; color: var(--muted); }
+  .app-nav span { padding: 4px 10px; border-radius: 8px; }
+  .app-nav .on { color: var(--fg); background: #252338; font-weight: 600; }
+  .app-body {
+    flex: 1;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .app-title { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; }
+  .app-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .m-row { display: flex; align-items: center; gap: 8px; }
+  .m-grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .m-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+  }
+  .m-card h4 { font-size: 12.5px; font-weight: 600; line-height: 1.4; margin-top: 10px; letter-spacing: -0.01em; }
+  .m-meta { font-size: 10.5px; color: var(--muted); margin-top: 4px; }
+  .m-foot {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    font-size: 10.5px;
+    color: var(--muted);
+  }
+  .m-fit { color: var(--lilac); font-weight: 700; }
+  .m-reason {
+    margin-top: 8px;
+    padding: 7px 9px;
+    border-radius: 8px;
+    background: var(--lilac-dim);
+    font-size: 10.5px;
+    line-height: 1.4;
+    color: #d8d4f5;
+  }
+  .pill.warn { background: rgba(251, 191, 36, 0.14); color: var(--amber); }
+  .pill.no { background: rgba(248, 113, 113, 0.14); color: var(--red); }
+  .pill.sm { height: 18px; padding: 0 6px; font-size: 9.5px; }
+
+  .f-chip {
+    display: inline-flex;
+    align-items: center;
+    height: 26px;
+    padding: 0 10px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .f-chip.on { background: #252338; color: var(--fg); font-weight: 600; }
+
+  .mini-node {
+    flex: 1;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    background: rgba(37, 35, 56, 0.6);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px;
+  }
+  .mini-node img { width: 20px; height: 20px; }
+  .mini-node b { font-size: 11px; display: block; }
+  .mini-node small { font-size: 9.5px; color: var(--muted); line-height: 1.35; display: block; margin-top: 2px; }
+  .mini-arrow { color: #565370; font-size: 14px; align-self: center; }
+
+  .input-mock {
+    height: 30px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    border-radius: 8px;
+    border: 1px solid #2e2c40;
+    background: var(--bg);
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .btn-mock {
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 14px;
+    border-radius: 8px;
+    background: var(--primary);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .btn-mock.ghost { background: transparent; border: 1px solid #2e2c40; color: var(--fg); }
+  .drop-mock {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    border: 1px dashed #2e2c40;
+    border-radius: 10px;
+    padding: 14px;
+    font-size: 10.5px;
+    color: var(--muted);
+  }
+  .check-line { display: flex; align-items: flex-start; gap: 8px; font-size: 11.5px; line-height: 1.45; }
+  .check-line .ok { color: var(--emerald); font-weight: 700; }
+  .check-line .q { color: var(--muted); font-weight: 700; }
+  .progress-mock { height: 5px; border-radius: 999px; background: #252338; overflow: hidden; }
+  .progress-mock i { display: block; height: 100%; width: 85%; background: var(--primary); border-radius: 999px; }
+
+  .bubble {
+    max-width: 78%;
+    padding: 9px 12px;
+    border-radius: 12px;
+    font-size: 11.5px;
+    line-height: 1.5;
+  }
+  .bubble.user { align-self: flex-end; background: var(--primary); color: #fff; border-bottom-right-radius: 4px; }
+  .bubble.ai { align-self: flex-start; background: var(--card); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+  .tool-mock {
+    align-self: flex-start;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: rgba(0, 0, 0, 0.25);
+    font-size: 10.5px;
+    color: var(--muted);
+  }
+  .tool-mock img { width: 14px; height: 14px; }
+  .tool-mock .done { color: var(--emerald); font-weight: 600; }
+
+  section.slide.slide-app {
+    padding: 0;
+    background: #0f0e17;
+  }
+  .slide-app .app-live {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: #0f0e17;
+    object-fit: fill;
+    object-position: 0 0;
+    display: block;
+    pointer-events: none;
+  }
+  .slide-app .footer {
+    z-index: 2;
+    left: 20px;
+    right: 20px;
+    bottom: 12px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: rgba(12, 11, 20, 0.72);
+    color: #d8d4f5;
+    backdrop-filter: blur(8px);
+  }
 </style>
 </head>
 <body>
@@ -240,7 +528,7 @@
   <div class="fill">
     <p class="eyebrow">Upstage Document Agent</p>
     <h1 class="display">The agent reads<br />the brief. <em>You apply.</em></h1>
-    <p class="one-line">Notice in. Eligibility out.</p>
+    <p class="one-line">Drop any announcement. The agent reads it, checks your profile, and answers: can you apply?</p>
     <div style="display:flex;gap:10px;margin-top:36px;">
       <span class="badge soft">JunctionX Korea 2026</span>
       <span class="badge">Upstage Track</span>
@@ -255,7 +543,7 @@
   <div>
     <p class="eyebrow">Problem</p>
     <h1 class="display">Can I apply?</h1>
-    <p class="one-line">Nobody answers that.</p>
+    <p class="one-line">Students miss opportunities not from lack of listings — from the cost of reading unstructured docs.</p>
   </div>
   <div class="fill">
     <div class="stat-row n3">
@@ -263,21 +551,21 @@
         <div class="num">70%</div>
         <div>
           <div class="label">Attachments</div>
-          <div class="hint">HWP · PDF · posters</div>
+          <div class="hint">Opening HWP, PDF, and posters to scan long briefs.</div>
         </div>
       </div>
       <div class="stat">
         <div class="num">65%</div>
         <div>
           <div class="label">Hidden rules</div>
-          <div class="hint">Buried in the brief</div>
+          <div class="hint">Finding buried clauses like age, year, and major.</div>
         </div>
       </div>
       <div class="stat">
         <div class="num">55%</div>
         <div>
           <div class="label">Fit</div>
-          <div class="hint">Is this for me?</div>
+          <div class="hint">Picking notices that actually match your profile.</div>
         </div>
       </div>
     </div>
@@ -290,6 +578,7 @@
   <div>
     <p class="eyebrow">Insight</p>
     <h1 class="display">Reading is the bottleneck.</h1>
+    <p class="one-line">Aggregators stop at links. The friction starts after you click.</p>
   </div>
   <div class="fill">
     <div class="vs">
@@ -297,9 +586,9 @@
         <h3>Boards</h3>
         <div class="big">23m</div>
         <ul>
-          <li>Links only</li>
-          <li>You read HWP</li>
-          <li>You judge fit</li>
+          <li>Raw attachments only</li>
+          <li>You read the HWP yourself</li>
+          <li>Generic tags, no profile</li>
         </ul>
       </div>
       <div class="arrow">→</div>
@@ -307,9 +596,9 @@
         <h3>Moabora</h3>
         <div class="big">5m</div>
         <ul>
-          <li>Agent reads</li>
-          <li>Verdict + reason</li>
-          <li>Solar fit score</li>
+          <li>Agent reads HWP & posters</li>
+          <li>Eligible / Review / No + reasons</li>
+          <li>Solar fit score 0–100</li>
         </ul>
       </div>
     </div>
@@ -322,6 +611,7 @@
   <div>
     <p class="eyebrow">Solution</p>
     <h1 class="display">Three moves. Done.</h1>
+    <p class="one-line">A file becomes a verdict, a score, and a checklist.</p>
   </div>
   <div class="fill">
     <div class="flow n3">
@@ -329,7 +619,7 @@
         <div class="kicker">01</div>
         <div>
           <h3>Understand</h3>
-          <p>PDF · HWP · poster</p>
+          <p>Reads PDF, HWP, posters, and HTML into structured fields.</p>
         </div>
       </div>
       <div class="arrow">→</div>
@@ -337,7 +627,7 @@
         <div class="kicker">02</div>
         <div>
           <h3>Judge</h3>
-          <p>Eligible / Review / No</p>
+          <p>Matches 6 rules to your profile, with reasons.</p>
         </div>
       </div>
       <div class="arrow">→</div>
@@ -345,7 +635,7 @@
         <div class="kicker">03</div>
         <div>
           <h3>Act</h3>
-          <p>Fit score · checklist</p>
+          <p>Solar fit score, rationale, and a submission checklist.</p>
         </div>
       </div>
     </div>
@@ -358,6 +648,7 @@
   <div>
     <p class="eyebrow">Journey</p>
     <h1 class="display">Four steps.</h1>
+    <p class="one-line">Zero to an application decision in about two minutes.</p>
   </div>
   <div class="fill">
     <div class="stat-row n4">
@@ -365,28 +656,28 @@
         <div class="num" style="font-size:48px;">01</div>
         <div>
           <div class="label">Profile</div>
-          <div class="hint">Link · cert · note</div>
+          <div class="hint">Certificate, GitHub, or a short note — merged in one minute.</div>
         </div>
       </div>
       <div class="stat" style="min-height:240px;">
         <div class="num" style="font-size:48px;">02</div>
         <div>
           <div class="label">Collect</div>
-          <div class="hint">File · URL · crawl</div>
+          <div class="hint">Upload, paste a URL, or crawl Wevity and ContestKorea.</div>
         </div>
       </div>
       <div class="stat" style="min-height:240px;">
         <div class="num" style="font-size:48px;">03</div>
         <div>
           <div class="label">Feed</div>
-          <div class="hint">Badge + score</div>
+          <div class="hint">Every card already has a verdict badge and a Solar score.</div>
         </div>
       </div>
       <div class="stat" style="min-height:240px;">
         <div class="num" style="font-size:48px;">04</div>
         <div>
           <div class="label">Apply</div>
-          <div class="hint">Checklist · chat</div>
+          <div class="hint">Reasons, review checklist, then Document Chat.</div>
         </div>
       </div>
     </div>
@@ -394,11 +685,41 @@
   <div class="footer"><span>About two minutes</span><span>05</span></div>
 </section>
 
-<!-- 6. Studio -->
+<!-- 6. Tour: Feed -->
+<section class="slide slide-app">
+  <img alt="Notice feed" class="app-live" src="assets/ui-feed.png" />
+  <div class="footer"><span>Verdict badge + Solar fit on every card</span><span>06</span></div>
+</section>
+
+<!-- 7. Tour: Ingest -->
+<section class="slide slide-app">
+  <img alt="Add a notice" class="app-live" src="assets/ui-ingest.png" />
+  <div class="footer"><span>File · URL · crawler — zero bypass</span><span>07</span></div>
+</section>
+<!-- 8. Tour: Profile -->
+<section class="slide slide-app">
+  <img alt="Profile" class="app-live" src="assets/ui-me.png" />
+  <div class="footer"><span>Link · certificate · note — merged by UIE + Solar</span><span>08</span></div>
+</section>
+
+<!-- 9. Tour: Notice detail -->
+<section class="slide slide-app">
+  <img alt="Notice detail" class="app-live" src="assets/ui-notice.png" />
+  <div class="footer"><span>Per-rule reasons · checklist · one-click handoff</span><span>09</span></div>
+</section>
+
+<!-- 10. Tour: Doc chat -->
+<section class="slide slide-app">
+  <img alt="Document chat" class="app-live" src="assets/ui-chat.png" />
+  <div class="footer"><span>Solar Pro 4 tool-calling · streamed reasoning</span><span>10</span></div>
+</section>
+
+<!-- 11. Studio -->
 <section class="slide">
   <div>
     <p class="eyebrow">Upstage Studio</p>
     <h1 class="display">One agent. Zero bypass.</h1>
+    <p class="one-line">Upload, link, and crawler all hit the same Studio agent.</p>
   </div>
   <div class="fill">
     <div class="flow n4">
@@ -407,6 +728,7 @@
         <div>
           <div class="kicker">Node 01</div>
           <h3>Parse</h3>
+          <p>OCR + layout to Markdown</p>
         </div>
       </div>
       <div class="arrow">→</div>
@@ -415,6 +737,7 @@
         <div>
           <div class="kicker">Node 02</div>
           <h3>Classify</h3>
+          <p>6 notice types</p>
         </div>
       </div>
       <div class="arrow">→</div>
@@ -423,6 +746,7 @@
         <div>
           <div class="kicker">Node 03</div>
           <h3>Extract</h3>
+          <p>10 structured fields</p>
         </div>
       </div>
       <div class="arrow">→</div>
@@ -431,72 +755,97 @@
         <div>
           <div class="kicker">Node 04</div>
           <h3>Instruct</h3>
+          <p>Summary + rules JSON</p>
         </div>
       </div>
     </div>
   </div>
-  <div class="footer"><span>agt_ · REST v2</span><span>06</span></div>
+  <div class="footer"><span>agt_ · REST v2</span><span>11</span></div>
 </section>
 
-<!-- 7. Products -->
+<!-- 12. Products -->
 <section class="slide">
   <div>
     <p class="eyebrow">Upstage Products</p>
     <h1 class="display">All four. In production.</h1>
+    <p class="one-line">Not a combo slide — every product runs inside the live service.</p>
   </div>
   <div class="fill">
     <div class="stat-row n4">
       <div class="stat" style="min-height:260px;">
         <img alt="Studio" src="assets/studio-agents.svg" style="width:40px;height:40px;" />
-        <div class="label">Studio</div>
+        <div>
+          <div class="label">Studio Agents</div>
+          <div class="hint">Core 4-node notice pipeline.</div>
+        </div>
       </div>
       <div class="stat" style="min-height:260px;">
         <img alt="Parse" src="assets/document-parse.svg" style="width:40px;height:40px;" />
-        <div class="label">Parse</div>
+        <div>
+          <div class="label">Document Parse</div>
+          <div class="hint">OCR and layout for HWP & posters.</div>
+        </div>
       </div>
       <div class="stat" style="min-height:260px;">
         <img alt="Extract" src="assets/information-extract.svg" style="width:40px;height:40px;" />
-        <div class="label">Extract</div>
+        <div>
+          <div class="label">Information Extract</div>
+          <div class="hint">Certificates and chat schema extract.</div>
+        </div>
       </div>
       <div class="stat" style="min-height:260px;">
         <img alt="Solar" src="assets/solar-llm.svg" style="width:40px;height:40px;" />
-        <div class="label">Solar Pro 4</div>
+        <div>
+          <div class="label">Solar Pro 4</div>
+          <div class="hint">Fit scores, profile extract, tools.</div>
+        </div>
       </div>
     </div>
   </div>
-  <div class="footer"><span>One service</span><span>07</span></div>
+  <div class="footer"><span>One service</span><span>12</span></div>
 </section>
 
-<!-- 8. Engineering -->
+<!-- 13. Engineering -->
 <section class="slide">
   <div>
     <p class="eyebrow">Engineering</p>
     <h1 class="display">Built to last the demo.</h1>
+    <p class="one-line">Real Korean-document edge cases, with the reasoning visible.</p>
   </div>
   <div class="fill">
     <div class="stat-row n3">
       <div class="stat">
         <div class="num" style="font-size:40px;">Resume</div>
-        <div class="label">Refresh-safe sessions</div>
+        <div>
+          <div class="label">Refresh-safe sessions</div>
+          <div class="hint">Workflows survive reload. No duplicate bills.</div>
+        </div>
       </div>
       <div class="stat">
         <div class="num" style="font-size:40px;">Stream</div>
-        <div class="label">Live NDJSON + reasoning</div>
+        <div>
+          <div class="label">Live NDJSON + reasoning</div>
+          <div class="hint">Stages, artifacts, and Solar thought process.</div>
+        </div>
       </div>
       <div class="stat">
         <div class="num" style="font-size:40px;">Match</div>
-        <div class="label">6 rules, with reasons</div>
+        <div>
+          <div class="label">6 rules, with reasons</div>
+          <div class="hint">Grade, status, age, major, region, team.</div>
+        </div>
       </div>
     </div>
   </div>
-  <div class="footer"><span>Cache · sanitize · accumulate</span><span>08</span></div>
+  <div class="footer"><span>Cache · sanitize · accumulate</span><span>13</span></div>
 </section>
 
-<!-- 9. Scope -->
+<!-- 14. Scope -->
 <section class="slide">
   <div>
     <p class="eyebrow">Scope</p>
     <h1 class="display">Ship the loop. Cut the rest.</h1>
+    <p class="one-line">A complete end-to-end path in three days — and a clear next cut.</p>
   </div>
   <div class="fill">
     <div class="stat-row n3">
@@ -526,10 +875,10 @@
       </div>
     </div>
   </div>
-  <div class="footer"><span>3-day hackathon</span><span>09</span></div>
+  <div class="footer"><span>3-day hackathon</span><span>14</span></div>
 </section>
 
-<!-- 10. Why -->
+<!-- 15. Why -->
 <section class="slide">
   <div>
     <p class="eyebrow">Why it holds up</p>
@@ -539,43 +888,78 @@
     <div class="stat-row n4">
       <div class="stat" style="min-height:240px;">
         <div class="num" style="font-size:36px;">Stack</div>
-        <div class="label">All 4 products</div>
+        <div>
+          <div class="label">All 4 products</div>
+          <div class="hint">Custom 4-node agent. Zero bypass.</div>
+        </div>
       </div>
       <div class="stat" style="min-height:240px;">
         <div class="num" style="font-size:36px;">Loop</div>
-        <div class="label">Live end-to-end</div>
+        <div>
+          <div class="label">Live end-to-end</div>
+          <div class="hint">Profile → ingest → feed → chat, deployed.</div>
+        </div>
       </div>
       <div class="stat" style="min-height:240px;">
         <div class="num" style="font-size:36px;">Verdict</div>
-        <div class="label">Not just links</div>
+        <div>
+          <div class="label">Not just links</div>
+          <div class="hint">Reads HWP and posters aggregators skip.</div>
+        </div>
       </div>
       <div class="stat" style="min-height:240px;">
         <div class="num" style="font-size:36px;">Scope</div>
-        <div class="label">Honest cuts</div>
+        <div>
+          <div class="label">Honest cuts</div>
+          <div class="hint">Survey-backed problem. RLS-ready next.</div>
+        </div>
       </div>
     </div>
   </div>
-  <div class="footer"><span>Not a demo shell</span><span>10</span></div>
+  <div class="footer"><span>Not a demo shell</span><span>15</span></div>
 </section>
 
-<!-- 11. Demo -->
+<!-- 16. Demo -->
 <section class="slide">
-  <div>
-    <p class="eyebrow">Live</p>
-    <h1 class="display">Try it now.</h1>
-  </div>
-  <div class="fill" style="align-items:flex-start;justify-content:center;">
-    <a href="https://moabora.sharp0802.com" target="_blank" style="font-family:Espeak, Geist, sans-serif;font-size:52px;font-weight:600;letter-spacing:-0.03em;color:var(--fg);text-decoration:none;">
-      moabora.sharp0802.com
-    </a>
-    <p class="one-line" style="margin-top:20px;">The agent reads the brief. You just apply.</p>
+  <div class="demo-wrap">
+    <div>
+      <p class="eyebrow">Live</p>
+      <h1 class="display">Try it now.</h1>
+      <a href="https://moabora.sharp0802.com" target="_blank" style="display:inline-block;margin-top:22px;font-family:Espeak, Geist, sans-serif;font-size:28px;font-weight:600;letter-spacing:-0.03em;color:var(--lilac);text-decoration:none;">
+        moabora.sharp0802.com
+      </a>
+      <p class="one-line">The same agent card you see on the landing — verdict, fit, and reason.</p>
+    </div>
+    <div class="demo-frame">
+      <div class="demo-chrome">
+        <span style="color:var(--fg);font-weight:600;">Sample agent card</span>
+        <span>2026_Upstage_Challenge_brief.pdf</span>
+      </div>
+      <article class="demo-card">
+        <div class="demo-row">
+          <div class="demo-pills">
+            <span class="pill cat">Contest / Hackathon</span>
+            <span class="pill ok">Eligible</span>
+          </div>
+          <span style="font-size:12px;color:var(--lilac);font-weight:600;">D-8</span>
+        </div>
+        <h3>2nd Upstage AI Service Development Challenge</h3>
+        <p class="demo-meta">Upstage</p>
+        <p class="demo-meta">Benefits: KRW 20M in total prizes and an Upstage hiring-screen waiver</p>
+        <div class="demo-foot">
+          <span>Deadline 2026-08-31</span>
+          <span class="demo-fit">Fit 96</span>
+        </div>
+        <p class="demo-reason">A CS major and AI project history match the skills this challenge asks for.</p>
+      </article>
+    </div>
   </div>
   <div class="footer">
     <span class="logo-row">
       <img alt="Upstage" src="assets/symbol.svg" style="width:16px;height:16px;" />
       <span>Team Aquarium · Powered by Upstage</span>
     </span>
-    <span>11</span>
+    <span>16</span>
   </div>
 </section>
 
@@ -583,15 +967,10 @@
   function showSlide(n) {
     const index = Number(n);
     if (!Number.isFinite(index) || index < 1) return;
+    document.documentElement.classList.add("single-slide");
     document.querySelectorAll("section.slide").forEach((el, i) => {
-      el.style.display = i + 1 === index ? "flex" : "none";
-      el.style.margin = "0";
+      el.classList.toggle("is-on", i + 1 === index);
     });
-    document.documentElement.style.background = "#0c0b14";
-    document.documentElement.style.overflow = "hidden";
-    document.body.style.background = "#0c0b14";
-    document.body.style.margin = "0";
-    document.body.style.overflow = "hidden";
   }
 
   const initial = new URLSearchParams(location.search).get("s");
