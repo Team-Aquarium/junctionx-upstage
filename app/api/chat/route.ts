@@ -87,7 +87,7 @@ export async function POST(req: Request) {
   });
 
   const result = streamText({
-    model: upstage(process.env.UPSTAGE_CHAT_MODEL ?? "solar-pro4"),
+    model: upstage(process.env.UPSTAGE_CHAT_MODEL || "solar-pro4"),
     system: SYSTEM_PROMPT,
     messages: await convertToModelMessages(transformed),
     stopWhen: stepCountIs(8),

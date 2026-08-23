@@ -401,7 +401,7 @@ async function solarChatStream(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: process.env.UPSTAGE_CHAT_MODEL ?? "solar-pro4",
+      model: process.env.UPSTAGE_CHAT_MODEL || "solar-pro4",
       reasoning_effort: "low",
       stream: true,
       messages,
