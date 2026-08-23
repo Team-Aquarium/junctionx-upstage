@@ -3,6 +3,7 @@ import { createTranslator } from "@/lib/i18n";
 import { localeFromRequest } from "@/lib/i18n/request";
 import { extractProfileFromText } from "@/lib/upstage";
 import { getProfile, mergeProfile, saveProfile } from "@/lib/store";
+import { scopedWorkflowKey, visitorIdFromRequest } from "@/lib/visitor";
 import { clip, clipTail } from "@/lib/workflow";
 import { runWorkflowSession } from "@/lib/workflow-session";
 
@@ -16,7 +17,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: t("profile.noteFailed") }, { status: 400 });
   }
 
-  return runWorkflowSession("profile-note", async (emit) => {
+  const visitorId = visitorIdFromRequest(req);
+  return runWorkflowSession(scopedWorkflowKey(req, "profile-note"), async (emit) => {
     emit({
       type: "step",
       id: "recv",
@@ -63,12 +65,12 @@ export async function POST(req: Request) {
       });
     }
 
-    const profile = mergeProfile(await getProfile(), extracted, {
+    const profile = mergeProfile(await getProfile(visitorId), extracted, {
       type: "note",
       label: clip(note, 48),
       addedAt: new Date().toISOString(),
     });
-    await saveProfile(profile);
+    await saveProfile(visitorId, profile);
     emit({
       type: "step",
       id: "merge",

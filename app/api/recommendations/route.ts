@@ -9,6 +9,7 @@ import {
   listAnnouncements,
   saveRecommendationCache,
 } from "@/lib/store";
+import { scopedWorkflowKey, visitorIdFromRequest } from "@/lib/visitor";
 import { clipTail } from "@/lib/workflow";
 import { runWorkflowSession } from "@/lib/workflow-session";
 
@@ -17,7 +18,11 @@ export const maxDuration = 240;
 export async function GET(req: Request) {
   const locale = localeFromRequest(req);
   const t = createTranslator(locale);
-  const [profile, announcements] = await Promise.all([getProfile(), listAnnouncements()]);
+  const visitorId = visitorIdFromRequest(req);
+  const [profile, announcements] = await Promise.all([
+    getProfile(visitorId),
+    listAnnouncements(),
+  ]);
   if (!profile || announcements.length === 0) {
     return NextResponse.json({ recommendations: [] });
   }
@@ -35,8 +40,8 @@ export async function GET(req: Request) {
     .digest("hex");
 
   // 실행 중이면 새로고침해도 같은 세션에 붙어 이어본다. (중복 Solar 호출 방지)
-  return runWorkflowSession(`recommendations:${locale}`, async (emit) => {
-    const cache = await getRecommendationCache();
+  return runWorkflowSession(scopedWorkflowKey(req, `recommendations:${locale}`), async (emit) => {
+    const cache = await getRecommendationCache(visitorId);
     if (cache?.hash === hash) {
       emit({
         type: "step",
@@ -114,7 +119,11 @@ export async function GET(req: Request) {
         detail: `${valid.length} scored`,
         payload: valid,
       });
-      await saveRecommendationCache({ hash, createdAt: new Date().toISOString(), items: valid });
+      await saveRecommendationCache(visitorId, {
+        hash,
+        createdAt: new Date().toISOString(),
+        items: valid,
+      });
       emit({ type: "result", data: { recommendations: valid, cached: false } });
     } catch (error) {
       // 추천이 실패해도 피드는 정상 동작해야 한다.

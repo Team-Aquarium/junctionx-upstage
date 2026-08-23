@@ -5,6 +5,7 @@ import { localeFromRequest } from "@/lib/i18n/request";
 import { ingestAnnouncementDocument } from "@/lib/ingest";
 import { matchAnnouncement } from "@/lib/matching";
 import { getProfile, listAnnouncements } from "@/lib/store";
+import { scopedWorkflowKey, visitorIdFromRequest } from "@/lib/visitor";
 import { runWorkflowSession } from "@/lib/workflow-session";
 
 export const maxDuration = 300;
@@ -17,7 +18,8 @@ export async function POST(req: Request) {
   }
 
   // 같은 링크가 실행 중이면 그 세션에 붙는다. (새로고침 이어보기 + 중복 실행 방지)
-  return runWorkflowSession(`link:${url}`, async (emit) => {
+  const visitorId = visitorIdFromRequest(req);
+  return runWorkflowSession(scopedWorkflowKey(req, `link:${url}`), async (emit) => {
     if ((await listAnnouncements()).some((a) => a.sourceUrl === url)) {
       emit({ type: "error", message: t("api.alreadyRegistered") });
       return;
@@ -67,7 +69,7 @@ export async function POST(req: Request) {
       },
       emit,
     );
-    const match = matchAnnouncement(announcement, await getProfile(), t);
+    const match = matchAnnouncement(announcement, await getProfile(visitorId), t);
     emit({
       type: "step",
       id: "match",

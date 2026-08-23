@@ -27,11 +27,13 @@ const sessions: Map<string, WorkflowSession> = (globalStore.__workflowSessions ?
 /** 완료된 세션을 잠시 보관해 완료 직후 attach도 재생할 수 있게 한다. */
 const SESSION_TTL_AFTER_DONE_MS = 60_000;
 
-export function listActiveSessionKeys(): string[] {
+export function listActiveSessionKeys(visitorId?: string): string[] {
+  const prefix = visitorId ? `${visitorId}:` : null;
   return [...sessions.values()]
     .filter((session) => !session.done)
+    .filter((session) => !prefix || session.key.startsWith(prefix))
     .sort((a, b) => a.startedAt - b.startedAt)
-    .map((session) => session.key);
+    .map((session) => (prefix ? session.key.slice(prefix.length) : session.key));
 }
 
 export function getSession(key: string): WorkflowSession | null {

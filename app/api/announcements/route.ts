@@ -3,10 +3,14 @@ import { createTranslator } from "@/lib/i18n";
 import { localeFromRequest } from "@/lib/i18n/request";
 import { matchAnnouncement } from "@/lib/matching";
 import { getProfile, listAnnouncements } from "@/lib/store";
+import { visitorIdFromRequest } from "@/lib/visitor";
 
 export async function GET(req: Request) {
   const t = createTranslator(localeFromRequest(req));
-  const [profile, list] = await Promise.all([getProfile(), listAnnouncements()]);
+  const [profile, list] = await Promise.all([
+    getProfile(visitorIdFromRequest(req)),
+    listAnnouncements(),
+  ]);
   const announcements = list.map((announcement) => ({
     ...announcement,
     match: matchAnnouncement(announcement, profile, t),

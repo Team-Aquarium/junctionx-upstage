@@ -3,6 +3,7 @@ import { createTranslator } from "@/lib/i18n";
 import { localeFromRequest } from "@/lib/i18n/request";
 import { extractInformation, type StoredDocument } from "@/lib/upstage";
 import { clearProfile, getProfile, mergeProfile, saveProfile } from "@/lib/store";
+import { scopedWorkflowKey, visitorIdFromRequest } from "@/lib/visitor";
 import { runWorkflowSession } from "@/lib/workflow-session";
 
 export const maxDuration = 120;
@@ -20,8 +21,8 @@ const PROFILE_PROPERTIES = {
   birth_year: { type: "number", description: "4-digit birth year (year only from date of birth)" },
 } as const;
 
-export async function GET() {
-  return NextResponse.json({ profile: await getProfile() });
+export async function GET(req: Request) {
+  return NextResponse.json({ profile: await getProfile(visitorIdFromRequest(req)) });
 }
 
 export async function POST(req: Request) {
@@ -42,7 +43,8 @@ export async function POST(req: Request) {
   };
 
   // 새로고침 시 /api/workflows에서 발견해 이어본다.
-  return runWorkflowSession("profile-file", async (emit) => {
+  const visitorId = visitorIdFromRequest(req);
+  return runWorkflowSession(scopedWorkflowKey(req, "profile-file"), async (emit) => {
     emit({
       type: "step",
       id: "recv",
@@ -72,12 +74,12 @@ export async function POST(req: Request) {
       payload: extracted,
     });
 
-    const profile = mergeProfile(await getProfile(), extracted, {
+    const profile = mergeProfile(await getProfile(visitorId), extracted, {
       type: "file",
       label: file.name,
       addedAt: new Date().toISOString(),
     });
-    await saveProfile(profile);
+    await saveProfile(visitorId, profile);
     emit({
       type: "step",
       id: "merge",
@@ -92,7 +94,8 @@ export async function POST(req: Request) {
 export async function PUT(req: Request) {
   const t = createTranslator(localeFromRequest(req));
   const body = (await req.json()) as Record<string, unknown>;
-  const current = await getProfile();
+  const visitorId = visitorIdFromRequest(req);
+  const current = await getProfile(visitorId);
   const last = current?.sources.at(-1);
   const profile = mergeProfile(current, body, {
     type: "manual",
@@ -102,11 +105,11 @@ export async function PUT(req: Request) {
   if (last?.type === "manual") {
     profile.sources = current?.sources ?? profile.sources;
   }
-  await saveProfile(profile);
+  await saveProfile(visitorId, profile);
   return NextResponse.json({ profile });
 }
 
-export async function DELETE() {
-  await clearProfile();
+export async function DELETE(req: Request) {
+  await clearProfile(visitorIdFromRequest(req));
   return NextResponse.json({ profile: null });
 }

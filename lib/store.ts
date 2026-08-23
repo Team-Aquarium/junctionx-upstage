@@ -1,9 +1,8 @@
 import { getSupabase } from "./supabase";
 
-// Supabase(클라우드) 기반 저장소. 단일 사용자 데모를 가정한다.
+// 공고는 Supabase(공유), 프로필·추천 캐시는 방문자 쿠키 기준 서버 메모리.
 // - 공고: public.announcements 테이블
-// - 프로필: public.profile (id=1 한 행, jsonb)
-// - 추천 캐시: public.recommendation_cache (id=1 한 행)
+// - 프로필 / Solar 캐시: visitorId → globalThis Map (24h TTL)
 // - 원본 파일: storage 버킷 "uploads" (파일명 = 공고 id)
 
 const UPLOADS_BUCKET = "uploads";
@@ -178,8 +177,41 @@ export async function readUploadFile(id: string): Promise<Buffer | null> {
 }
 
 // ---------------------------------------------------------------------------
-// 사용자 프로필 (단일 사용자 — profile 테이블 id=1 한 행)
+// 방문자별 프로필 · 추천 캐시 (서버 메모리)
 // ---------------------------------------------------------------------------
+
+const VISITOR_TTL_MS = 24 * 60 * 60 * 1000;
+
+interface VisitorBucket {
+  profile: UserProfile | null;
+  recCache: RecommendationCache | null;
+  touchedAt: number;
+}
+
+const visitorGlobal = globalThis as unknown as {
+  __moaboraVisitors?: Map<string, VisitorBucket>;
+};
+const visitors: Map<string, VisitorBucket> = (visitorGlobal.__moaboraVisitors ??= new Map());
+
+function pruneVisitors(now = Date.now()) {
+  for (const [id, bucket] of visitors) {
+    if (now - bucket.touchedAt > VISITOR_TTL_MS) {
+      visitors.delete(id);
+    }
+  }
+}
+
+function visitorBucket(visitorId: string): VisitorBucket {
+  pruneVisitors();
+  let bucket = visitors.get(visitorId);
+  if (!bucket) {
+    bucket = { profile: null, recCache: null, touchedAt: Date.now() };
+    visitors.set(visitorId, bucket);
+  } else {
+    bucket.touchedAt = Date.now();
+  }
+  return bucket;
+}
 
 export interface ProfileSource {
   type: "file" | "link" | "manual" | "note";
@@ -215,37 +247,21 @@ export function emptyProfile(): UserProfile {
   };
 }
 
-export async function getProfile(): Promise<UserProfile | null> {
-  const { data, error } = await getSupabase()
-    .from("profile")
-    .select("data")
-    .eq("id", 1)
-    .maybeSingle();
-  if (error) {
-    throw new Error(`Failed to get profile: ${error.message}`);
-  }
-  return (data?.data as UserProfile | undefined) ?? null;
+export async function getProfile(visitorId: string): Promise<UserProfile | null> {
+  return visitorBucket(visitorId).profile;
 }
 
-export async function saveProfile(profile: UserProfile): Promise<void> {
-  const { error } = await getSupabase()
-    .from("profile")
-    .upsert({ id: 1, data: profile, updated_at: new Date().toISOString() });
-  if (error) {
-    throw new Error(`Failed to save profile: ${error.message}`);
-  }
+export async function saveProfile(visitorId: string, profile: UserProfile): Promise<void> {
+  const bucket = visitorBucket(visitorId);
+  bucket.profile = profile;
+  bucket.recCache = null;
 }
 
-export async function clearProfile(): Promise<void> {
-  const { error } = await getSupabase().from("profile").delete().eq("id", 1);
-  if (error) {
-    throw new Error(`Failed to clear profile: ${error.message}`);
-  }
+export async function clearProfile(visitorId: string): Promise<void> {
+  const bucket = visitorBucket(visitorId);
+  bucket.profile = null;
+  bucket.recCache = null;
 }
-
-// ---------------------------------------------------------------------------
-// 추천 캐시 (프로필 + 공고 목록이 바뀔 때만 재계산 — id=1 한 행)
-// ---------------------------------------------------------------------------
 
 export interface RecommendationCache {
   hash: string;
@@ -253,32 +269,17 @@ export interface RecommendationCache {
   items: { id: string; score: number; reason: string }[];
 }
 
-export async function getRecommendationCache(): Promise<RecommendationCache | null> {
-  const { data, error } = await getSupabase()
-    .from("recommendation_cache")
-    .select("hash, items, created_at")
-    .eq("id", 1)
-    .maybeSingle();
-  if (error) {
-    throw new Error(`Failed to get recommendation cache: ${error.message}`);
-  }
-  if (!data) {
-    return null;
-  }
-  return {
-    hash: data.hash as string,
-    createdAt: data.created_at as string,
-    items: (data.items ?? []) as RecommendationCache["items"],
-  };
+export async function getRecommendationCache(
+  visitorId: string,
+): Promise<RecommendationCache | null> {
+  return visitorBucket(visitorId).recCache;
 }
 
-export async function saveRecommendationCache(cache: RecommendationCache): Promise<void> {
-  const { error } = await getSupabase()
-    .from("recommendation_cache")
-    .upsert({ id: 1, hash: cache.hash, items: cache.items, created_at: cache.createdAt });
-  if (error) {
-    throw new Error(`Failed to save recommendation cache: ${error.message}`);
-  }
+export async function saveRecommendationCache(
+  visitorId: string,
+  cache: RecommendationCache,
+): Promise<void> {
+  visitorBucket(visitorId).recCache = cache;
 }
 
 function uniqueStrings(values: unknown): string[] {

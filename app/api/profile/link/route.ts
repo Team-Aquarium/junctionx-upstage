@@ -3,6 +3,7 @@ import { createTranslator } from "@/lib/i18n";
 import { localeFromRequest } from "@/lib/i18n/request";
 import { extractProfileFromText } from "@/lib/upstage";
 import { getProfile, mergeProfile, saveProfile } from "@/lib/store";
+import { scopedWorkflowKey, visitorIdFromRequest } from "@/lib/visitor";
 import { clip, clipTail } from "@/lib/workflow";
 import { runWorkflowSession } from "@/lib/workflow-session";
 
@@ -32,7 +33,8 @@ export async function POST(req: Request) {
   }
 
   // 새로고침 시 /api/workflows에서 발견해 이어본다.
-  return runWorkflowSession("profile-link", async (emit) => {
+  const visitorId = visitorIdFromRequest(req);
+  return runWorkflowSession(scopedWorkflowKey(req, "profile-link"), async (emit) => {
     emit({ type: "step", id: "fetch", title: `Fetch page — ${url}`, status: "start" });
     const res = await fetch(url, {
       headers: {
@@ -131,12 +133,12 @@ export async function POST(req: Request) {
       payload: extracted,
     });
 
-    const profile = mergeProfile(await getProfile(), extracted, {
+    const profile = mergeProfile(await getProfile(visitorId), extracted, {
       type: "link",
       label: url,
       addedAt: new Date().toISOString(),
     });
-    await saveProfile(profile);
+    await saveProfile(visitorId, profile);
     emit({ type: "step", id: "merge", title: t("api.mergeSave"), status: "done", payload: profile });
     emit({ type: "result", data: { profile, extracted } });
   });

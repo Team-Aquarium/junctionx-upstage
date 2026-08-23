@@ -10,6 +10,7 @@ import { localeFromRequest } from "@/lib/i18n/request";
 import { ingestAnnouncementDocument } from "@/lib/ingest";
 import { matchAnnouncement } from "@/lib/matching";
 import { getProfile, listAnnouncements } from "@/lib/store";
+import { scopedWorkflowKey, visitorIdFromRequest } from "@/lib/visitor";
 import { runWorkflowSession } from "@/lib/workflow-session";
 
 export const maxDuration = 300;
@@ -44,7 +45,8 @@ export async function POST(req: Request) {
   const sourceLabel = t(sourceLabelKeys[source]);
 
   // 실행 중이면 새로고침해도 "crawl" 세션에 붙어 이어본다.
-  return runWorkflowSession("crawl", async (emit) => {
+  const visitorId = visitorIdFromRequest(req);
+  return runWorkflowSession(scopedWorkflowKey(req, "crawl"), async (emit) => {
     emit({
       type: "step",
       id: "list",
@@ -84,7 +86,7 @@ export async function POST(req: Request) {
       return;
     }
 
-    const profile = await getProfile();
+    const profile = await getProfile(visitorId);
     const results: CrawlResultItem[] = [];
 
     for (const [index, candidate] of fresh.entries()) {
