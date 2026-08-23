@@ -106,7 +106,7 @@ components/
   ui/                         # shadcn/ui 컴포넌트
 samples/                      # 데모용 샘플 문서 (HTML 원본 + PDF)
 scripts/test-agent.mjs        # Studio 에이전트 단독 실행 테스트
-scripts/migrate-data-to-supabase.mjs  # 구 data/ 파일 저장소 → Supabase 일회성 이관
+scripts/capture-pitch-ui.mjs  # 피치 덱용 다크 UI 스크린샷 (slides/assets + public/upstage)
 supabase/migrations/          # Supabase 스키마 마이그레이션 (supabase db push)
 ```
 
