@@ -26,4 +26,17 @@ jobs:
       - name: Prune old container
         run: docker rm moabora-run || true
       - name: Deploy new container
-        run: docker run -dp 3000:3000 --name moabora-run moabora
+        env:
+          UPSTAGE_API_KEY: ${{ secrets.UPSTAGE_API_KEY }}
+          UPSTAGE_CHAT_MODEL: ${{ secrets.UPSTAGE_CHAT_MODEL }}
+          UPSTAGE_AGENT_ID: ${{ secrets.UPSTAGE_AGENT_ID }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          docker run -dp 3000:3000 --name moabora-run \
+            -e UPSTAGE_API_KEY \
+            -e UPSTAGE_CHAT_MODEL \
+            -e UPSTAGE_AGENT_ID \
+            -e SUPABASE_URL \
+            -e SUPABASE_SERVICE_ROLE_KEY \
+            moabora
