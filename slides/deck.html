@@ -6,25 +6,16 @@
 <style>
   :root {
     --primary: #6c63ff;
-    --primary-soft: rgba(108, 99, 255, 0.16);
-    --primary-soft-fg: #c4beff;
-    --primary-border: rgba(108, 99, 255, 0.4);
-    --secondary: #252338;
-    --secondary-fg: #dcd7ff;
-    --muted: #181726;
-    --muted-fg: #c2c0d6;
-    --muted-sub: #9694aa;
-    --border: #2e2c40;
-    --fg: #ffffff;
+    --lilac: #c4beff;
+    --lilac-dim: rgba(196, 190, 255, 0.14);
+    --border: rgba(255, 255, 255, 0.08);
+    --fg: #f6f5ff;
+    --muted: #9b98b3;
     --bg: #0c0b14;
-    --card: #161524;
-    --card-accent: rgba(108, 99, 255, 0.12);
+    --card: #141322;
     --emerald: #34d399;
-    --emerald-bg: rgba(52, 211, 153, 0.16);
     --red: #f87171;
-    --red-bg: rgba(248, 113, 113, 0.16);
     --amber: #fbbf24;
-    --amber-bg: rgba(251, 191, 36, 0.16);
   }
   @font-face {
     font-family: "Espeak";
@@ -51,11 +42,14 @@
     position: relative;
     width: 1280px;
     height: 720px;
-    background: var(--bg);
+    background:
+      radial-gradient(900px 480px at 110% -10%, rgba(108, 99, 255, 0.18), transparent 58%),
+      radial-gradient(700px 400px at -8% 110%, rgba(108, 99, 255, 0.08), transparent 55%),
+      var(--bg);
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    padding: 44px 56px 48px;
+    padding: 52px 72px 56px;
     page-break-after: always;
     margin: 24px auto;
   }
@@ -65,868 +59,523 @@
   }
   @page { size: 1280px 720px; margin: 0; }
 
-  /* Header */
-  .slide-header {
-    margin-bottom: 22px;
-    flex: 0 0 auto;
-  }
   .eyebrow {
-    font-size: 13px; font-weight: 700; letter-spacing: 0.16em;
-    text-transform: uppercase; color: var(--primary-soft-fg); margin-bottom: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--lilac);
+    margin-bottom: 14px;
   }
-  h1.title {
-    font-size: 38px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.2; color: #ffffff;
+  h1.display {
+    font-family: Espeak, Geist, sans-serif;
+    font-size: 56px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.12;
   }
-  .sub {
-    font-size: 17px; color: var(--muted-fg); line-height: 1.5; margin-top: 6px;
+  h1.display em {
+    font-style: normal;
+    color: var(--lilac);
   }
+  .one-line {
+    margin-top: 16px;
+    font-size: 20px;
+    color: var(--muted);
+    line-height: 1.4;
+    max-width: 820px;
+  }
+  .fill { flex: 1; display: flex; flex-direction: column; justify-content: center; }
 
-  /* Body Container */
-  .slide-body {
-    flex: 1 1 auto;
-    display: flex;
-    flex-direction: column;
-    justify-content: stretch;
-    margin-bottom: 18px;
-  }
+  .stat-row { display: grid; gap: 20px; }
+  .stat-row.n3 { grid-template-columns: repeat(3, 1fr); }
+  .stat-row.n2 { grid-template-columns: 1fr 1fr; }
+  .stat-row.n4 { grid-template-columns: repeat(4, 1fr); }
 
-  /* Cards */
-  .card {
-    border: 1px solid var(--border);
-    border-radius: 16px;
+  .stat {
     background: var(--card);
-    padding: 22px 24px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 28px 28px 26px;
+    min-height: 220px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
   }
-  .card.accent {
-    background: var(--card-accent);
-    border-color: var(--primary-border);
+  .stat .num {
+    font-family: Espeak, Geist, sans-serif;
+    font-size: 72px;
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    line-height: 0.95;
+    color: var(--lilac);
   }
-  .card h3 {
-    font-size: 20px; font-weight: 700; margin-bottom: 8px; color: #ffffff;
-    display: flex; align-items: center; gap: 8px; letter-spacing: -0.01em;
+  .stat .label {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--fg);
   }
-  .card p {
-    font-size: 14.5px; line-height: 1.55; color: var(--muted-fg);
-  }
-  .card ul {
-    list-style: none; padding: 0; margin: 0;
-  }
-  .card ul li {
-    font-size: 14.5px; line-height: 1.55; color: var(--muted-fg);
-    position: relative; padding-left: 16px; margin-bottom: 8px;
-  }
-  .card ul li:last-child { margin-bottom: 0; }
-  .card ul li::before {
-    content: "•"; position: absolute; left: 0; color: var(--primary-soft-fg); font-weight: bold;
-  }
-  .card ul li strong {
-    color: #ffffff; font-weight: 600;
+  .stat .hint {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 6px;
   }
 
-  .card-footer-pill {
-    margin-top: 14px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border);
-    font-size: 13.5px;
-    font-weight: 600;
-    color: var(--primary-soft-fg);
+  .flow {
+    display: grid;
+    gap: 16px;
+    align-items: stretch;
+  }
+  .flow.n3 { grid-template-columns: 1fr 28px 1fr 28px 1fr; }
+  .flow.n4 { grid-template-columns: 1fr 24px 1fr 24px 1fr 24px 1fr; }
+  .arrow {
     display: flex;
     align-items: center;
-    gap: 6px;
+    justify-content: center;
+    color: var(--lilac);
+    font-size: 28px;
+    font-weight: 600;
   }
-
-  /* Badges */
-  .badge {
-    display: inline-flex; align-items: center; border-radius: 6px;
-    padding: 3px 8px; font-size: 12px; font-weight: 600;
-    background: var(--secondary); color: var(--secondary-fg);
+  .node {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 28px 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 260px;
   }
-  .badge.green { background: var(--emerald-bg); color: var(--emerald); }
-  .badge.red { background: var(--red-bg); color: var(--red); }
-  .badge.amber { background: var(--amber-bg); color: var(--amber); }
-  .badge.purple { background: var(--primary-soft); color: var(--primary-soft-fg); }
-
-  /* Grids */
-  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
-  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-  .grid2x3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  .grid2x2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-
-  /* Pipeline Flow */
-  .flow {
-    display: flex; align-items: stretch; gap: 12px;
+  .node.accent { background: var(--lilac-dim); border-color: rgba(196, 190, 255, 0.28); }
+  .node img { width: 40px; height: 40px; margin-bottom: 28px; }
+  .node .kicker {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--lilac);
+    margin-bottom: 10px;
   }
-  .flow .card { flex: 1; }
-  .chev {
-    align-self: center; color: var(--primary-soft-fg); font-size: 20px; font-weight: 700; flex: 0 0 auto;
-  }
-
-  /* Upstage Icons */
-  .icon-node {
-    width: 40px; height: 40px; object-fit: contain; display: block; margin-bottom: 12px;
-  }
-
-  .step-num {
-    font-family: "Geist Mono", ui-monospace, monospace;
-    font-size: 11.5px; font-weight: 700; color: var(--primary-soft-fg); letter-spacing: 0.08em;
-    margin-bottom: 6px;
-  }
-
-  .score {
-    font-size: 34px; font-weight: 800; color: var(--primary-soft-fg);
+  .node h3 {
+    font-family: Espeak, Geist, sans-serif;
+    font-size: 32px;
+    font-weight: 600;
     letter-spacing: -0.03em;
   }
+  .node p { margin-top: 10px; font-size: 16px; color: var(--muted); }
 
-  /* Compact Data Row */
-  .data-block {
-    padding: 10px 14px; border-radius: 10px; background: rgba(0,0,0,0.3);
-    border: 1px solid var(--border); margin-bottom: 10px;
+  .chip-col { display: flex; flex-direction: column; gap: 10px; }
+  .chip {
+    display: flex;
+    align-items: center;
+    height: 48px;
+    padding: 0 16px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.28);
+    border: 1px solid var(--border);
+    font-size: 16px;
+    font-weight: 600;
   }
-  .data-block:last-child { margin-bottom: 0; }
-  .data-label { font-size: 11.5px; font-weight: 700; color: var(--primary-soft-fg); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
-  .data-val { font-size: 14px; color: #ffffff; line-height: 1.5; }
 
-  /* Comparison row */
-  .comp-row {
-    padding: 11px 15px; border-radius: 10px; background: rgba(0,0,0,0.28);
-    border: 1px solid var(--border); margin-bottom: 10px;
-  }
-  .comp-row:last-child { margin-bottom: 0; }
-  .comp-label { font-size: 11.5px; font-weight: 700; color: var(--primary-soft-fg); margin-bottom: 3px; letter-spacing: 0.04em; }
-  .comp-val { font-size: 13.5px; color: #ffffff; line-height: 1.5; }
-
-  /* Footer */
   .footer {
-    position: absolute; left: 56px; right: 56px; bottom: 22px;
-    display: flex; justify-content: space-between; align-items: center;
-    font-size: 12.5px; color: var(--muted-sub);
+    position: absolute;
+    left: 72px;
+    right: 72px;
+    bottom: 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    color: #6f6c84;
   }
-  .logo-row { display: flex; align-items: center; gap: 8px; }
+  .logo-row { display: flex; align-items: center; gap: 10px; }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    height: 32px;
+    padding: 0 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--fg);
+  }
+  .badge.soft { background: var(--lilac-dim); color: var(--lilac); }
+  .vs {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 28px;
+    align-items: center;
+  }
+  .vs .side {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 36px 36px 32px;
+    min-height: 320px;
+  }
+  .vs .side.win { background: var(--lilac-dim); border-color: rgba(196, 190, 255, 0.28); }
+  .vs .big {
+    font-family: Espeak, Geist, sans-serif;
+    font-size: 80px;
+    font-weight: 600;
+    letter-spacing: -0.05em;
+    line-height: 1;
+  }
+  .vs .lose .big { color: var(--red); }
+  .vs .win .big { color: var(--emerald); }
+  .vs h3 { font-size: 22px; margin-bottom: 28px; }
+  .vs ul { list-style: none; margin-top: 28px; display: flex; flex-direction: column; gap: 10px; color: var(--muted); font-size: 17px; }
 </style>
 </head>
 <body>
 
 <!-- 1. Cover -->
-<section class="slide" style="justify-content:space-between;">
+<section class="slide">
   <div class="logo-row">
     <img alt="Upstage" src="assets/symbol.svg" style="width:28px;height:28px;" />
-    <span style="font-size:19px;font-weight:700;letter-spacing:-0.01em;">Moabora</span>
+    <span style="font-size:18px;font-weight:700;">Moabora</span>
   </div>
-
-  <div style="margin: auto 0;">
+  <div class="fill">
     <p class="eyebrow">Upstage Document Agent</p>
-    <h1 style="font-family:Espeak, Geist, sans-serif;font-size:46px;font-weight:600;letter-spacing:-0.02em;line-height:1.2;margin-bottom:18px;">
-      From notice analysis to eligibility —<br />
-      <span style="color:var(--primary-soft-fg);">Moabora</span>
-    </h1>
-    <p style="font-size:19px;color:var(--muted-fg);max-width:740px;line-height:1.5;">
-      Drop any announcement. The agent reads the brief, cross-checks your profile, and answers: <strong style="color:var(--fg);">can you apply?</strong>
-    </p>
-
-    <div style="display:flex;gap:10px;margin-top:32px;">
-      <span class="badge purple" style="padding:6px 12px;font-size:13px;">JunctionX Korea 2026</span>
-      <span class="badge" style="padding:6px 12px;font-size:13px;">Upstage Track</span>
-      <span class="badge" style="padding:6px 12px;font-size:13px;">Team Aquarium</span>
+    <h1 class="display">The agent reads<br />the brief. <em>You apply.</em></h1>
+    <p class="one-line">Notice in. Eligibility out.</p>
+    <div style="display:flex;gap:10px;margin-top:36px;">
+      <span class="badge soft">JunctionX Korea 2026</span>
+      <span class="badge">Upstage Track</span>
+      <span class="badge">Team Aquarium</span>
     </div>
   </div>
-
-  <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:16px;padding-top:20px;border-top:1px solid var(--border);">
-    <div>
-      <div class="step-num">01 UNDERSTAND</div>
-      <div style="font-size:14px;font-weight:600;">PDF · HWP · Poster Ingest</div>
-    </div>
-    <div>
-      <div class="step-num">02 JUDGE</div>
-      <div style="font-size:14px;font-weight:600;">Automated Eligibility Verdict</div>
-    </div>
-    <div>
-      <div class="step-num">03 ACT</div>
-      <div style="font-size:14px;font-weight:600;">Solar Fit Score & Checklist</div>
-    </div>
-  </div>
+  <div class="footer"><span>Understand → Judge → Act</span><span>01</span></div>
 </section>
 
 <!-- 2. Problem -->
 <section class="slide">
-  <div class="slide-header">
+  <div>
     <p class="eyebrow">Problem</p>
-    <h1 class="title">Notices are everywhere. Eligibility is not.</h1>
-    <p class="sub">Students miss vital opportunities not from lack of listings, but from the exhausting cost of manual reading.</p>
+    <h1 class="display">Can I apply?</h1>
+    <p class="one-line">Nobody answers that.</p>
   </div>
-
-  <div class="slide-body">
-    <div style="display:grid;grid-template-columns:440px 1fr;gap:20px;height:100%;">
-      <!-- User Survey Card (3 Questions matched to 3 Pains) -->
-      <div class="card accent" style="padding:22px 24px;justify-content:space-between;">
+  <div class="fill">
+    <div class="stat-row n3">
+      <div class="stat">
+        <div class="num">70%</div>
         <div>
-          <div style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:6px;background:var(--primary-soft);border:1px solid var(--primary-border);margin-bottom:12px;">
-            <span style="font-size:11.5px;font-weight:700;color:var(--primary-soft-fg);letter-spacing:0.06em;text-transform:uppercase;">User Survey · N=20 Students (Age 20–21)</span>
-          </div>
-          <h3 style="font-size:18px;line-height:1.35;margin-bottom:4px;">“What is most painful when checking notices?”</h3>
-          <p style="font-size:13px;color:var(--muted-fg);margin-bottom:14px;">Multiple-choice survey on real notice search bottlenecks.</p>
-
-          <!-- Survey Item 1 -> PAIN 01 -->
-          <div class="data-block" style="padding:10px 14px;background:rgba(0,0,0,0.35);margin-bottom:10px;border-color:var(--primary-border);">
-            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:3px;">
-              <span style="font-size:26px;font-weight:800;color:var(--primary-soft-fg);line-height:1;">70%</span>
-              <span style="font-size:12.5px;color:var(--muted-fg);font-weight:600;">14 / 20 students</span>
-            </div>
-            <div style="font-size:14px;color:#ffffff;font-weight:600;line-height:1.4;">Opening attachments & scanning long briefs (HWP/PDF)</div>
-          </div>
-
-          <!-- Survey Item 2 -> PAIN 02 -->
-          <div class="data-block" style="padding:10px 14px;background:rgba(0,0,0,0.35);margin-bottom:10px;border-color:var(--primary-border);">
-            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:3px;">
-              <span style="font-size:26px;font-weight:800;color:var(--primary-soft-fg);line-height:1;">65%</span>
-              <span style="font-size:12.5px;color:var(--muted-fg);font-weight:600;">13 / 20 students</span>
-            </div>
-            <div style="font-size:14px;color:#ffffff;font-weight:600;line-height:1.4;">Verifying buried qualification clauses in dense text</div>
-          </div>
-
-          <!-- Survey Item 3 -> PAIN 03 -->
-          <div class="data-block" style="padding:10px 14px;background:rgba(0,0,0,0.35);margin-bottom:0;border-color:var(--primary-border);">
-            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:3px;">
-              <span style="font-size:26px;font-weight:800;color:var(--primary-soft-fg);line-height:1;">55%</span>
-              <span style="font-size:12.5px;color:var(--muted-fg);font-weight:600;">11 / 20 students</span>
-            </div>
-            <div style="font-size:14px;color:#ffffff;font-weight:600;line-height:1.4;">Finding opportunities matching personal profile</div>
-          </div>
-        </div>
-        <div class="card-footer-pill" style="color:var(--primary-soft-fg);font-size:13px;margin-top:10px;padding-top:10px;">
-          Empirical Validation: Format, Eligibility & Matching Friction
+          <div class="label">Attachments</div>
+          <div class="hint">HWP · PDF · posters</div>
         </div>
       </div>
-
-      <!-- 3 Structural Pain Points directly mapped to survey -->
-      <div style="display:grid;grid-template-rows:repeat(3, 1fr);gap:12px;">
-        <div class="card" style="padding:16px 20px;justify-content:center;">
-          <div>
-            <div class="step-num" style="margin-bottom:3px;">PAIN 01 · 70% OF STUDENTS</div>
-            <h3 style="font-size:17px;margin-bottom:4px;">Unstructured PDF, HWP, & Poster Formats</h3>
-            <p style="font-size:14px;color:var(--muted-fg);line-height:1.5;">Scattered across attachments and image posters that search engines and bulletin boards cannot parse.</p>
-          </div>
+      <div class="stat">
+        <div class="num">65%</div>
+        <div>
+          <div class="label">Hidden rules</div>
+          <div class="hint">Buried in the brief</div>
         </div>
-
-        <div class="card" style="padding:16px 20px;justify-content:center;">
-          <div>
-            <div class="step-num" style="margin-bottom:3px;">PAIN 02 · 65% OF STUDENTS</div>
-            <h3 style="font-size:17px;margin-bottom:4px;">Buried Qualification Clauses in Multi-Page Briefs</h3>
-            <p style="font-size:14px;color:var(--muted-fg);line-height:1.5;">Crucial rules ("under 29", "no 4th years", "IT only") hidden in dense guidelines, discovered only after full reading.</p>
-          </div>
-        </div>
-
-        <div class="card" style="padding:16px 20px;justify-content:center;">
-          <div>
-            <div class="step-num" style="margin-bottom:3px;">PAIN 03 · 55% OF STUDENTS</div>
-            <h3 style="font-size:17px;margin-bottom:4px;">15–30 Min Matching Overhead per Opportunity</h3>
-            <p style="font-size:14px;color:var(--muted-fg);line-height:1.5;">Manual cross-checking across dozens of opportunities wastes hours of repetitive work on ineligible competitions.</p>
-          </div>
+      </div>
+      <div class="stat">
+        <div class="num">55%</div>
+        <div>
+          <div class="label">Fit</div>
+          <div class="hint">Is this for me?</div>
         </div>
       </div>
     </div>
   </div>
-
-  <div class="footer"><span>Moabora — Team Aquarium</span><span>2</span></div>
+  <div class="footer"><span>Survey · 20 students</span><span>02</span></div>
 </section>
 
 <!-- 3. Insight -->
 <section class="slide">
-  <div class="slide-header">
+  <div>
     <p class="eyebrow">Insight</p>
-    <h1 class="title">The bottleneck is reading, not listing</h1>
-    <p class="sub">Existing aggregators stop at collecting links. The real friction begins after you click.</p>
+    <h1 class="display">Reading is the bottleneck.</h1>
   </div>
-
-  <div class="slide-body">
-    <div class="grid2" style="gap:20px;">
-      <div class="card" style="padding:22px 24px;">
-        <div style="margin-bottom:12px;">
-          <div style="color:var(--red);font-size:11.5px;font-weight:700;letter-spacing:0.06em;margin-bottom:3px;">EXISTING NOTICE BOARDS</div>
-          <h3 style="font-size:19px;">List Aggregators (Wevity, ContestKorea)</h3>
-        </div>
-        <div>
-          <div class="comp-row">
-            <div class="comp-label">DOCUMENT ACCESS</div>
-            <div class="comp-val">Hands you raw attachments. You must download and read HWP/PDFs yourself.</div>
-          </div>
-          <div class="comp-row">
-            <div class="comp-label">ELIGIBILITY CHECK</div>
-            <div class="comp-val">100% manual check. User spends 15–30 minutes deciphering complex clauses.</div>
-          </div>
-          <div class="comp-row">
-            <div class="comp-label">RECOMMENDATION</div>
-            <div class="comp-val">Generic category tags with zero awareness of your actual skills or profile.</div>
-          </div>
-          <div class="comp-row" style="background:rgba(248,113,113,0.08);border-color:rgba(248,113,113,0.3);margin-bottom:0;">
-            <div class="comp-label" style="color:var(--red);">TIME TO FIND 5 MATCHING NOTICES (5 BETA TESTERS)</div>
-            <div class="comp-val"><strong style="font-size:17px;color:var(--red);">~23 Minutes</strong> · Manual skimming across 15+ tabs and attachments</div>
-          </div>
-        </div>
-        <div class="card-footer-pill" style="color:var(--red);">Outcome: 23 min wasted on disqualified briefs</div>
+  <div class="fill">
+    <div class="vs">
+      <div class="side lose">
+        <h3>Boards</h3>
+        <div class="big">23m</div>
+        <ul>
+          <li>Links only</li>
+          <li>You read HWP</li>
+          <li>You judge fit</li>
+        </ul>
       </div>
-
-      <div class="card accent" style="padding:22px 24px;">
-        <div style="margin-bottom:12px;">
-          <div style="color:var(--primary-soft-fg);font-size:11.5px;font-weight:700;letter-spacing:0.06em;margin-bottom:3px;">MOABORA DOCUMENT AGENT</div>
-          <h3 style="font-size:19px;">Autonomous Document Agent</h3>
-        </div>
-        <div>
-          <div class="comp-row">
-            <div class="comp-label">DOCUMENT ACCESS</div>
-            <div class="comp-val">Upstage AI reads & structures HWP, PDF, and poster images automatically.</div>
-          </div>
-          <div class="comp-row">
-            <div class="comp-label">ELIGIBILITY CHECK</div>
-            <div class="comp-val">Instant 6-rule matching (<span class="badge green">Eligible</span> <span class="badge amber">Review</span> <span class="badge red">Ineligible</span>) with explicit reasons.</div>
-          </div>
-          <div class="comp-row">
-            <div class="comp-label">RECOMMENDATION</div>
-            <div class="comp-val">Solar Pro 4 calculates personalized fit score (0–100) + tailored rationale.</div>
-          </div>
-          <div class="comp-row" style="background:rgba(52,211,153,0.08);border-color:rgba(52,211,153,0.3);margin-bottom:0;">
-            <div class="comp-label" style="color:var(--emerald);">TIME TO FIND 5 MATCHING NOTICES (5 BETA TESTERS)</div>
-            <div class="comp-val"><strong style="font-size:17px;color:var(--emerald);">~5 Minutes</strong> · <span style="color:var(--emerald);font-weight:700;">78% time saved (4.6× faster)</span> via auto-verdicts & Solar fit</div>
-          </div>
-        </div>
-        <div class="card-footer-pill" style="color:var(--emerald);">Outcome: Instant Verdict & Submission Checklist</div>
+      <div class="arrow">→</div>
+      <div class="side win">
+        <h3>Moabora</h3>
+        <div class="big">5m</div>
+        <ul>
+          <li>Agent reads</li>
+          <li>Verdict + reason</li>
+          <li>Solar fit score</li>
+        </ul>
       </div>
     </div>
   </div>
-
-  <div class="footer">
-    <span style="color:var(--primary-soft-fg);font-weight:600;">Beyond document understanding — getting the work done.</span>
-    <span>3</span>
-  </div>
+  <div class="footer"><span>5 beta testers · 4.6× faster</span><span>03</span></div>
 </section>
 
 <!-- 4. Solution -->
 <section class="slide">
-  <div class="slide-header">
+  <div>
     <p class="eyebrow">Solution</p>
-    <h1 class="title">Understand → Judge → Act</h1>
-    <p class="sub">A three-tier pipeline transforming raw announcement files into verified application actions.</p>
+    <h1 class="display">Three moves. Done.</h1>
   </div>
-
-  <div class="slide-body">
-    <div class="flow">
-      <div class="card" style="padding:24px;">
+  <div class="fill">
+    <div class="flow n3">
+      <div class="node">
+        <div class="kicker">01</div>
         <div>
-          <div class="step-num">TIER 01</div>
-          <h3 style="font-size:22px;margin-bottom:4px;">Understand</h3>
-          <p style="color:var(--primary-soft-fg);font-size:14px;font-weight:600;margin-bottom:14px;">Document Intelligence</p>
-          <div class="data-block">
-            <div class="data-label">Supported Ingest</div>
-            <div class="data-val">PDF briefs, HWP attachments, image posters, web HTML.</div>
-          </div>
-          <div class="data-block">
-            <div class="data-label">Upstage Core</div>
-            <div class="data-val">Document Parse with full layout analysis & table OCR.</div>
-          </div>
+          <h3>Understand</h3>
+          <p>PDF · HWP · poster</p>
         </div>
-        <div class="card-footer-pill">Output: 10 Structured Fields + OCR</div>
       </div>
-
-      <div class="chev">→</div>
-
-      <div class="card accent" style="padding:24px;">
+      <div class="arrow">→</div>
+      <div class="node accent">
+        <div class="kicker">02</div>
         <div>
-          <div class="step-num">TIER 02</div>
-          <h3 style="font-size:22px;margin-bottom:4px;">Judge</h3>
-          <p style="color:var(--primary-soft-fg);font-size:14px;font-weight:600;margin-bottom:14px;">Eligibility Engine</p>
-          <div class="data-block">
-            <div class="data-label">Rule Extraction</div>
-            <div class="data-val">Grade, enrollment, age limit, major, region, team size.</div>
-          </div>
-          <div class="data-block">
-            <div class="data-label">Profile Matching</div>
-            <div class="data-val">Cross-checks rules against verified profile in real time.</div>
-          </div>
+          <h3>Judge</h3>
+          <p>Eligible / Review / No</p>
         </div>
-        <div class="card-footer-pill">Output: Verdict (<span class="badge green">Eligible</span>/<span class="badge red">No</span>) + Reasons</div>
       </div>
-
-      <div class="chev">→</div>
-
-      <div class="card" style="padding:24px;">
+      <div class="arrow">→</div>
+      <div class="node">
+        <div class="kicker">03</div>
         <div>
-          <div class="step-num">TIER 03</div>
-          <h3 style="font-size:22px;margin-bottom:4px;">Act</h3>
-          <p style="color:var(--primary-soft-fg);font-size:14px;font-weight:600;margin-bottom:14px;">Prioritize & Execute</p>
-          <div class="data-block">
-            <div class="data-label">Solar Fit Score</div>
-            <div class="data-val">0–100 match rating + personalized 1-sentence rationale.</div>
-          </div>
-          <div class="data-block">
-            <div class="data-label">Preparation</div>
-            <div class="data-val">Checklist, 1-click apply, and Notice → Doc Chat handoff.</div>
-          </div>
+          <h3>Act</h3>
+          <p>Fit score · checklist</p>
         </div>
-        <div class="card-footer-pill">Output: Fit Score + Submission Checklist</div>
       </div>
     </div>
   </div>
-
-  <div class="footer"><span>Moabora — Team Aquarium</span><span>4</span></div>
+  <div class="footer"><span>Powered by Upstage</span><span>04</span></div>
 </section>
 
 <!-- 5. Journey -->
 <section class="slide">
-  <div class="slide-header">
-    <p class="eyebrow">User Journey</p>
-    <h1 class="title">From zero to application in 4 steps</h1>
-    <p class="sub">A frictionless 2-minute workflow from profile setup to finalized application decision.</p>
+  <div>
+    <p class="eyebrow">Journey</p>
+    <h1 class="display">Four steps.</h1>
   </div>
-
-  <div class="slide-body">
-    <div class="grid2x2" style="gap:20px;">
-      <div class="card" style="padding:22px 24px;">
+  <div class="fill">
+    <div class="stat-row n4">
+      <div class="stat" style="min-height:240px;">
+        <div class="num" style="font-size:48px;">01</div>
         <div>
-          <div class="step-num">STEP 01 · 1-MINUTE ONBOARDING</div>
-          <h3 style="font-size:20px;margin-bottom:10px;">Profile Creation</h3>
-          <ul>
-            <li><strong>Multi-Channel Input:</strong> Certificate (UIE), GitHub/blog link, manual fields, or short note (Solar).</li>
-            <li><strong>Unified Storage:</strong> Merges university, year, status, skills, and interests into a single profile.</li>
-          </ul>
+          <div class="label">Profile</div>
+          <div class="hint">Link · cert · note</div>
         </div>
-        <div class="card-footer-pill">Deliverable: Verified Student Profile</div>
       </div>
-
-      <div class="card" style="padding:22px 24px;">
+      <div class="stat" style="min-height:240px;">
+        <div class="num" style="font-size:48px;">02</div>
         <div>
-          <div class="step-num">STEP 02 · MULTI-CHANNEL INGEST</div>
-          <h3 style="font-size:20px;margin-bottom:10px;">Notice Collection</h3>
-          <ul>
-            <li><strong>Flexible Ingest:</strong> Drag & drop PDF / HWP files, paste announcement URLs, or 1-click crawler.</li>
-            <li><strong>Automated Crawling:</strong> Direct collection from Wevity and ContestKorea with HWP extraction.</li>
-          </ul>
+          <div class="label">Collect</div>
+          <div class="hint">File · URL · crawl</div>
         </div>
-        <div class="card-footer-pill">Deliverable: Multi-Modal Ingestion Pipeline</div>
       </div>
-
-      <div class="card" style="padding:22px 24px;">
+      <div class="stat" style="min-height:240px;">
+        <div class="num" style="font-size:48px;">03</div>
         <div>
-          <div class="step-num">STEP 03 · PERSONALIZED RANKING</div>
-          <h3 style="font-size:20px;margin-bottom:10px;">Feed & Fit Scoring</h3>
-          <ul>
-            <li><strong>Instant Verdicts:</strong> Live eligibility badges (<span class="badge green">Eligible</span> <span class="badge amber">Review</span> <span class="badge red">Ineligible</span>) on every card.</li>
-            <li><strong>Solar Pro 4 Fit:</strong> Tailored fit score (0–100) with personalized match rationale.</li>
-          </ul>
+          <div class="label">Feed</div>
+          <div class="hint">Badge + score</div>
         </div>
-        <div class="card-footer-pill">Deliverable: Intelligent Ranked Opportunity Feed</div>
       </div>
-
-      <div class="card" style="padding:22px 24px;">
+      <div class="stat" style="min-height:240px;">
+        <div class="num" style="font-size:48px;">04</div>
         <div>
-          <div class="step-num">STEP 04 · PREPARATION & ACTION</div>
-          <h3 style="font-size:20px;margin-bottom:10px;">Execution & Doc Chat</h3>
-          <ul>
-            <li><strong>Review Checklist:</strong> Ambiguous clauses flagged for human verification before apply.</li>
-            <li><strong>Context Handoff:</strong> 1-click transition to Document Chat with source file attached and prompts filled.</li>
-          </ul>
+          <div class="label">Apply</div>
+          <div class="hint">Checklist · chat</div>
         </div>
-        <div class="card-footer-pill">Deliverable: Verified Application Submission</div>
       </div>
     </div>
   </div>
-
-  <div class="footer"><span>Moabora — Team Aquarium</span><span>5</span></div>
+  <div class="footer"><span>About two minutes</span><span>05</span></div>
 </section>
 
-<!-- 6. Studio pipeline -->
+<!-- 6. Studio -->
 <section class="slide">
-  <div class="slide-header">
+  <div>
     <p class="eyebrow">Upstage Studio</p>
-    <h1 class="title">Every notice flows through one 4-node agent</h1>
-    <p class="sub">All ingest paths (upload, link, crawler) execute the Studio Agent via REST API with zero bypass.</p>
+    <h1 class="display">One agent. Zero bypass.</h1>
   </div>
-
-  <div class="slide-body">
-    <div class="flow">
-      <div class="card" style="padding:22px 20px;">
+  <div class="fill">
+    <div class="flow n4">
+      <div class="node">
+        <img alt="Parse" src="assets/document-parse.svg" />
         <div>
-          <img alt="Document Parse" class="icon-node" src="assets/document-parse.svg" />
-          <div class="step-num">NODE 01</div>
-          <h3 style="font-size:22px;margin-bottom:12px;">Parse</h3>
-          <div class="data-block">
-            <div class="data-label">Engine</div>
-            <div class="data-val">Upstage Document AI with OCR.</div>
-          </div>
-          <div class="data-block">
-            <div class="data-label">Function</div>
-            <div class="data-val">Converts PDF, HWP & posters to clean Markdown with tables.</div>
-          </div>
+          <div class="kicker">Node 01</div>
+          <h3>Parse</h3>
         </div>
-        <div class="card-footer-pill">OCR Digitization</div>
       </div>
-
-      <div class="chev">→</div>
-
-      <div class="card" style="padding:22px 20px;">
+      <div class="arrow">→</div>
+      <div class="node">
+        <img alt="Classify" src="assets/studio-agents.svg" />
         <div>
-          <img alt="Studio Agents" class="icon-node" src="assets/studio-agents.svg" />
-          <div class="step-num">NODE 02</div>
-          <h3 style="font-size:22px;margin-bottom:12px;">Classify</h3>
-          <div class="data-block">
-            <div class="data-label">Engine</div>
-            <div class="data-val">Custom 6-Class Prompt Classifier.</div>
-          </div>
-          <div class="data-block">
-            <div class="data-label">Function</div>
-            <div class="data-val">Categorizes into Contest, Hackathon, Grant, Activity, Job, Others.</div>
-          </div>
+          <div class="kicker">Node 02</div>
+          <h3>Classify</h3>
         </div>
-        <div class="card-footer-pill">Domain Categorization</div>
       </div>
-
-      <div class="chev">→</div>
-
-      <div class="card" style="padding:22px 20px;">
+      <div class="arrow">→</div>
+      <div class="node">
+        <img alt="Extract" src="assets/information-extract.svg" />
         <div>
-          <img alt="Information Extract" class="icon-node" src="assets/information-extract.svg" />
-          <div class="step-num">NODE 03</div>
-          <h3 style="font-size:22px;margin-bottom:12px;">Extract</h3>
-          <div class="data-block">
-            <div class="data-label">Engine</div>
-            <div class="data-val">10-Field Information Extraction.</div>
-          </div>
-          <div class="data-block">
-            <div class="data-label">Function</div>
-            <div class="data-val">Pulls title, organizer, eligibility text, dates, rewards, URL.</div>
-          </div>
+          <div class="kicker">Node 03</div>
+          <h3>Extract</h3>
         </div>
-        <div class="card-footer-pill">Metadata Structuring</div>
       </div>
-
-      <div class="chev">→</div>
-
-      <div class="card" style="padding:22px 20px;">
+      <div class="arrow">→</div>
+      <div class="node accent">
+        <img alt="Instruct" src="assets/solar-llm.svg" />
         <div>
-          <img alt="Solar" class="icon-node" src="assets/solar-llm.svg" />
-          <div class="step-num">NODE 04</div>
-          <h3 style="font-size:22px;margin-bottom:12px;">Instruct</h3>
-          <div class="data-block">
-            <div class="data-label">Engine</div>
-            <div class="data-val">Solar Decision Logic & Synthesis.</div>
-          </div>
-          <div class="data-block">
-            <div class="data-label">Function</div>
-            <div class="data-val">Summary + rules JSON, including courses / preferred / review clauses.</div>
-          </div>
+          <div class="kicker">Node 04</div>
+          <h3>Instruct</h3>
         </div>
-        <div class="card-footer-pill">Rule & Task Synthesis</div>
       </div>
     </div>
   </div>
-
-  <div class="footer">
-    <span style="font-family:'Geist Mono', monospace;font-size:12px;color:var(--muted-fg);">REST API: POST /v2/files → POST /v2/responses → Polling snapshot accumulator</span>
-    <span>6</span>
-  </div>
+  <div class="footer"><span>agt_ · REST v2</span><span>06</span></div>
 </section>
 
 <!-- 7. Products -->
 <section class="slide">
-  <div class="slide-header">
+  <div>
     <p class="eyebrow">Upstage Products</p>
-    <h1 class="title">All four product lines in production</h1>
-    <p class="sub">Comprehensive integration across Upstage's Document AI and LLM ecosystem.</p>
+    <h1 class="display">All four. In production.</h1>
   </div>
-
-  <div class="slide-body">
-    <div class="grid4" style="gap:18px;">
-      <div class="card accent" style="padding:22px 20px;">
-        <div>
-          <img alt="Studio Agents" class="icon-node" src="assets/studio-agents.svg" />
-          <h3 style="font-size:21px;margin-bottom:12px;">Studio Agents</h3>
-          <div class="data-block">
-            <div class="data-label">Primary Role</div>
-            <div class="data-val">Core 4-Node Notice Processing Pipeline (`agt_...`).</div>
-          </div>
-          <div class="data-block">
-            <div class="data-label">Architecture</div>
-            <div class="data-val">Accumulating snapshot map ensures full node visibility.</div>
-          </div>
-        </div>
-        <div class="card-footer-pill">REST /v2/responses</div>
+  <div class="fill">
+    <div class="stat-row n4">
+      <div class="stat" style="min-height:260px;">
+        <img alt="Studio" src="assets/studio-agents.svg" style="width:40px;height:40px;" />
+        <div class="label">Studio</div>
       </div>
-
-      <div class="card" style="padding:22px 20px;">
-        <div>
-          <img alt="Document Parse" class="icon-node" src="assets/document-parse.svg" />
-          <h3 style="font-size:21px;margin-bottom:12px;">Document Parse</h3>
-          <div class="data-block">
-            <div class="data-label">Primary Role</div>
-            <div class="data-val">High-Precision OCR & Layout Analysis.</div>
-          </div>
-          <div class="data-block">
-            <div class="data-label">Integration</div>
-            <div class="data-val">Powers `parse_document` tool in Document Chat.</div>
-          </div>
-        </div>
-        <div class="card-footer-pill">/v1/document-digitization</div>
+      <div class="stat" style="min-height:260px;">
+        <img alt="Parse" src="assets/document-parse.svg" style="width:40px;height:40px;" />
+        <div class="label">Parse</div>
       </div>
-
-      <div class="card" style="padding:22px 20px;">
-        <div>
-          <img alt="Information Extract" class="icon-node" src="assets/information-extract.svg" />
-          <h3 style="font-size:21px;margin-bottom:12px;">Information Extract</h3>
-          <div class="data-block">
-            <div class="data-label">Primary Role</div>
-            <div class="data-val">Zero-Shot Schema-Driven Document Extraction.</div>
-          </div>
-          <div class="data-block">
-            <div class="data-label">Integration</div>
-            <div class="data-val">Certificate parsing & `extract_information` chat tool.</div>
-          </div>
-        </div>
-        <div class="card-footer-pill">/v1/information-extraction</div>
+      <div class="stat" style="min-height:260px;">
+        <img alt="Extract" src="assets/information-extract.svg" style="width:40px;height:40px;" />
+        <div class="label">Extract</div>
       </div>
-
-      <div class="card" style="padding:22px 20px;">
-        <div>
-          <img alt="Solar Pro 4" class="icon-node" src="assets/solar-llm.svg" />
-          <h3 style="font-size:21px;margin-bottom:12px;">Solar Pro 4</h3>
-          <div class="data-block">
-            <div class="data-label">Primary Role</div>
-            <div class="data-val">Decision Intelligence & Multi-Tool Orchestration.</div>
-          </div>
-          <div class="data-block">
-            <div class="data-label">Integration</div>
-            <div class="data-val">Fit scores, link/note profile extract, streamed tool-calling.</div>
-          </div>
-        </div>
-        <div class="card-footer-pill">Direct API (OpenAI-Compatible)</div>
+      <div class="stat" style="min-height:260px;">
+        <img alt="Solar" src="assets/solar-llm.svg" style="width:40px;height:40px;" />
+        <div class="label">Solar Pro 4</div>
       </div>
     </div>
   </div>
-
-  <div class="footer"><span>Moabora — Team Aquarium</span><span>7</span></div>
+  <div class="footer"><span>One service</span><span>07</span></div>
 </section>
 
 <!-- 8. Engineering -->
 <section class="slide">
-  <div class="slide-header">
+  <div>
     <p class="eyebrow">Engineering</p>
-    <h1 class="title">Service-grade reliability & transparency</h1>
-    <p class="sub">Engineered to handle real-world document edge cases and provide full visibility into AI execution.</p>
+    <h1 class="display">Built to last the demo.</h1>
   </div>
-
-  <div class="slide-body">
-    <div class="grid2x3" style="gap:18px;">
-      <div class="card" style="padding:20px 22px;">
-        <div>
-          <div class="step-num">ROBUSTNESS</div>
-          <h3 style="font-size:18.5px;margin-bottom:6px;">JSON Sanitization</h3>
-          <p style="font-size:14px;line-height:1.55;">Pre-processes double-encoded Studio Instruct outputs and strips citation markers (【†1】) seamlessly.</p>
-        </div>
-        <div class="card-footer-pill">Parser Resilience</div>
+  <div class="fill">
+    <div class="stat-row n3">
+      <div class="stat">
+        <div class="num" style="font-size:40px;">Resume</div>
+        <div class="label">Refresh-safe sessions</div>
       </div>
-
-      <div class="card" style="padding:20px 22px;">
-        <div>
-          <div class="step-num">STATE MANAGEMENT</div>
-          <h3 style="font-size:18.5px;margin-bottom:6px;">Snapshot Accumulation</h3>
-          <p style="font-size:14px;line-height:1.55;">Maintains an accumulating map across Studio polling snapshots so intermediate node outputs are preserved.</p>
-        </div>
-        <div class="card-footer-pill">Full Node Visibility</div>
+      <div class="stat">
+        <div class="num" style="font-size:40px;">Stream</div>
+        <div class="label">Live NDJSON + reasoning</div>
       </div>
-
-      <div class="card" style="padding:20px 22px;">
-        <div>
-          <div class="step-num">TRANSPARENCY</div>
-          <h3 style="font-size:18.5px;margin-bottom:6px;">Live NDJSON Streams</h3>
-          <p style="font-size:14px;line-height:1.55;">Streams pipeline stages, intermediate artifacts, and Solar reasoning tokens in real time to the client.</p>
-        </div>
-        <div class="card-footer-pill">Streamed Reasoning</div>
-      </div>
-
-      <div class="card" style="padding:20px 22px;">
-        <div>
-          <div class="step-num">RELIABILITY</div>
-          <h3 style="font-size:18.5px;margin-bottom:6px;">Resumable Sessions</h3>
-          <p style="font-size:14px;line-height:1.55;">Server-side workflow sessions survive browser refreshes, preventing duplicate execution and billing.</p>
-        </div>
-        <div class="card-footer-pill">Refresh-Safe Architecture</div>
-      </div>
-
-      <div class="card" style="padding:20px 22px;">
-        <div>
-          <div class="step-num">OPTIMIZATION</div>
-          <h3 style="font-size:18.5px;margin-bottom:6px;">Dual-Layer Caching</h3>
-          <p style="font-size:14px;line-height:1.55;">SHA-256 document parse cache + profile/notice hash-keyed Solar recommendation cache avoids redundant calls.</p>
-        </div>
-        <div class="card-footer-pill">Cost & Latency Control</div>
-      </div>
-
-      <div class="card" style="padding:20px 22px;">
-        <div>
-          <div class="step-num">ACCURACY</div>
-          <h3 style="font-size:18.5px;margin-bottom:6px;">Deterministic Matcher</h3>
-          <p style="font-size:14px;line-height:1.55;">Evaluates 6 criteria (grade, status, age, major, region, team) with clear per-rule reason breakdown.</p>
-        </div>
-        <div class="card-footer-pill">Explainable AI Verdict</div>
+      <div class="stat">
+        <div class="num" style="font-size:40px;">Match</div>
+        <div class="label">6 rules, with reasons</div>
       </div>
     </div>
   </div>
-
-  <div class="footer"><span>Moabora — Team Aquarium</span><span>8</span></div>
+  <div class="footer"><span>Cache · sanitize · accumulate</span><span>08</span></div>
 </section>
 
 <!-- 9. Scope -->
 <section class="slide">
-  <div class="slide-header">
-    <p class="eyebrow">Scope & Roadmap</p>
-    <h1 class="title">3-day hackathon execution & future milestones</h1>
-    <p class="sub">Prioritized a rock-solid end-to-end loop while laying an extensible foundation for production scale.</p>
+  <div>
+    <p class="eyebrow">Scope</p>
+    <h1 class="display">Ship the loop. Cut the rest.</h1>
   </div>
-
-  <div class="slide-body">
-    <div class="grid3" style="gap:20px;">
-      <div class="card" style="padding:24px;">
-        <div>
-          <div style="color:var(--emerald);font-size:12px;font-weight:700;letter-spacing:0.06em;margin-bottom:4px;">SHIPPED MVP</div>
-          <h3 style="font-size:21px;margin-bottom:12px;">Delivered in 3 Days</h3>
-          <ul style="margin-top:10px;">
-            <li><strong>3 Ingest paths:</strong> Files, URLs, 2-site Crawlers.</li>
-            <li><strong>4-node Studio Agent:</strong> Full error handling.</li>
-            <li><strong>3 profile paths:</strong> Link, certificate, manual + Solar.</li>
-            <li><strong>Eligibility engine:</strong> 6 rules + Review checklist.</li>
-            <li><strong>NDJSON streams & Chat:</strong> Notice handoff + 3 tools.</li>
-            <li><strong>Supabase Cloud:</strong> Full Docker deployment.</li>
-          </ul>
+  <div class="fill">
+    <div class="stat-row n3">
+      <div class="stat" style="min-height:280px;">
+        <div class="kicker" style="color:var(--emerald);font-size:12px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;">Shipped</div>
+        <div class="chip-col">
+          <div class="chip">3 ingest paths</div>
+          <div class="chip">4-node agent</div>
+          <div class="chip">Eligibility + chat</div>
         </div>
-        <div class="card-footer-pill" style="color:var(--emerald);">100% Production Ready</div>
       </div>
-
-      <div class="card" style="padding:24px;">
-        <div>
-          <div style="color:var(--muted-fg);font-size:12px;font-weight:700;letter-spacing:0.06em;margin-bottom:4px;">CONSCIOUSLY SCOPED OUT</div>
-          <h3 style="font-size:21px;margin-bottom:12px;">Deferred Complexity</h3>
-          <ul style="margin-top:10px;">
-            <li><strong>Multi-Tenant Auth:</strong> Single-profile demo model.</li>
-            <li><strong>Push Notifications:</strong> Excluded email/push daemons.</li>
-            <li><strong>Scheduled Crawlers:</strong> Manual trigger crawling only.</li>
-          </ul>
+      <div class="stat" style="min-height:280px;">
+        <div class="kicker" style="color:var(--muted);font-size:12px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;">Out</div>
+        <div class="chip-col">
+          <div class="chip">Multi-user auth</div>
+          <div class="chip">Push alerts</div>
+          <div class="chip">Cron crawler</div>
         </div>
-        <div class="card-footer-pill" style="color:var(--muted-fg);">Avoided Low-Demo Bloat</div>
       </div>
-
-      <div class="card accent" style="padding:24px;">
-        <div>
-          <div style="color:var(--primary-soft-fg);font-size:12px;font-weight:700;letter-spacing:0.06em;margin-bottom:4px;">NEXT MILESTONES</div>
-          <h3 style="font-size:21px;margin-bottom:12px;">Production Roadmap</h3>
-          <ul style="margin-top:10px;">
-            <li><strong>Multi-User Auth:</strong> Supabase Auth + RLS ready.</li>
-            <li><strong>Proactive Alerts:</strong> D-3 deadline telegram alerts.</li>
-            <li><strong>Application Drafts:</strong> Solar statement writer.</li>
-            <li><strong>Team Matching:</strong> Connect fellow applicants.</li>
-          </ul>
+      <div class="stat" style="min-height:280px;">
+        <div class="kicker" style="color:var(--lilac);font-size:12px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;">Next</div>
+        <div class="chip-col">
+          <div class="chip">Auth + RLS</div>
+          <div class="chip">Deadline pings</div>
+          <div class="chip">Draft + teams</div>
         </div>
-        <div class="card-footer-pill" style="color:var(--primary-soft-fg);">Clear Scaling Path</div>
       </div>
     </div>
   </div>
-
-  <div class="footer"><span>Moabora — Team Aquarium</span><span>9</span></div>
+  <div class="footer"><span>3-day hackathon</span><span>09</span></div>
 </section>
 
-<!-- 10. Evaluation -->
+<!-- 10. Why -->
 <section class="slide">
-  <div class="slide-header">
+  <div>
     <p class="eyebrow">Why it holds up</p>
-    <h1 class="title">Four bets we actually shipped</h1>
-    <p class="sub">Depth of the stack, a complete loop, a sharper problem, and honest scoping — not a demo shell.</p>
+    <h1 class="display">Four bets. Shipped.</h1>
   </div>
-
-  <div class="slide-body">
-    <div class="grid2x2" style="gap:20px;">
-      <div class="card" style="padding:22px 24px;">
-        <div>
-          <h3 style="font-size:20px;margin-bottom:10px;">Upstage Technology</h3>
-          <ul>
-            <li>Custom 4-node Studio Agent (`agt_...`) via REST v2 APIs without bypass.</li>
-            <li>Production deployment of all 4 Upstage product lines.</li>
-            <li>Robust handling of double-encoded JSON and live streaming reasoning.</li>
-          </ul>
-        </div>
-        <div class="card-footer-pill">Max Technical Complexity</div>
+  <div class="fill">
+    <div class="stat-row n4">
+      <div class="stat" style="min-height:240px;">
+        <div class="num" style="font-size:36px;">Stack</div>
+        <div class="label">All 4 products</div>
       </div>
-
-      <div class="card" style="padding:22px 24px;">
-        <div>
-          <h3 style="font-size:20px;margin-bottom:10px;">Service Completeness</h3>
-          <ul>
-            <li>End-to-end loop: Landing → Profile → Crawl/Ingest → Feed → Detail → Chat.</li>
-            <li>Live data from Wevity & ContestKorea with real HWP attachments.</li>
-            <li>Resumable workflow sessions that survive browser refresh.</li>
-          </ul>
-        </div>
-        <div class="card-footer-pill">Full Production Loop</div>
+      <div class="stat" style="min-height:240px;">
+        <div class="num" style="font-size:36px;">Loop</div>
+        <div class="label">Live end-to-end</div>
       </div>
-
-      <div class="card" style="padding:22px 24px;">
-        <div>
-          <h3 style="font-size:20px;margin-bottom:10px;">Idea Creativity</h3>
-          <ul>
-            <li>Shifting paradigm from "Listing links" to "Delivering application verdicts".</li>
-            <li>Reads HWP attachments and posters that traditional aggregators skip.</li>
-            <li>Transparent UX displaying live agent thought process and rule proofs.</li>
-          </ul>
-        </div>
-        <div class="card-footer-pill">Novel Problem Framing</div>
+      <div class="stat" style="min-height:240px;">
+        <div class="num" style="font-size:36px;">Verdict</div>
+        <div class="label">Not just links</div>
       </div>
-
-      <div class="card" style="padding:22px 24px;">
-        <div>
-          <h3 style="font-size:20px;margin-bottom:10px;">Product Planning</h3>
-          <ul>
-            <li>Clear problem focus: Relieving student document fatigue.</li>
-            <li>Thoughtful MVP scoping with explicit trade-offs and roadmap.</li>
-            <li>Fully documented architecture, data models, and RLS-ready schema.</li>
-          </ul>
-        </div>
-        <div class="card-footer-pill">Execution Rigor</div>
+      <div class="stat" style="min-height:240px;">
+        <div class="num" style="font-size:36px;">Scope</div>
+        <div class="label">Honest cuts</div>
       </div>
     </div>
   </div>
-
-  <div class="footer"><span>Moabora — Team Aquarium</span><span>10</span></div>
+  <div class="footer"><span>Not a demo shell</span><span>10</span></div>
 </section>
 
 <!-- 11. Demo -->
-<section class="slide" style="justify-content:space-between;">
-  <div class="slide-header">
-    <p class="eyebrow">Live Demo</p>
-    <h1 class="title">Try Moabora live in production</h1>
-    <p class="sub">Fully deployed autonomous document agent running on Supabase Cloud & Upstage Studio Agent APIs.</p>
+<section class="slide">
+  <div>
+    <p class="eyebrow">Live</p>
+    <h1 class="display">Try it now.</h1>
   </div>
-
-  <div class="slide-body" style="justify-content:center;align-items:center;">
-    <div style="display:inline-flex;flex-direction:column;align-items:center;gap:18px;padding:48px 64px;border-radius:24px;background:rgba(255,255,255,0.02);border:1px solid var(--primary-border);">
-      <div style="display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:20px;background:var(--emerald-bg);border:1px solid rgba(52,211,153,0.3);">
-        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--emerald);"></span>
-        <span style="font-size:13px;font-weight:700;color:var(--emerald);letter-spacing:0.06em;text-transform:uppercase;">Live Production Service</span>
-      </div>
-      <a href="https://moabora.sharp0802.com" target="_blank" style="font-family:Espeak, Geist, sans-serif;font-size:48px;font-weight:700;letter-spacing:-0.02em;color:#ffffff;text-decoration:none;display:inline-flex;align-items:center;gap:12px;">
-        <span style="color:var(--primary-soft-fg);">https://</span>moabora.sharp0802.com
-      </a>
-      <p style="font-size:15px;color:var(--muted-fg);margin-top:4px;">Experience the full document intelligence workflow live on web</p>
-    </div>
+  <div class="fill" style="align-items:flex-start;justify-content:center;">
+    <a href="https://moabora.sharp0802.com" target="_blank" style="font-family:Espeak, Geist, sans-serif;font-size:52px;font-weight:600;letter-spacing:-0.03em;color:var(--fg);text-decoration:none;">
+      moabora.sharp0802.com
+    </a>
+    <p class="one-line" style="margin-top:20px;">The agent reads the brief. You just apply.</p>
   </div>
-
   <div class="footer">
-    <span style="font-family:Espeak, Geist, sans-serif;font-size:18px;font-weight:600;">
-      The agent reads the brief. <span style="color:var(--primary-soft-fg);">You just apply.</span>
-    </span>
     <span class="logo-row">
       <img alt="Upstage" src="assets/symbol.svg" style="width:16px;height:16px;" />
-      <span>Powered by Upstage</span>
-      <span style="margin-left:16px;">11</span>
+      <span>Team Aquarium · Powered by Upstage</span>
     </span>
+    <span>11</span>
   </div>
 </section>
 
